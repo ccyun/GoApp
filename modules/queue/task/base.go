@@ -9,10 +9,6 @@ type base struct {
 	o orm.Ormer
 }
 
-func (B *base) newTask(taskInfo model.Queue) {
-
-}
-
 //Begin 开启事务
 func (B *base) Begin() error {
 	B.o = orm.NewOrm()
@@ -29,11 +25,28 @@ func (B *base) Commit() error {
 	return B.o.Commit()
 }
 
+//NewTask 新任务对象
+func (B *base) NewTask(taskInfo model.Queue) error {
+
+	return nil
+}
+
+//CreateFeed 创建Feed
+func (B *base) CreateFeed() error {
+	return nil
+}
+
 //CreateRelation 创建接收者关系
 func (B *base) CreateRelation() error {
 	return nil
 }
 
+//GetPublishScopeUsers 分析发布范围
+func (B *base) GetPublishScopeUsers() error {
+	return nil
+}
+
+//CreateUnread 创建未读计数
 func (B *base) CreateUnread() error {
 	return nil
 }

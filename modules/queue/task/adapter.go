@@ -11,9 +11,11 @@ type Tasker interface {
 	Begin() error
 	Rollback() error
 	Commit() error
-	Run() error
+	NewTask(model.Queue) error
+	CreateFeed() error
 	CreateRelation() error
 	CreateUnread() error
+	GetPublishScopeUsers() error
 	SendMsg() error
 }
 
@@ -90,6 +92,12 @@ func (q *queue) runTask() bool {
 	//开启事务
 	if err := q.adapter.Begin(); err != nil {
 		logs.Error(err)
+		q.adapter.Rollback()
+		return false
+	}
+	if err := q.adapter.NewTask(q.taskInfo); err != nil {
+		logs.Error(err)
+		q.adapter.Rollback()
 		return false
 	}
 
