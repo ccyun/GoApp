@@ -16,7 +16,7 @@ type Queue struct {
 	Status       uint8  `orm:"column(status)"`
 	TryCount     uint8  `orm:"column(try_count)"`
 	SetTimer     uint64 `orm:"column(set_timer)"`
-	ModifiedAt   uint64 `orm:"column(modified_at),index"`
+	ModifiedAt   uint64 `orm:"column(modified_at)"`
 }
 
 //TableName 表名

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ccyun/GoApp/modules/queue"
-	"github.com/ccyun/GoApp/modules/queue/task"
+	"github.com/ccyun/GoApp/module/queue"
+	"github.com/ccyun/GoApp/module/queue/mode"
 )
 
 func main() {
@@ -13,5 +13,5 @@ func main() {
 
 }
 func work() {
-	task.Run()
+	mode.Run()
 }
