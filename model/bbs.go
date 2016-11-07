@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -62,32 +61,35 @@ func (B *Bbs) Update(ID uint64) error {
 
 //afterSelectHandle 查询结果处理
 func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
-	var (
-		datas []Bbs
-		err   error
-	)
+	var err error
 	for key, item := range data {
+		//处理发布范围
 		item.PublishScope, err = B.publishScopeHandle(item.PublishScopeString)
-		if err != nil {
-			logs.Error("publishScopeHandle err,bbsID:", item.ID, "PublishScopeString", item.PublishScopeString)
+
+		if err == nil {
+			data[key] = item
 		}
-		datas[key] = item
 	}
-	return datas, nil
+	return data, err
 }
 
 //publishScopeHandle 处理发布范围
 func (B *Bbs) publishScopeHandle(publishScopeString string) (map[string][]uint64, error) {
-	var data map[string][]uint64
+	var data = make(map[string][]uint64)
 	var publishScope map[string][]string
-	err := json.Unmarshal([]byte(publishScopeString), &publishScope)
+	var err error
+	err = json.Unmarshal([]byte(publishScopeString), &publishScope)
 	for k, r := range publishScope {
+		data[k] = []uint64{}
 		for _, v := range r {
 			id, _ := strconv.Atoi(v)
 			if id > 0 {
 				data[k] = append(data[k], uint64(id))
 			}
 		}
+	}
+	if len(data) > 0 {
+		err = nil
 	}
 	return data, err
 }

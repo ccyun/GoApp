@@ -19,7 +19,10 @@ var (
 func RegisterModels() {
 	orm.Debug = Debug
 	orm.RegisterModelWithPrefix(DBPrefix, new(Queue))
+	orm.RegisterModelWithPrefix(DBPrefix, new(Board))
 	orm.RegisterModelWithPrefix(DBPrefix, new(Bbs))
+	orm.RegisterModelWithPrefix(DBPrefix, new(Editor))
+	orm.RegisterModelWithPrefix(DBPrefix, new(PublishScope))
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)
 }

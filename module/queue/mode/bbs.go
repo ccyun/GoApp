@@ -1,6 +1,7 @@
 package mode
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/astaxie/beego/logs"
@@ -13,17 +14,24 @@ type Bbs struct {
 }
 
 //NewTask 新任务对象
-func (b *Bbs) NewTask(taskInfo model.Queue) error {
-	b.base.NewTask(taskInfo)
-	bbsID, err := strconv.Atoi(b.action)
+func (B *Bbs) NewTask(taskInfo model.Queue) error {
+	B.base.NewTask(taskInfo)
+	bbsID, err := strconv.Atoi(B.action)
 	if err != nil {
-		logs.Error(b.requestID, "taskid: ", b.taskID, "action error, action:", b.action, err)
+		logs.Error(B.requestID, "taskid: ", B.taskID, "action error, action:", B.action, err)
 		return err
 	}
-	b.bbsID = uint64(bbsID)
+	B.bbsID = uint64(bbsID)
+	if err := B.getBbsInfo(); err != nil {
+		logs.Error(B.requestID, "getBbsInfo error", err)
+		return err
+	}
+	if err := B.getBoardInfo(); err != nil {
+		logs.Error(B.requestID, "getBoardInfo error", err)
+		return err
+	}
 
-	b.getBbsInfo()
-
+	log.Println(B.boardInfo)
 	return nil
 }
 

@@ -14,9 +14,10 @@ type base struct {
 	customerCode string
 	action       string
 	bbsID        uint64
-	bbsInfo      model.BbsInfo
+	bbsInfo      model.Bbs
 	PublishScope map[string][]uint64
 	boardID      uint64
+	boardInfo    model.Board
 	feedID       uint64
 }
 
@@ -48,10 +49,21 @@ func (B *base) NewTask(taskInfo model.Queue) error {
 }
 
 //getBbsInfo 读取公告信息
-func (B *base) getBbsInfo() {
+func (B *base) getBbsInfo() error {
+	var err error
 	model := new(model.Bbs)
-	bbsInfo, _ := model.GetOne(B.bbsID)
-	B.bbsInfo = bbsInfo
+	if B.bbsInfo, err = model.GetOne(B.bbsID); err == nil {
+		B.boardID = B.bbsInfo.BoardID
+	}
+	return err
+}
+
+//getBoardInfo 读取公告信息
+func (B *base) getBoardInfo() error {
+	var err error
+	model := new(model.Board)
+	B.boardInfo, err = model.GetOne(B.boardID)
+	return err
 }
 
 //CreateFeed 创建Feed
