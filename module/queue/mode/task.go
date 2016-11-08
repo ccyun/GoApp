@@ -98,11 +98,21 @@ func (q *queue) runTask() bool {
 		q.mode.Rollback()
 		return false
 	}
+	//新的任务
 	if err := q.mode.NewTask(q.taskInfo); err != nil {
 		logs.Error(q.requestID, err)
 		q.mode.Rollback()
 		return false
 	}
+	//分析发布范围
+
+	//创建feed
+
+	//创建关系
+
+	//写入未读计数
+
+	//修改广播状态
 
 	//提交事务
 	if err := q.mode.Commit(); err != nil {

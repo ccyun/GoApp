@@ -1,7 +1,6 @@
 package mode
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/astaxie/beego/logs"
@@ -11,6 +10,10 @@ import (
 //Bbs 图文广播
 type Bbs struct {
 	base
+}
+
+func init() {
+	Register("bbs", new(Bbs))
 }
 
 //NewTask 新任务对象
@@ -30,11 +33,5 @@ func (B *Bbs) NewTask(taskInfo model.Queue) error {
 		logs.Error(B.requestID, "getBoardInfo error", err)
 		return err
 	}
-
-	log.Println(B.boardInfo)
 	return nil
-}
-
-func init() {
-	Register("bbs", new(Bbs))
 }

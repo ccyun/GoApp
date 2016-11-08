@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"api"
 	"errors"
 
 	"github.com/astaxie/beego/config"
@@ -22,7 +23,7 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB)
+	}(InitConfig, InitLog, InitDB, InitHTTPCurl)
 }
 
 //InitConfig 初始化配置
@@ -76,5 +77,12 @@ func InitDB() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+//InitHTTPCurl 初始化数据库
+func InitHTTPCurl() error {
+	api.UMSLoginURL = Conf.String("ums_login_url")
+	api.UMSBusinessURL = Conf.String("ums_business_url")
 	return nil
 }
