@@ -1,6 +1,9 @@
 package model
 
-import "github.com/astaxie/beego/orm"
+import (
+	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/orm"
+)
 
 var (
 	//Debug 调试模式
@@ -13,6 +16,8 @@ var (
 	DB orm.QueryBuilder
 	//o orm对象
 	o orm.Ormer
+	// Cache cache对象
+	Cache cache.Cache
 )
 
 //RegisterModels 注册Model

@@ -1,14 +1,14 @@
 package queue
 
 import (
-	"api"
 	"errors"
 
+	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/ccyun/GoApp/model"
-
+	"github.com/ccyun/GoApp/module/vendor/httpcurl"
 	//mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -23,7 +23,7 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB, InitHTTPCurl)
+	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache)
 }
 
 //InitConfig 初始化配置
@@ -82,7 +82,18 @@ func InitDB() error {
 
 //InitHTTPCurl 初始化数据库
 func InitHTTPCurl() error {
-	api.UMSLoginURL = Conf.String("ums_login_url")
-	api.UMSBusinessURL = Conf.String("ums_business_url")
+	httpcurl.UMSLoginURL = Conf.String("ums_login_url")
+	httpcurl.UMSBusinessURL = Conf.String("ums_business_url")
+	return nil
+}
+
+//InitCache 初始化缓存
+func InitCache() error {
+	ca, err := cache.NewCache("redis", `{"interval":60}`)
+	if err != nil {
+		return err
+	}
+	model.Cache = ca
+	httpcurl.Cache = ca
 	return nil
 }

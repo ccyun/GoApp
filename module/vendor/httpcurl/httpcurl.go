@@ -5,6 +5,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/astaxie/beego/cache"
+)
+
+var (
+	// Cache cache对象
+	Cache cache.Cache
 )
 
 //Request curl请求
