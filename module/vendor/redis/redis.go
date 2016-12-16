@@ -3,204 +3,229 @@ package redis
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
+	"github.com/chasex/redis-go-cluster"
+
+	"strings"
 
 	"github.com/astaxie/beego/cache"
 )
 
-var (
-	// DefaultKey the collection name of redis for cache adapter.
-	DefaultKey = "beecacheRedis"
-)
+//DefaultKey 默认前缀
+var DefaultKey = ""
 
-func init() {
-	cache.Register("redis", NewRedisCache)
-}
-
-// Cache is Redis cache adapter.
+//Cache is Redis cache adapter.
 type Cache struct {
-	p        []*redis.Pool // redis connection pool
-	conninfo []string
-	dbNum    int
-	key      string
-	password string
+	startNodes []string
+	prefix     string
+	p          *redis.Cluster // redis connection pool
 }
 
-// NewRedisCache create new redis cache with default collection name.
+//NewRedisCache create new redis cache with default collection name.
 func NewRedisCache() cache.Cache {
-	return &Cache{key: DefaultKey}
+	return &Cache{prefix: DefaultKey}
 }
 
-// actually do the redis cmds
+//actually do the redis cmds
 func (rc *Cache) do(commandName string, args ...interface{}) (reply interface{}, err error) {
-	c := rc.p.Get()
-	defer c.Close()
-
-	return c.Do(commandName, args...)
+	return rc.p.Do(commandName, args...)
 }
 
-// Get cache from redis.
+//realKey 处理key
+func (rc *Cache) realKey(key string) string {
+	return rc.prefix + ":" + key
+}
+
+//updateIndex 缓存key集合
+func (rc *Cache) updateIndex(key string) error {
+	var (
+		val      string
+		indexVal string
+		keyArr   []string
+		keys     []string
+	)
+	keyArr = strings.Split(key, ":")
+	lev := len(keyArr) - 1
+	for i := lev; i > 0; i-- {
+		val = strings.Join(keyArr[:i], ":")
+		if _, err := rc.do("HSET", val, key, "cache"); err != nil {
+			return err
+		}
+		keys = append(keys, val)
+		if i > 1 {
+			indexVal = strings.Join(keyArr[:(i-1)], ":")
+			for _, v := range keys {
+				if _, err := rc.do("HSET", indexVal, v, "index"); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+//clearIndex 清理索引
+func (rc *Cache) clearIndex(key string) error {
+	var (
+		val    string
+		keyArr []string
+	)
+	keyArr = strings.Split(key, ":")
+	for _, k := range keyArr {
+		if val == "" {
+			val = k
+		} else {
+			val += ":" + k
+		}
+		if val != key {
+			if _, err := rc.do("HDEL", val, key); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+//clearAll 删除数据
+func (rc *Cache) clearAll(key string) error {
+	cachedKeys, err := redis.Strings(rc.do("HKEYS", key))
+	if err != nil {
+		return err
+	}
+	for _, str := range cachedKeys {
+		if err := rc.clearIndex(str); err != nil {
+			return err
+		}
+		if _, err = rc.do("DEL", str); err != nil {
+			return err
+		}
+	}
+	_, err = rc.do("DEL", key)
+	return err
+}
+
+//Get cache from redis.
 func (rc *Cache) Get(key string) interface{} {
+	key = rc.realKey(key)
+	if strings.HasSuffix(key, "*") == true {
+		//key = strings.TrimRight(key, "*")
+		//return rc.clearAll(key)
+	}
+
 	if v, err := rc.do("GET", key); err == nil {
+		if v == nil {
+			go rc.clearIndex(key)
+		}
 		return v
 	}
 	return nil
 }
 
-// GetMulti get cache from redis.
+//GetMulti get cache from redis.
 func (rc *Cache) GetMulti(keys []string) []interface{} {
-	size := len(keys)
 	var rv []interface{}
-	c := rc.p.Get()
-	defer c.Close()
-	var err error
 	for _, key := range keys {
-		err = c.Send("GET", key)
-		if err != nil {
-			goto ERROR
-		}
-	}
-	if err = c.Flush(); err != nil {
-		goto ERROR
-	}
-	for i := 0; i < size; i++ {
-		if v, err := c.Receive(); err == nil {
+		key = rc.realKey(key)
+		if v, err := rc.do("GET", key); err == nil {
 			rv = append(rv, v.([]byte))
 		} else {
 			rv = append(rv, err)
 		}
 	}
 	return rv
-ERROR:
-	rv = rv[0:0]
-	for i := 0; i < size; i++ {
-		rv = append(rv, nil)
-	}
-
-	return rv
 }
 
-// Put put cache to redis.
+//Put put cache to redis.
 func (rc *Cache) Put(key string, val interface{}, timeout time.Duration) error {
-	var err error
-	if _, err = rc.do("SETEX", key, int64(timeout/time.Second), val); err != nil {
+	key = rc.realKey(key)
+	if err := rc.updateIndex(key); err != nil {
 		return err
 	}
-
-	if _, err = rc.do("HSET", rc.key, key, true); err != nil {
-		return err
-	}
+	_, err := rc.do("SETEX", key, int64(timeout/time.Second), val)
 	return err
 }
 
-// Delete delete cache in redis.
+//Delete delete cache in redis.
 func (rc *Cache) Delete(key string) error {
-	var err error
-	if _, err = rc.do("DEL", key); err != nil {
+	key = rc.realKey(key)
+	if strings.HasSuffix(key, "*") == true {
+		key = strings.TrimRight(key, "*")
+		return rc.clearAll(key)
+	}
+	if _, err := rc.do("DEL", key); err != nil {
 		return err
 	}
-	_, err = rc.do("HDEL", rc.key, key)
-	return err
+	return rc.clearIndex(key)
 }
 
-// IsExist check cache's existence in redis.
+//IsExist check cache's existence in redis.
 func (rc *Cache) IsExist(key string) bool {
+	key = rc.realKey(key)
 	v, err := redis.Bool(rc.do("EXISTS", key))
-	if err != nil {
+	if err != nil || v == false {
+		go rc.clearIndex(key)
 		return false
-	}
-	if v == false {
-		if _, err = rc.do("HDEL", rc.key, key); err != nil {
-			return false
-		}
 	}
 	return v
 }
 
-// Incr increase counter in redis.
+//Incr increase counter in redis.
 func (rc *Cache) Incr(key string) error {
+	key = rc.realKey(key)
 	_, err := redis.Bool(rc.do("INCRBY", key, 1))
 	return err
 }
 
-// Decr decrease counter in redis.
+//Decr decrease counter in redis.
 func (rc *Cache) Decr(key string) error {
+	key = rc.realKey(key)
 	_, err := redis.Bool(rc.do("INCRBY", key, -1))
 	return err
 }
 
-// ClearAll clean all cache in redis. delete this redis collection.
+//ClearAll clean all cache in redis. delete this redis collection.
 func (rc *Cache) ClearAll() error {
-	cachedKeys, err := redis.Strings(rc.do("HKEYS", rc.key))
-	if err != nil {
-		return err
-	}
-	for _, str := range cachedKeys {
-		if _, err = rc.do("DEL", str); err != nil {
-			return err
-		}
-	}
-	_, err = rc.do("DEL", rc.key)
-	return err
+	return rc.clearAll(rc.prefix)
 }
 
-// StartAndGC start redis cache adapter.
-// config is like {"key":"collection key","conn":"connection info","dbNum":"0"}
-// the cache item in redis are stored forever,
-// so no gc operation.
+//StartAndGC start redis cache adapter.
+//config is like {"key":"collection key","conn":"connection info","dbNum":"0"}
+//the cache item in redis are stored forever,
+//so no gc operation.
 func (rc *Cache) StartAndGC(config string) error {
-	var cf struct {
-		Key  string   `json:"Key"`
-		Conn []string `json:"Conn"`
+	var conf struct {
+		Nodes  []string `json:"nodes"`
+		Prefix string   `json:"prefix"`
 	}
-	cf.Key = DefaultKey
-	if err := json.Unmarshal([]byte(config), &cf); err != nil {
-		return err
-	}
-	if cf.Key != "" {
-		rc.key = cf.Key
-	}
-	if len(cf.Conn) == 0 {
+	json.Unmarshal([]byte(config), &conf)
+	if len(conf.Nodes) == 0 {
 		return errors.New("config has no conn key")
 	}
-	rc.conninfo = cf.Conn
+	rc.startNodes = conf.Nodes
+	rc.prefix = conf.Prefix
 	rc.connectInit()
-	c := rc.p.Get()
-	defer c.Close()
-	return c.Err()
-}
-
-//getNodeInfo 读取节点信息
-func (rc *Cache) getNodeInfo() error {
-	for _, coon := range rc.conninfo {
-		if c, err := redis.Dial("tcp", coon); err == nil {
-			//读取节点信息
-			node, err := c.Do("CLUSTER", "NODES")
-			if err != nil {
-				return err
-			}
-
-			break
-		}
-	}
 	return nil
 }
 
-// connect to redis.
-func (rc *Cache) connectInit(nodes []string) {
-	for _, node := range nodes {
-		rc.p = append(rc.p, &redis.Pool{
-			MaxIdle:     3,
-			IdleTimeout: 180 * time.Second,
-			Dial: func() (c redis.Conn, err error) {
-				c, err = redis.Dial("tcp", node)
-				if err != nil {
-					return nil, err
-				}
-				return
-			},
+//connectInit connect to redis.
+func (rc *Cache) connectInit() {
+	cluster, err := redis.NewCluster(
+		&redis.Options{
+			StartNodes:   rc.startNodes,
+			ConnTimeout:  50 * time.Millisecond,
+			ReadTimeout:  50 * time.Millisecond,
+			WriteTimeout: 50 * time.Millisecond,
+			KeepAlive:    20,
+			AliveTime:    50 * time.Second,
 		})
+	if err != nil {
+		log.Fatalf("redis.New error: %s", err.Error())
 	}
+	rc.p = cluster
+}
+
+func init() {
+	cache.Register("redis", NewRedisCache)
 }
