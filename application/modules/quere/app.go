@@ -22,7 +22,6 @@ type App struct {
 //initRegister 初始化注册
 func initRegister() {
 	model.RegisterModels()
-
 }
 
 //Run 启动
