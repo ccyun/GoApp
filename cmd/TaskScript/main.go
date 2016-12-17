@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/ccyun/GoApp/module/queue"
-	"github.com/ccyun/GoApp/module/queue/mode"
+	_ "github.com/ccyun/GoApp/application"
+	"github.com/ccyun/GoApp/application/module/quere"
+	"github.com/ccyun/GoApp/application/module/quere/adapter"
 )
 
 func main() {
-
 	app := new(queue.App)
 	app.DoFunc = work
 	app.Run()
 
 }
 func work() {
-	mode.Run()
+	adapter.Run()
 }

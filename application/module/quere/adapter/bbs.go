@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/astaxie/beego/logs"
-	"github.com/ccyun/GoApp/model"
+	"github.com/ccyun/GoApp/application/model"
 )
 
 //Bbs 图文广播

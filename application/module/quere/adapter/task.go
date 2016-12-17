@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/utils"
-	"github.com/ccyun/GoApp/model"
+	"github.com/ccyun/GoApp/application/model"
 )
 
 //Tasker 任务接口

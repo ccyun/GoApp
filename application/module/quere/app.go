@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ccyun/GoApp/model"
+	"github.com/ccyun/GoApp/application/model"
 )
 
 //App 流程控制

@@ -1,14 +1,16 @@
-package queue
+package application
 
 import (
 	"errors"
+	"time"
 
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
-	"github.com/ccyun/GoApp/model"
-	"github.com/ccyun/GoApp/module/vendor/httpcurl"
+	"github.com/ccyun/GoApp/application/library/httpcurl"
+	_ "github.com/ccyun/GoApp/application/library/redis"
+	"github.com/ccyun/GoApp/application/model"
 	//mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -28,7 +30,8 @@ func init() {
 
 //InitConfig 初始化配置
 func InitConfig() error {
-	conf, err := config.NewConfig("ini", "../conf.ini")
+	conf, err := config.NewConfig("ini", "conf.ini")
+
 	if err != nil {
 		return err
 	}
@@ -38,7 +41,8 @@ func InitConfig() error {
 
 //InitLog 初始化log
 func InitLog() error {
-	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/queue.log"}`)
+
+	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(3)
 	logs.Async(1e3)
@@ -89,11 +93,12 @@ func InitHTTPCurl() error {
 
 //InitCache 初始化缓存
 func InitCache() error {
-	ca, err := cache.NewCache("redis", `{"interval":60}`)
+	ca, err := cache.NewCache("redis", Conf.String("cache"))
 	if err != nil {
 		return err
 	}
 	model.Cache = ca
 	httpcurl.Cache = ca
+	ca.Put("fdsfdsf", "fdsfdsf", 10*time.Second)
 	return nil
 }

@@ -2,7 +2,7 @@ package adapter
 
 import (
 	"github.com/astaxie/beego/orm"
-	"github.com/ccyun/GoApp/model"
+	"github.com/ccyun/GoApp/application/model"
 )
 
 //base 任务处理适配器（基类）
