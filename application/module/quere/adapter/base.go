@@ -1,4 +1,4 @@
-package mode
+package adapter
 
 import (
 	"github.com/astaxie/beego/orm"
