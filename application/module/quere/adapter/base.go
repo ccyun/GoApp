@@ -7,7 +7,6 @@ import (
 
 //base 任务处理适配器（基类）
 type base struct {
-	requestID    string
 	o            orm.Ormer
 	taskID       uint64
 	siteID       uint64
@@ -22,8 +21,7 @@ type base struct {
 }
 
 //Begin 开启事务
-func (B *base) Begin(requestID string) error {
-	B.requestID = requestID
+func (B *base) Begin() error {
 	B.o = orm.NewOrm()
 	return B.o.Begin()
 }

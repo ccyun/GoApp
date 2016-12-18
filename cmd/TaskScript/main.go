@@ -12,6 +12,7 @@ func main() {
 	app.Run()
 
 }
-func work() {
-	adapter.Run()
+
+func work(options map[string]string) {
+	adapter.Run(options)
 }

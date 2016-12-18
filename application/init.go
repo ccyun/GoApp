@@ -9,9 +9,11 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/ccyun/GoApp/application/library/httpcurl"
+	//redis 驱动
 	_ "github.com/ccyun/GoApp/application/library/redis"
 	"github.com/ccyun/GoApp/application/model"
 	//mysql driver
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -44,7 +46,7 @@ func InitLog() error {
 
 	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	logs.EnableFuncCallDepth(true)
-	logs.SetLogFuncCallDepth(3)
+	logs.SetLogFuncCallDepth(4)
 	logs.Async(1e3)
 	return nil
 }
@@ -99,6 +101,5 @@ func InitCache() error {
 	}
 	model.Cache = ca
 	httpcurl.Cache = ca
-	ca.Put("fdsfdsf", "fdsfdsf", 10*time.Second)
 	return nil
 }

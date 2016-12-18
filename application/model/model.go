@@ -18,6 +18,8 @@ var (
 	o orm.Ormer
 	// Cache cache对象
 	Cache cache.Cache
+	//RequestID 请求ID
+	RequestID string
 )
 
 //RegisterModels 注册Model
@@ -30,4 +32,16 @@ func RegisterModels() {
 	orm.RegisterModelWithPrefix(DBPrefix, new(PublishScope))
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)
+}
+
+//Init 初始化
+func Init(option map[string]string) {
+	if option["requestID"] != "" {
+		RequestID = option["requestID"]
+	}
+}
+
+//L 语言log
+func L(log string) string {
+	return RequestID + "  " + log
 }

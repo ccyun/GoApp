@@ -3,13 +3,12 @@ package adapter
 import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
-	"github.com/astaxie/beego/utils"
 	"github.com/ccyun/GoApp/application/model"
 )
 
 //Tasker 任务接口
 type Tasker interface {
-	Begin(string) error
+	Begin() error
 	Rollback() error
 	Commit() error
 	NewTask(model.Queue) error
@@ -22,11 +21,13 @@ type Tasker interface {
 
 //queue 队列
 type queue struct {
-	taskInfo  model.Queue
-	mode      Tasker
-	model     *model.Queue
-	requestID string
+	taskInfo model.Queue
+	mode     Tasker
+	model    *model.Queue
 }
+
+//RequestID 请求ID
+var RequestID string
 
 //适配器
 var modes = make(map[string]Tasker)
@@ -43,10 +44,17 @@ func Register(name string, mode Tasker) {
 }
 
 //Run 运行
-func Run() {
+func Run(option map[string]string) {
 	q := new(queue)
-	q.requestID = string(utils.RandomCreateBytes(32))
-	logs.Info(q.requestID, "Start processing tasks")
+	if option["requestID"] != "" {
+		RequestID = option["requestID"]
+	}
+	q.run()
+}
+
+func (q *queue) run() {
+
+	logs.Info(L("Start processing tasks"))
 	q.model = new(model.Queue)
 	taskInfo, ok := q.getTaskInfo()
 	if ok == false {
@@ -59,7 +67,7 @@ func Run() {
 	if q.runTask() == false {
 		return
 	}
-	logs.Info(q.requestID, "Successful")
+	logs.Info(L("Successful"))
 }
 
 //getTaskInfo 读取任务
@@ -67,9 +75,9 @@ func (q *queue) getTaskInfo() (model.Queue, bool) {
 	taskInfo, err := q.model.GetOneTask()
 	if err != nil {
 		if err == orm.ErrNoRows {
-			logs.Notice(q.requestID, "Not found task info.")
+			logs.Notice(L("Not found task info."))
 		} else {
-			logs.Error(q.requestID, err)
+			logs.Error(L("getTaskInfo GetOneTask"), err)
 		}
 		return model.Queue{}, false
 	}
@@ -80,9 +88,9 @@ func (q *queue) getTaskInfo() (model.Queue, bool) {
 func (q *queue) checkTask() bool {
 	mode, ok := modes[q.taskInfo.TaskType]
 	if !ok {
-		logs.Error(q.requestID, "taskInfo.TaskType not in('bbs','taskReply','taskAudit','taskClose').")
+		logs.Error(L("taskInfo.TaskType not in('bbs','taskReply','taskAudit','taskClose')."))
 		if err := q.model.Update(q.taskInfo.ID); err != nil {
-			logs.Error(q.requestID, err)
+			logs.Error(L("checkTask Update error"), err)
 		}
 		return false
 	}
@@ -93,14 +101,14 @@ func (q *queue) checkTask() bool {
 //runTask 执行任务
 func (q *queue) runTask() bool {
 	//开启事务
-	if err := q.mode.Begin(q.requestID); err != nil {
-		logs.Error(q.requestID, err)
+	if err := q.mode.Begin(); err != nil {
+		logs.Error(L("runTask Begin error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//新的任务
 	if err := q.mode.NewTask(q.taskInfo); err != nil {
-		logs.Error(q.requestID, err)
+		logs.Error(L("runTask NewTask error"), err)
 		q.mode.Rollback()
 		return false
 	}
@@ -116,7 +124,7 @@ func (q *queue) runTask() bool {
 
 	//提交事务
 	if err := q.mode.Commit(); err != nil {
-		logs.Error(q.requestID, err)
+		logs.Error(L("runTask Commit error"), err)
 		return false
 	}
 
@@ -125,4 +133,9 @@ func (q *queue) runTask() bool {
 	// 	return false
 	// }
 	return true
+}
+
+//L 语言log
+func L(l string) string {
+	return RequestID + "  " + l
 }

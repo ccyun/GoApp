@@ -8,6 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego/utils"
 	"github.com/ccyun/GoApp/application/model"
 )
 
@@ -16,7 +19,12 @@ type App struct {
 	thread int
 	done   chan bool
 	close  bool
-	DoFunc func()
+	DoFunc func(map[string]string)
+}
+
+//io 重要参数
+type io struct {
+	requestID string
 }
 
 //initRegister 初始化注册
@@ -33,6 +41,8 @@ func (app *App) Run() {
 	if app.thread < 1 { //使用CPU多核处理
 		app.thread = runtime.NumCPU()
 	}
+	app.thread = 1
+
 	runtime.GOMAXPROCS(app.thread)
 	app.done = make(chan bool, app.thread)
 	go app.listenSignal()
@@ -48,7 +58,14 @@ func (app *App) work() {
 					app.done <- true
 					break
 				}
-				app.DoFunc()
+				o := new(io)
+				requestID := string(utils.RandomCreateBytes(32))
+				o.requestID = requestID
+				orm.DebugLog = orm.NewLog(o)
+				option := make(map[string]string)
+				option["requestID"] = requestID
+				model.Init(option) //model 初始化配置
+				app.DoFunc(option)
 				time.Sleep(30 * time.Second)
 			}
 		}(i)
@@ -65,4 +82,10 @@ func (app *App) listenSignal() {
 	signal.Notify(sig, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 	app.close = true
+}
+
+//Write io.Writer 用于orm sql输出
+func (o *io) Write(b []byte) (n int, err error) {
+	logs.Info(o.requestID, string(b))
+	return 0, nil
 }
