@@ -56,6 +56,7 @@ func (q *queue) run() {
 
 	logs.Info(L("Start processing tasks"))
 	q.model = new(model.Queue)
+
 	taskInfo, ok := q.getTaskInfo()
 	if ok == false {
 		return
