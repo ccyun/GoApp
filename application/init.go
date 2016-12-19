@@ -43,7 +43,6 @@ func InitConfig() error {
 
 //InitLog 初始化log
 func InitLog() error {
-
 	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(4)

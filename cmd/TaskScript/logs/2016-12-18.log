@@ -1,8 +1,0 @@
-2016/12/18 22:50:20 [I] [task.go:52] 3cJOolIVYpMaxg9KAaqEeEwNHMhz77Y4  Start processing tasks
-2016/12/18 22:50:20 [I] [log.go:166] 3cJOolIVYpMaxg9KAaqEeEwNHMhz77Y4 [ORM]2016/12/18 22:50:20  -[Queries/default] - [FAIL /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1482072620172`, `0`, `3`, `3` - Error 1054: Unknown column 'T0.set_timer' in 'field list'
-
-2016/12/18 22:50:20 [E] [task.go:59] 3cJOolIVYpMaxg9KAaqEeEwNHMhz77Y4  getTaskInfo GetOneTask Error 1054: Unknown column 'T0.set_timer' in 'field list'
-2016/12/18 22:51:15 [I] [task.go:52] s4n6c5aX9XzT0Ph0E67dA79NI5L5j0tQ  Start processing tasks
-2016/12/18 22:51:15 [I] [log.go:166] s4n6c5aX9XzT0Ph0E67dA79NI5L5j0tQ [ORM]2016/12/18 22:51:15  -[Queries/default] - [  OK /    db.Query /     0.7ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1482072675620`, `0`, `3`, `3`
-
-2016/12/18 22:51:15 [N] [task.go:59] s4n6c5aX9XzT0Ph0E67dA79NI5L5j0tQ  Not found task info.

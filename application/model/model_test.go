@@ -1,6 +1,11 @@
 package model
 
-import "testing"
+import (
+	"log"
+	"testing"
+
+	"github.com/ccyun/GoApp/application/function"
+)
 
 func Test_publishScopeHandle(t *testing.T) {
 	a := new(Bbs)
@@ -12,4 +17,11 @@ func Test_publishScopeHandle(t *testing.T) {
 	if v.DiscussIDs[0] != 50032726 || v.GroupIDs[0] != 54299 || v.GroupIDs[1] != 54342 || v.UserIDs[0] != 62073932 {
 		t.Error("model->bbs.publishScopeHandle err", s, v)
 	}
+}
+
+func Test_cache(t *testing.T) {
+
+	log.Println(function.Md5("aaaaa"))
+
+	//err := json.Unmarshal([]byte(value.(string)), data)
 }

@@ -47,6 +47,10 @@ func (B *Bbs) TableName() string {
 //GetOne 读取单条数据
 func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	bbsInfo := Bbs{}
+	c := NewCache(B.TableName(), "GetOne")
+	if ok := c.GetCache(ID, &bbsInfo); ok == true {
+		return bbsInfo, nil
+	}
 	if err := o.QueryTable(B).Filter("ID", ID).One(&bbsInfo); err != nil {
 		return Bbs{}, err
 	}
@@ -54,6 +58,7 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	if err != nil {
 		return Bbs{}, err
 	}
+	c.SetCache(ID, data[0])
 	return data[0], nil
 }
 

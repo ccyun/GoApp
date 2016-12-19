@@ -73,6 +73,9 @@ func (q *queue) run() {
 
 //getTaskInfo 读取任务
 func (q *queue) getTaskInfo() (model.Queue, bool) {
+	new(model.Bbs).GetOne(13)
+	//model.NewCache("bbs", "").ClearCache("bbs")
+
 	taskInfo, err := q.model.GetOneTask()
 	if err != nil {
 		if err == orm.ErrNoRows {
