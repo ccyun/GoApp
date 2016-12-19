@@ -111,11 +111,11 @@ func (rc *Cache) clearAll(key string) error {
 //Get cache from redis.
 func (rc *Cache) Get(key string) interface{} {
 	key = rc.realKey(key)
-	if strings.HasSuffix(key, "*") == true {
-		//key = strings.TrimRight(key, "*")
-		//return rc.clearAll(key)
-	}
-
+	//todo 只是模糊查询
+	// if strings.HasSuffix(key, "*") == true {
+	// 	//key = strings.TrimRight(key, "*")
+	// 	//return rc.clearAll(key)
+	// }
 	if v, err := rc.do("GET", key); err == nil {
 		if v == nil {
 			go rc.clearIndex(key)
