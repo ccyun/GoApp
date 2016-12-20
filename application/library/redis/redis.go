@@ -80,7 +80,6 @@ func (rc *Cache) clearIndex(key string) error {
 			val += ":" + k
 		}
 		if val != key {
-			log.Println(val + "->" + key)
 			if _, err := rc.do("HDEL", val, key); err != nil {
 				return err
 			}

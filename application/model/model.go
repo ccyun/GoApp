@@ -130,7 +130,6 @@ func (c *C) GetCache(arg interface{}, data interface{}) bool {
 	switch val.(type) {
 	case []byte:
 		value := string(val.([]byte))
-
 		err := json.Unmarshal([]byte(value), data)
 		if err != nil {
 			logs.Error(L("GetCache data Unmarshal error"), err)

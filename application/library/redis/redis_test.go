@@ -33,27 +33,23 @@ func initCache(t *testing.T) cache.Cache {
 func TestIndex(t *testing.T) {
 	//updateIndex
 	bm := initCache(t)
-
 	if err := bm.Put("db:name:1:2:3:4:5:6", 1, 2*time.Second); err != nil {
 		t.Error("set Error", err)
 	}
-	time.Sleep(3 * time.Second)
-	//clearIndex
-	bm.Get("db:name:1:2:3:4:5:6")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db:name:1:2:3:4")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db:name:1:2:3")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db:name:1:2")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db:name:1")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db:name")
-	time.Sleep(3 * time.Second)
-	bm.IsExist("db")
-	time.Sleep(3 * time.Second)
+	if ok := bm.IsExist("db:name:1:2:3:4:5"); ok != true {
+		t.Error("index Error")
+	}
 
+	if ok := bm.IsExist("db"); ok != true {
+		t.Error("index Error")
+	}
+	bm.ClearAll()
+	if ok := bm.IsExist("db:name:1:2:3:4"); ok == true {
+		t.Error("index Error")
+	}
+	if ok := bm.IsExist("db:name"); ok == true {
+		t.Error("index Error")
+	}
 }
 
 func TestRedisCache(t *testing.T) {
