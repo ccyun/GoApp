@@ -88,14 +88,14 @@ func (c *C) makeKey(arg interface{}) (string, error) {
 		logs.Error(L("GetCache make key error"), err)
 		return "", err
 	}
-	key := "db:" + strconv.FormatUint(SiteID, 10) + ":"
+	key := "D" + strconv.FormatUint(SiteID, 10)
 	if c.tableName != "" {
 		key += c.tableName + ":"
 	}
 	if c.funcName != "" {
-		key += c.funcName + ":"
+		key += c.funcName + "."
 	}
-	key += function.Md5(string(k))
+	key += function.Md5(string(k), 16)
 	return key, nil
 }
 
@@ -144,7 +144,7 @@ func (c *C) GetCache(arg interface{}, data interface{}) bool {
 
 //ClearCache 清除缓存
 func (c *C) ClearCache(keys ...string) bool {
-	key := "db:" + strconv.FormatUint(SiteID, 10) + ":"
+	key := "D" + strconv.FormatUint(SiteID, 10)
 	if len(keys) == 0 {
 		keys[0] = c.tableName
 	}

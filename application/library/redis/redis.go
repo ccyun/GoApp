@@ -80,7 +80,7 @@ func (rc *Cache) clearIndex(key string) error {
 			val += ":" + k
 		}
 		if val != key {
-			log.Println(key)
+			log.Println(val + "->" + key)
 			if _, err := rc.do("HDEL", val, key); err != nil {
 				return err
 			}
@@ -92,7 +92,6 @@ func (rc *Cache) clearIndex(key string) error {
 //clearAll 删除数据
 func (rc *Cache) clearAll(key string) error {
 	cachedKeys, err := redis.Strings(rc.do("HKEYS", key))
-
 	if err != nil {
 		return err
 	}
@@ -117,9 +116,6 @@ func (rc *Cache) Get(key string) interface{} {
 	// 	//return rc.clearAll(key)
 	// }
 	if v, err := rc.do("GET", key); err == nil {
-		if v == nil {
-			go rc.clearIndex(key)
-		}
 		return v
 	}
 	return nil

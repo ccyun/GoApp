@@ -41,8 +41,6 @@ func (app *App) Run() {
 	if app.thread < 1 { //使用CPU多核处理
 		app.thread = runtime.NumCPU()
 	}
-	app.thread = 1
-
 	runtime.GOMAXPROCS(app.thread)
 	app.done = make(chan bool, app.thread)
 	go app.listenSignal()
