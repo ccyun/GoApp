@@ -1,0 +1,4 @@
+2016/12/20 22:33:14 [I] [task.go:52] licVDKu6dXQoQRdT0RfESIu8MThUdV3z  Start processing tasks
+2016/12/20 22:33:14 [I] [log.go:166] licVDKu6dXQoQRdT0RfESIu8MThUdV3z [ORM]2016/12/20 22:33:14  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1482244394802`, `0`, `3`, `3`
+
+2016/12/20 22:33:14 [N] [task.go:60] licVDKu6dXQoQRdT0RfESIu8MThUdV3z  Not found task info.
