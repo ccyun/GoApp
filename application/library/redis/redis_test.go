@@ -1,10 +1,13 @@
 package redis
 
 import (
+	"runtime"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/utils"
 	"github.com/chasex/redis-go-cluster"
 )
 
@@ -14,6 +17,67 @@ func initRedis(t *testing.T) cache.Cache {
 		t.Error("init err")
 	}
 	return bm
+}
+func TestBatch1(t *testing.T) {
+	bm := initRedis(t)
+	var w sync.WaitGroup
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	for index := 0; index < 500; index++ {
+		w.Add(1)
+		go func() {
+			key := "db:name:"
+			key1 := string(utils.RandomCreateBytes(5))
+			key2 := string(utils.RandomCreateBytes(5))
+			key3 := string(utils.RandomCreateBytes(5))
+			key4 := string(utils.RandomCreateBytes(5))
+			key += key1 + ":" + key2 + ":" + key3 + ":" + key4
+
+			if err := bm.Put(key, "true", 86400*time.Second); err != nil {
+				t.Error("cache put err", err)
+			}
+			if ok := bm.IsExist(key); ok == false {
+				t.Error("cache put err")
+			}
+			w.Done()
+		}()
+	}
+	w.Wait()
+	//time.Sleep(10 * time.Second)
+	if err := bm.ClearAll(); err != nil {
+		t.Error("ClearAll Error", err)
+	}
+}
+
+func TestBatch2(t *testing.T) {
+	bm := initRedis(t)
+	var w sync.WaitGroup
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	for index := 0; index < 500; index++ {
+		w.Add(1)
+		go func() {
+			key := "db:name:"
+			key1 := string(utils.RandomCreateBytes(5))
+			key2 := string(utils.RandomCreateBytes(5))
+			key3 := string(utils.RandomCreateBytes(5))
+			key4 := string(utils.RandomCreateBytes(5))
+			key += key1 + ":" + key2 + ":" + key3 + ":" + key4
+
+			if err := bm.Put(key, "true", 86400*time.Second); err != nil {
+				t.Error("cache put err", err)
+			}
+			if ok := bm.IsExist(key); ok == false {
+				t.Error("cache put err")
+			}
+			if err := bm.Delete(key); err != nil {
+				t.Error("cache Delete err", err)
+			}
+			w.Done()
+		}()
+	}
+	w.Wait()
+	if err := bm.ClearAll(); err != nil {
+		t.Error("ClearAll Error", err)
+	}
 }
 
 func TestIndex(t *testing.T) {
