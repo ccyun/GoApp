@@ -1,17 +1,3 @@
-// Copyright 2014 beego Author. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package redis
 
 import (
@@ -19,10 +5,10 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/cache"
-	"github.com/garyburd/redigo/redis"
+	"github.com/chasex/redis-go-cluster"
 )
 
-func initCache(t *testing.T) cache.Cache {
+func initRedis(t *testing.T) cache.Cache {
 	bm, err := cache.NewCache("redis", `{"nodes":["192.168.40.12:7000","192.168.40.12:8000","192.168.40.12:9000"],"prefix":"bee"}`)
 	if err != nil {
 		t.Error("init err")
@@ -32,7 +18,7 @@ func initCache(t *testing.T) cache.Cache {
 
 func TestIndex(t *testing.T) {
 	//updateIndex
-	bm := initCache(t)
+	bm := initRedis(t)
 	if err := bm.Put("db:name:1:2:3:4:5:6", 1, 2*time.Second); err != nil {
 		t.Error("set Error", err)
 	}
@@ -54,7 +40,7 @@ func TestIndex(t *testing.T) {
 
 func TestRedisCache(t *testing.T) {
 	var err error
-	bm := initCache(t)
+	bm := initRedis(t)
 
 	timeoutDuration := 10 * time.Second
 	if err = bm.Put("astaxie", 1, timeoutDuration); err != nil {
