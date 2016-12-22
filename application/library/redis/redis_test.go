@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -21,7 +20,6 @@ func initRedis(t *testing.T) cache.Cache {
 func TestBatch1(t *testing.T) {
 	bm := initRedis(t)
 	var w sync.WaitGroup
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	for index := 0; index < 500; index++ {
 		w.Add(1)
 		go func() {
@@ -51,7 +49,6 @@ func TestBatch1(t *testing.T) {
 func TestBatch2(t *testing.T) {
 	bm := initRedis(t)
 	var w sync.WaitGroup
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	for index := 0; index < 500; index++ {
 		w.Add(1)
 		go func() {
