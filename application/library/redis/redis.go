@@ -38,6 +38,51 @@ func (rc *Cache) realKey(key string) string {
 	return rc.prefix + ":" + key
 }
 
+//lock 加锁
+func (rc *Cache) lock(key string) bool {
+	key += "_lock"
+	value := time.Now().UnixNano()
+	n, _ := rc.do("SETNX", key, value)
+	if n.(int64) == 1 {
+		if _, err := rc.do("EXPIRE", key, 300); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+//unlock 解锁
+func (rc *Cache) unlock(key string) bool {
+	key += "_lock"
+	n, err := rc.do("DEL", key)
+	if n.(int64) != 1 || err != nil {
+		return false
+	}
+	return true
+}
+
+//isLock 检查是否是锁定状态
+func (rc *Cache) isLock(key string) bool {
+	var (
+		val    string
+		keyArr []string
+	)
+	keyArr = strings.Split(key, ":")
+	for _, k := range keyArr {
+		if val == "" {
+			val = k
+		} else {
+			val += ":" + k
+		}
+		if val != key {
+			if n, err := rc.do("EXISTS", val+"_lock"); n.(int64) == 1 || err != nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 //updateIndex 缓存key集合
 func (rc *Cache) updateIndex(key string) error {
 	var (
@@ -90,6 +135,10 @@ func (rc *Cache) clearIndex(key string) error {
 
 //clearAll 删除数据
 func (rc *Cache) clearAll(key string) error {
+	//加锁
+	if rc.lock(key) == false {
+		return errors.New("clearAll lock error")
+	}
 	cachedKeys, err := redis.Strings(rc.do("HKEYS", key))
 	if err != nil {
 		return err
@@ -103,17 +152,19 @@ func (rc *Cache) clearAll(key string) error {
 		}
 	}
 	_, err = rc.do("DEL", key)
+	//解锁
+	if rc.unlock(key) == false {
+		return errors.New("clearAll unlock error")
+	}
 	return err
 }
 
 //Get cache from redis.
 func (rc *Cache) Get(key string) interface{} {
 	key = rc.realKey(key)
-	//todo 只是模糊查询
-	// if strings.HasSuffix(key, "*") == true {
-	// 	//key = strings.TrimRight(key, "*")
-	// 	//return rc.clearAll(key)
-	// }
+	if rc.isLock(key) == true {
+		return nil
+	}
 	if v, err := rc.do("GET", key); err == nil {
 		return v
 	}
@@ -137,6 +188,9 @@ func (rc *Cache) GetMulti(keys []string) []interface{} {
 //Put put cache to redis.
 func (rc *Cache) Put(key string, val interface{}, timeout time.Duration) error {
 	key = rc.realKey(key)
+	if rc.isLock(key) == true {
+		return nil
+	}
 	if err := rc.updateIndex(key); err != nil {
 		return err
 	}

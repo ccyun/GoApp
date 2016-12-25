@@ -1,13 +1,12 @@
 package redis
 
 import (
-	"runtime"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/utils"
 	"github.com/chasex/redis-go-cluster"
 )
 
@@ -18,66 +17,37 @@ func initRedis(t *testing.T) cache.Cache {
 	}
 	return bm
 }
-func TestBatch1(t *testing.T) {
+
+//TestLock 测试锁机制
+func TestLock(t *testing.T) {
 	bm := initRedis(t)
 	var w sync.WaitGroup
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	for index := 0; index < 500; index++ {
-		w.Add(1)
-		go func() {
-			key := "db:name:"
-			key1 := string(utils.RandomCreateBytes(5))
-			key2 := string(utils.RandomCreateBytes(5))
-			key3 := string(utils.RandomCreateBytes(5))
-			key4 := string(utils.RandomCreateBytes(5))
-			key += key1 + ":" + key2 + ":" + key3 + ":" + key4
+	w.Add(2)
+	go func() {
+		n := 0
+		for i := 0; i < 10000; i++ {
+			key := "db:name:" + strconv.Itoa(i)
+			if err := bm.Put(key, "1", 86400*time.Second); err != nil {
+				t.Error("set Error", err)
+			}
+			if bm.IsExist(key) == false {
+				n++
+			}
+		}
+		t.Log("success :", (10000 - n))
+		w.Done()
+	}()
 
-			if err := bm.Put(key, "true", 86400*time.Second); err != nil {
-				t.Error("cache put err", err)
-			}
-			if ok := bm.IsExist(key); ok == false {
-				t.Error("cache put err")
-			}
-			w.Done()
-		}()
-	}
+	go func() {
+		time.Sleep(1 * time.Second)
+		bm.Delete("db:name*")
+		time.Sleep(3 * time.Second)
+		bm.Delete("db*")
+		//	time.Sleep(20 * time.Second)
+		w.Done()
+	}()
 	w.Wait()
-	//time.Sleep(10 * time.Second)
-	if err := bm.ClearAll(); err != nil {
-		t.Error("ClearAll Error", err)
-	}
-}
-
-func TestBatch2(t *testing.T) {
-	bm := initRedis(t)
-	var w sync.WaitGroup
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	for index := 0; index < 500; index++ {
-		w.Add(1)
-		go func() {
-			key := "db:name:"
-			key1 := string(utils.RandomCreateBytes(5))
-			key2 := string(utils.RandomCreateBytes(5))
-			key3 := string(utils.RandomCreateBytes(5))
-			key4 := string(utils.RandomCreateBytes(5))
-			key += key1 + ":" + key2 + ":" + key3 + ":" + key4
-
-			if err := bm.Put(key, "true", 86400*time.Second); err != nil {
-				t.Error("cache put err", err)
-			}
-			if ok := bm.IsExist(key); ok == false {
-				t.Error("cache put err")
-			}
-			if err := bm.Delete(key); err != nil {
-				t.Error("cache Delete err", err)
-			}
-			w.Done()
-		}()
-	}
-	w.Wait()
-	if err := bm.ClearAll(); err != nil {
-		t.Error("ClearAll Error", err)
-	}
+	bm.ClearAll()
 }
 
 func TestIndex(t *testing.T) {

@@ -92,10 +92,7 @@ func (c *C) makeKey(arg interface{}) (string, error) {
 	if c.tableName != "" {
 		key += c.tableName + ":"
 	}
-	if c.funcName != "" {
-		key += c.funcName + "."
-	}
-	key += function.Md5(string(k), 16)
+	key += function.Md5(c.funcName+"."+string(k), 16)
 	return key, nil
 }
 
@@ -137,7 +134,7 @@ func (c *C) GetCache(arg interface{}, data interface{}) bool {
 		}
 		return true
 	}
-	logs.Error(L("GetCache value Assertion error"))
+	logs.Info(L("GetCache value Assertion error"))
 	return false
 }
 
