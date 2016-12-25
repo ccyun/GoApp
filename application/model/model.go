@@ -12,6 +12,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/ccyun/GoApp/application/function"
+	"github.com/chasex/redis-go-cluster"
 )
 
 var (
@@ -83,8 +84,8 @@ func NewCache(tableName string, funcName string) *C {
 	return c
 }
 
-//makeKey 参数产生Key
-func (c *C) makeKey(arg interface{}) (string, error) {
+//MakeKey 参数产生Key
+func (c *C) MakeKey(arg interface{}) (string, error) {
 	k, err := json.Marshal(arg)
 	if err != nil {
 		logs.Error(L("GetCache make key error"), err)
@@ -100,7 +101,7 @@ func (c *C) makeKey(arg interface{}) (string, error) {
 
 //SetCache 设置缓存
 func (c *C) SetCache(arg interface{}, data interface{}) bool {
-	key, err := c.makeKey(arg)
+	key, err := c.MakeKey(arg)
 	if err != nil {
 		return false
 	}
@@ -109,7 +110,7 @@ func (c *C) SetCache(arg interface{}, data interface{}) bool {
 		logs.Error(L("SetCache data Marshal error"), err)
 		return false
 	}
-	err2 := Cache.Put(key, value, 240*time.Hour)
+	err2 := Cache.Put(key, value, 48*time.Hour)
 	if err2 != nil {
 		logs.Error(L("SetCache Put error"), err2)
 		return false
@@ -119,24 +120,23 @@ func (c *C) SetCache(arg interface{}, data interface{}) bool {
 
 //GetCache 读取缓存
 func (c *C) GetCache(arg interface{}, data interface{}) bool {
-	key, err := c.makeKey(arg)
-	if err != nil {
+	var (
+		key string
+		err error
+		val string
+	)
+	if key, err = c.MakeKey(arg); err != nil {
 		return false
 	}
-
-	val := Cache.Get(key)
-	switch val.(type) {
-	case []byte:
-		value := string(val.([]byte))
-		err := json.Unmarshal([]byte(value), data)
-		if err != nil {
-			logs.Error(L("GetCache data Unmarshal error"), err)
-			return false
-		}
-		return true
+	if val, err = redis.String(Cache.Get(key), nil); err != nil {
+		logs.Info(L("GetCache value Assertion error"), err)
+		return false
 	}
-	logs.Info(L("GetCache value Assertion error"))
-	return false
+	if err = json.Unmarshal([]byte(val), data); err != nil {
+		logs.Error(L("GetCache data Unmarshal error"), err)
+		return false
+	}
+	return true
 }
 
 //ClearCache 清除缓存

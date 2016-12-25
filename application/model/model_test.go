@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"testing"
 
 	"github.com/astaxie/beego/cache"
@@ -91,9 +92,13 @@ func TestBbsPublishScopeHandle(t *testing.T) {
 func TestBbsGetOne(t *testing.T) {
 	InitDB()
 	a := new(Bbs)
-	var err error
-	var bbsinfo, bbsinfo2 Bbs
-	bbsinfo, err = a.GetOne(15)
+	var (
+		err     error
+		bbsinfo Bbs
+		//bbsinfo2 Bbs
+	)
+
+	SiteID = 71058
 	bbsinfo, err = a.GetOne(15)
 	if err != nil {
 		t.Error("model->bbs.Test_bbs_getOne err", err)
@@ -101,10 +106,12 @@ func TestBbsGetOne(t *testing.T) {
 	if bbsinfo.ID != 15 {
 		t.Error("model->bbs.Test_bbs_getOne err bbsinfo = nil")
 	}
-	c := NewCache("bbs", "GetOne")
-	c.GetCache(15, &bbsinfo2)
-	if bbsinfo2.ID != 15 {
-		t.Error("model->bbs.Test_bbs_getOne cache err bbsinfo = nil")
-	}
+	log.Println(bbsinfo)
+	// c := NewCache("bbs", "GetOne")
+	// c.GetCache(15, &bbsinfo2)
+	// log.Println(bbsinfo2)
+	// if bbsinfo2.ID != 15 {
+	// 	t.Error("model->bbs.Test_bbs_getOne cache err bbsinfo = nil")
+	// }
 
 }

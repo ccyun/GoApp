@@ -48,17 +48,17 @@ func (B *Bbs) TableName() string {
 func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	bbsInfo := Bbs{}
 	c := NewCache(B.TableName(), "GetOne")
-	if ok := c.GetCache(ID, &bbsInfo); ok == true {
+	if ok := c.GetCache([2]uint64{ID, SiteID}, &bbsInfo); ok == true {
 		return bbsInfo, nil
 	}
-	if err := o.QueryTable(B).Filter("ID", ID).One(&bbsInfo); err != nil {
+	if err := o.QueryTable(B).Filter("ID", ID).Filter("SiteID", SiteID).One(&bbsInfo); err != nil {
 		return Bbs{}, err
 	}
 	data, err := B.afterSelectHandle([]Bbs{bbsInfo})
 	if err != nil {
 		return Bbs{}, err
 	}
-	c.SetCache(ID, data[0])
+	c.SetCache([2]uint64{ID, SiteID}, data[0])
 	return data[0], nil
 }
 

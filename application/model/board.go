@@ -1,11 +1,5 @@
 package model
 
-import (
-	"time"
-
-	"github.com/astaxie/beego/orm"
-)
-
 //Board 任务表结构
 type Board struct {
 	ID           uint64   `orm:"column(id)"`
@@ -38,15 +32,6 @@ func (B *Board) GetOne(ID uint64) (Board, error) {
 		return Board{}, err
 	}
 	return data[0], nil
-}
-
-//Update 修改数据
-func (B *Board) Update(ID uint64) error {
-	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
-	if num == 0 {
-		err = orm.ErrNoRows
-	}
-	return err
 }
 
 //afterSelectHandle 查询结果处理
