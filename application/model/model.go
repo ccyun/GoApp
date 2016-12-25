@@ -73,6 +73,8 @@ func L(log string) string {
 	return RequestID + "  " + log
 }
 
+///////////////////////////////Cache//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //NewCache 初始化缓存对象
 func NewCache(tableName string, funcName string) *C {
 	c := new(C)
@@ -123,7 +125,6 @@ func (c *C) GetCache(arg interface{}, data interface{}) bool {
 	}
 
 	val := Cache.Get(key)
-
 	switch val.(type) {
 	case []byte:
 		value := string(val.([]byte))

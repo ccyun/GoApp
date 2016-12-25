@@ -15,14 +15,15 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var a = false
+var isInit = false
 
 //InitDB 初始化数据库
 func InitDB() error {
-	if a == true {
+	if isInit == true {
 		return nil
 	}
 	var err error
+	RequestID = "RequestID1234567890"
 	Debug = true
 	DBType = "mysql"
 	DBPrefix = "bbs_"
@@ -42,14 +43,14 @@ func InitDB() error {
 	}
 	Cache = ca
 	RegisterModels()
-	a = true
+	isInit = true
 	return nil
 }
 
 ///////////////////////////////////////////model case //////////////////////////////////////////////
-func Test_model_cache(t *testing.T) {
+func TestModelCache(t *testing.T) {
 	InitDB()
-	c := NewCache("bbs", "getOne")
+	c := NewCache("tableName", "getOne")
 	a := map[string]string{"fdf": "fsdfds"}
 	var aa map[string]string
 	aa = make(map[string]string)
@@ -58,13 +59,24 @@ func Test_model_cache(t *testing.T) {
 		t.Error("model->Test_model_cache GetCache error", aa)
 	}
 	time.Sleep(1 * time.Second)
-	if ok := c.ClearCache("bbs"); ok != true {
+	if ok := c.ClearCache("tableName"); ok != true {
 		t.Error("model->Test_model_cache ClearCache error")
 	}
 }
 
+//TestModelL 测试model语言
+func TestModelL(t *testing.T) {
+	InitDB()
+	log := L("fdsfsd")
+	if log != "RequestID1234567890  fdsfsd" {
+		t.Error("model languge error")
+	}
+
+}
+
 ///////////////////////////////////////////////bbs case //////////////////////////////////////////////
-func Test_bbs_publishScopeHandle(t *testing.T) {
+func TestBbsPublishScopeHandle(t *testing.T) {
+	InitDB()
 	a := new(Bbs)
 	s := `{"discuss_ids":["50032726"],"group_ids":["54299","54342"],"user_ids":["62073932"]}`
 	v, err := a.publishScopeHandle(s)
@@ -76,11 +88,12 @@ func Test_bbs_publishScopeHandle(t *testing.T) {
 	}
 }
 
-func Test_bbs_getOne(t *testing.T) {
+func TestBbsGetOne(t *testing.T) {
 	InitDB()
 	a := new(Bbs)
 	var err error
 	var bbsinfo, bbsinfo2 Bbs
+	bbsinfo, err = a.GetOne(15)
 	bbsinfo, err = a.GetOne(15)
 	if err != nil {
 		t.Error("model->bbs.Test_bbs_getOne err", err)
