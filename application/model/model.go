@@ -39,7 +39,7 @@ var (
 //C model cache
 type C struct {
 	tableName string
-	funcName  string
+	key       string
 }
 
 //RegisterModels 注册Model
@@ -76,59 +76,53 @@ func L(log string) string {
 
 ///////////////////////////////Cache//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//NewCache 初始化缓存对象
-func NewCache(tableName string, funcName string) *C {
+//newCache 初始化缓存对象
+func newCache(tableName string, arg ...interface{}) *C {
 	c := new(C)
 	c.tableName = tableName
-	c.funcName = funcName
+	c.key = c.makeKey(arg)
 	return c
 }
 
-//MakeKey 参数产生Key
-func (c *C) MakeKey(arg interface{}) (string, error) {
+//makeKey 参数产生Key
+func (c *C) makeKey(arg ...interface{}) string {
 	k, err := json.Marshal(arg)
 	if err != nil {
 		logs.Error(L("GetCache make key error"), err)
-		return "", err
+		return ""
 	}
 	key := "D" + strconv.FormatUint(SiteID, 10)
 	if c.tableName != "" {
 		key += c.tableName + ":"
 	}
-	key += function.Md5(c.funcName+"."+string(k), 16)
-	return key, nil
+	key += function.Md5(string(k), 16)
+	return key
 }
 
-//SetCache 设置缓存
-func (c *C) SetCache(arg interface{}, data interface{}) bool {
-	key, err := c.MakeKey(arg)
-	if err != nil {
-		return false
-	}
-	value, err := json.Marshal(data)
-	if err != nil {
+//setCache 设置缓存
+func (c *C) setCache(data interface{}) bool {
+	var (
+		val []byte
+		err error
+	)
+	if val, err = json.Marshal(data); err != nil {
 		logs.Error(L("SetCache data Marshal error"), err)
 		return false
 	}
-	err2 := Cache.Put(key, value, 48*time.Hour)
-	if err2 != nil {
-		logs.Error(L("SetCache Put error"), err2)
+	if err := Cache.Put(c.key, val, 48*time.Hour); err != nil {
+		logs.Error(L("SetCache Put error"), err)
 		return false
 	}
 	return true
 }
 
-//GetCache 读取缓存
-func (c *C) GetCache(arg interface{}, data interface{}) bool {
+//getCache 读取缓存
+func (c *C) getCache(data interface{}) bool {
 	var (
-		key string
 		err error
 		val string
 	)
-	if key, err = c.MakeKey(arg); err != nil {
-		return false
-	}
-	if val, err = redis.String(Cache.Get(key), nil); err != nil {
+	if val, err = redis.String(Cache.Get(c.key), nil); err != nil {
 		logs.Info(L("GetCache value Assertion error"), err)
 		return false
 	}
@@ -139,8 +133,8 @@ func (c *C) GetCache(arg interface{}, data interface{}) bool {
 	return true
 }
 
-//ClearCache 清除缓存
-func (c *C) ClearCache(keys ...string) bool {
+//clearCache 清除缓存
+func (c *C) clearCache(keys ...string) bool {
 	key := "D" + strconv.FormatUint(SiteID, 10)
 	if len(keys) == 0 {
 		keys[0] = c.tableName

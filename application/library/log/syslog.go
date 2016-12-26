@@ -1,9 +1,6 @@
 package log
 
-import (
-	"github.com/astaxie/beego/logs"
-)
-
+//Log defer func()
 func Log() {
-	logs.Info()
+
 }
