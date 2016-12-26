@@ -23,14 +23,19 @@ func (B *Board) TableName() string {
 
 //GetOne 读取单条数据
 func (B *Board) GetOne(ID uint64) (Board, error) {
-	boardInfo := Board{}
-	if err := o.QueryTable(B).Filter("ID", ID).One(&boardInfo); err != nil {
+	boardInfo := Board{ID: ID}
+	c := newCache(B.TableName(), "GetOne", ID)
+	if c.getCache(&boardInfo) == true {
+		return boardInfo, nil
+	}
+	if err := o.Read(&boardInfo); err != nil {
 		return Board{}, err
 	}
 	data, err := B.afterSelectHandle([]Board{boardInfo})
 	if err != nil {
 		return Board{}, err
 	}
+	c.setCache(data[0])
 	return data[0], nil
 }
 
