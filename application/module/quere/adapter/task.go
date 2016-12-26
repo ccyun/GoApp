@@ -21,9 +21,9 @@ type Tasker interface {
 
 //queue 队列
 type queue struct {
-	taskInfo model.Queue
-	mode     Tasker
-	model    *model.Queue
+	task  model.Queue
+	mode  Tasker
+	model *model.Queue
 }
 
 //RequestID 请求ID
@@ -53,15 +53,11 @@ func Run(option map[string]string) {
 }
 
 func (q *queue) run() {
-
 	logs.Info(L("Start processing tasks"))
 	q.model = new(model.Queue)
-
-	taskInfo, ok := q.getTaskInfo()
-	if ok == false {
+	if q.getTask() == false {
 		return
 	}
-	q.taskInfo = taskInfo
 	if q.checkTask() == false {
 		return
 	}
@@ -71,27 +67,33 @@ func (q *queue) run() {
 	logs.Info(L("Successful"))
 }
 
-//getTaskInfo 读取任务
-func (q *queue) getTaskInfo() (model.Queue, bool) {
-	taskInfo, err := q.model.GetOneTask()
-	if err != nil {
-		if err == orm.ErrNoRows {
-			logs.Notice(L("Not found task info."))
-		} else {
-			logs.Error(L("getTaskInfo GetOneTask"), err)
-		}
-		return model.Queue{}, false
+//getTask 读取任务
+func (q *queue) getTask() bool {
+	var (
+		err error
+	)
+	if q.model.TimeOut() {
+		return false
 	}
-	return taskInfo, true
+
+	if q.task, err = q.model.Pull(); err == nil {
+		return true
+	}
+	if err == orm.ErrNoRows {
+		logs.Notice(L("Not found task info."))
+	} else {
+		logs.Error(L("getTaskInfo Pull"), err)
+	}
+	return false
 }
 
 //checkTask 检查任务有效性
 func (q *queue) checkTask() bool {
-	mode, ok := modes[q.taskInfo.TaskType]
+	mode, ok := modes[q.task.TaskType]
 	if !ok {
 		logs.Error(L("taskInfo.TaskType not in('bbs','taskReply','taskAudit','taskClose')."))
-		if err := q.model.Update(q.taskInfo.ID); err != nil {
-			logs.Error(L("checkTask Update error"), err)
+		if q.model.Fail(q.task.ID) == false {
+			logs.Error(L("checkTask Fail error"))
 		}
 		return false
 	}
@@ -107,8 +109,9 @@ func (q *queue) runTask() bool {
 		q.mode.Rollback()
 		return false
 	}
+
 	//新的任务
-	if err := q.mode.NewTask(q.taskInfo); err != nil {
+	if err := q.mode.NewTask(q.task); err != nil {
 		logs.Error(L("runTask NewTask error"), err)
 		q.mode.Rollback()
 		return false

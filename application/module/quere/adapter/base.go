@@ -38,11 +38,11 @@ func (B *base) Commit() error {
 }
 
 //NewTask 新任务对象
-func (B *base) NewTask(taskInfo model.Queue) error {
-	B.taskID = taskInfo.ID
-	B.siteID = taskInfo.SiteID
-	B.customerCode = taskInfo.CustomerCode
-	B.action = taskInfo.Action
+func (B *base) NewTask(task model.Queue) error {
+	B.taskID = task.ID
+	B.siteID = task.SiteID
+	B.customerCode = task.CustomerCode
+	B.action = task.Action
 	return nil
 }
 

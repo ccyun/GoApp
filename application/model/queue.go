@@ -24,8 +24,8 @@ func (Q *Queue) TableName() string {
 	return "task"
 }
 
-//GetOneTask 读取单条数据
-func (Q *Queue) GetOneTask() (Queue, error) {
+//Pull 读取单条数据
+func (Q *Queue) Pull() (Queue, error) {
 	taskInfo := Queue{}
 	cond := orm.NewCondition()
 	condition := cond.And("SetTimer__lt", uint64(time.Now().UnixNano()/1e6)).AndCond(cond.And("Status", 0).OrCond(cond.And("Status", 3).And("TryCount__lt", 3)))
@@ -52,20 +52,26 @@ func (Q *Queue) lockTask(taskInfo Queue) error {
 	return err
 }
 
-//Update 修改数据
-func (Q *Queue) Update(ID uint64) error {
-	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
-	if num == 0 {
-		err = orm.ErrNoRows
+//TimeOut 处理超时任务
+func (Q *Queue) TimeOut() bool {
+	nowTime := uint64(time.Now().UnixNano() / 1e6)
+	data := orm.Params{
+		"Status":     3,
+		"ModifiedAt": nowTime,
 	}
-	return err
+	num, err := o.QueryTable(Q).Filter("Status", 1).Filter("ModifiedAt__lt", (nowTime - 7200000)).Update(data)
+	return AfterUpdate(Q.TableName(), num, err)
+}
+
+//Fail 修改数据
+func (Q *Queue) Fail(ID uint64) bool {
+	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
+	return AfterUpdate(Q.TableName(), num, err)
+
 }
 
 //Delete 删除数据
-func (Q *Queue) Delete(ID uint64) error {
+func (Q *Queue) Delete(ID uint64) bool {
 	num, err := o.Delete(&Queue{ID: ID})
-	if num == 0 {
-		err = orm.ErrNoRows
-	}
-	return err
+	return AfterUpdate(Q.TableName(), num, err)
 }

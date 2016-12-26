@@ -17,8 +17,8 @@ func init() {
 }
 
 //NewTask 新任务对象
-func (B *Bbs) NewTask(taskInfo model.Queue) error {
-	B.base.NewTask(taskInfo)
+func (B *Bbs) NewTask(task model.Queue) error {
+	B.base.NewTask(task)
 	bbsID, err := strconv.Atoi(B.action)
 	if err != nil {
 		logs.Error(L("NewTask strconv.Atoi err"), "taskid: ", B.taskID, "action error, action:", B.action, err)

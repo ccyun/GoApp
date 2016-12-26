@@ -51,16 +51,16 @@ func InitDB() error {
 ///////////////////////////////////////////model case //////////////////////////////////////////////
 func TestModelCache(t *testing.T) {
 	InitDB()
-	c := NewCache("tableName", "getOne")
+	c := newCache("tableName", "getOne")
 	a := map[string]string{"fdf": "fsdfds"}
 	var aa map[string]string
 	aa = make(map[string]string)
-	c.SetCache(map[string]string{"fdf": "fsdfds"}, a)
-	if ok := c.GetCache(map[string]string{"fdf": "fsdfds"}, &aa); ok != true {
+	c.setCache(a)
+	if ok := c.getCache(&aa); ok != true {
 		t.Error("model->Test_model_cache GetCache error", aa)
 	}
 	time.Sleep(1 * time.Second)
-	if ok := c.ClearCache("tableName"); ok != true {
+	if ok := c.clearCache("tableName"); ok != true {
 		t.Error("model->Test_model_cache ClearCache error")
 	}
 }
@@ -87,6 +87,11 @@ func TestBbsPublishScopeHandle(t *testing.T) {
 	if v.DiscussIDs[0] != 50032726 || v.GroupIDs[0] != 54299 || v.GroupIDs[1] != 54342 || v.UserIDs[0] != 62073932 {
 		t.Error("model->bbs.publishScopeHandle err", s, v)
 	}
+}
+
+func TestAfterUpdate(t *testing.T) {
+	InitDB()
+	log.Println(AfterUpdate("bbs", 1, nil))
 }
 
 func TestBbsGetOne(t *testing.T) {

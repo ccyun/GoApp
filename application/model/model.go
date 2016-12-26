@@ -69,6 +69,21 @@ func Init(option map[string]string) {
 	}
 }
 
+//AfterUpdate 错误处理,处理 增/删/改；以及更新缓存
+func AfterUpdate(tableName string, num int64, err error) bool {
+	if num == 0 {
+		logs.Notice(L("Model info:"), orm.ErrNoRows)
+		return false
+	}
+	if err != nil {
+		logs.Error(L("Model error:"), err)
+		return false
+	}
+	//异步 clearCache
+	go newCache(tableName).clearCache(tableName)
+	return true
+}
+
 //L 语言log
 func L(log string) string {
 	return RequestID + "  " + log
@@ -77,26 +92,21 @@ func L(log string) string {
 ///////////////////////////////Cache//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //newCache 初始化缓存对象
-func newCache(tableName string, arg ...interface{}) *C {
+func newCache(tableName string, args ...interface{}) *C {
 	c := new(C)
 	c.tableName = tableName
-	c.key = c.makeKey(arg)
+	c.key = c.makeKey(args)
 	return c
 }
 
 //makeKey 参数产生Key
-func (c *C) makeKey(arg ...interface{}) string {
-	k, err := json.Marshal(arg)
+func (c *C) makeKey(args ...interface{}) string {
+	k, err := json.Marshal(args)
 	if err != nil {
 		logs.Error(L("GetCache make key error"), err)
 		return ""
 	}
-	key := "D" + strconv.FormatUint(SiteID, 10)
-	if c.tableName != "" {
-		key += c.tableName + ":"
-	}
-	key += function.Md5(string(k), 16)
-	return key
+	return "D" + strconv.FormatUint(SiteID, 10) + c.tableName + ":" + function.Md5(string(k), 16)
 }
 
 //setCache 设置缓存
@@ -136,9 +146,6 @@ func (c *C) getCache(data interface{}) bool {
 //clearCache 清除缓存
 func (c *C) clearCache(keys ...string) bool {
 	key := "D" + strconv.FormatUint(SiteID, 10)
-	if len(keys) == 0 {
-		keys[0] = c.tableName
-	}
 	for _, v := range keys {
 		if err := Cache.Delete(key + v + "*"); err != nil {
 			logs.Error(L("ClearCache error"), err)
