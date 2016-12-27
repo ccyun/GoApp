@@ -2,18 +2,21 @@ package application
 
 import (
 	"errors"
+	"runtime"
 	"time"
 
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+
 	"github.com/ccyun/GoApp/application/library/httpcurl"
+	"github.com/ccyun/GoApp/application/model"
+	//syslog 驱动
+	_ "github.com/ccyun/GoApp/application/library/log"
 	//redis 驱动
 	_ "github.com/ccyun/GoApp/application/library/redis"
-	"github.com/ccyun/GoApp/application/model"
 	//mysql driver
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -43,10 +46,14 @@ func InitConfig() error {
 
 //InitLog 初始化log
 func InitLog() error {
-	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
-	logs.EnableFuncCallDepth(true)
-	logs.SetLogFuncCallDepth(4)
-	logs.Async(1e3)
+	if runtime.GOOS == "linux" || Conf.String("log_type") == "syslog" {
+
+	} else {
+		logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
+		logs.EnableFuncCallDepth(true)
+		logs.SetLogFuncCallDepth(4)
+		logs.Async(1e3)
+	}
 	return nil
 }
 
