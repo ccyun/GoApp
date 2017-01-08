@@ -1,6 +1,7 @@
 package application
 
 import (
+	"encoding/json"
 	"errors"
 	"runtime"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 
+	"github.com/ccyun/GoApp/application/library/hbase"
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
 	//syslog 驱动
@@ -30,7 +32,7 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache)
+	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase)
 }
 
 //InitConfig 初始化配置
@@ -108,4 +110,19 @@ func InitCache() error {
 	model.Cache = ca
 	httpcurl.Cache = ca
 	return nil
+}
+
+//InitHbase 初始化hbase
+func InitHbase() error {
+	var (
+		err    error
+		config struct {
+			Host   []string `json:"host"`
+			ZKroot string   `json:"zkroot"`
+		}
+	)
+	if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
+		return err
+	}
+	return hbase.InitHbase(config.Host, config.ZKroot)
 }

@@ -64,7 +64,7 @@ func (app *App) work() {
 				option["requestID"] = requestID
 				model.Init(option) //model 初始化配置
 				app.DoFunc(option)
-				time.Sleep(30 * time.Second)
+				time.Sleep(3 * time.Second)
 			}
 		}(i)
 		time.Sleep(2 * time.Second)

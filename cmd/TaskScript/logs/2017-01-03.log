@@ -1,0 +1,196 @@
+2017/01/03 01:22:56 [I] [task.go:52] eQiY2aT7X9R6yZwL1WLfvPbTnnEMS2X4  Start processing tasks
+2017/01/03 01:22:56 [I] [log.go:166] eQiY2aT7X9R6yZwL1WLfvPbTnnEMS2X4 [ORM]2017/01/03 01:22:56  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377776879`, `1`, `1483370576879`
+
+2017/01/03 01:22:56 [N] [queue.go:63] eQiY2aT7X9R6yZwL1WLfvPbTnnEMS2X4  Model info: <QuerySeter> no row found
+2017/01/03 01:22:56 [I] [log.go:166] eQiY2aT7X9R6yZwL1WLfvPbTnnEMS2X4 [ORM]2017/01/03 01:22:56  -[Queries/default] - [  OK /    db.Query /     0.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377776880`, `0`, `3`, `3`
+
+2017/01/03 01:22:56 [N] [task.go:59] eQiY2aT7X9R6yZwL1WLfvPbTnnEMS2X4  Not found task info.
+2017/01/03 01:22:58 [I] [task.go:52] Gu1rWAxUgWrkBjM2F0yPdeTUmFgenaBB  Start processing tasks
+2017/01/03 01:22:58 [I] [log.go:166] Gu1rWAxUgWrkBjM2F0yPdeTUmFgenaBB [ORM]2017/01/03 01:22:58  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377778878`, `1`, `1483370578878`
+
+2017/01/03 01:22:58 [N] [queue.go:63] Gu1rWAxUgWrkBjM2F0yPdeTUmFgenaBB  Model info: <QuerySeter> no row found
+2017/01/03 01:22:58 [I] [log.go:166] Gu1rWAxUgWrkBjM2F0yPdeTUmFgenaBB [ORM]2017/01/03 01:22:58  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377778879`, `0`, `3`, `3`
+
+2017/01/03 01:22:58 [N] [task.go:59] Gu1rWAxUgWrkBjM2F0yPdeTUmFgenaBB  Not found task info.
+2017/01/03 01:22:59 [I] [task.go:52] BOaOMZjFktcUTuD9H9dFa11PE9ZEYxFh  Start processing tasks
+2017/01/03 01:22:59 [I] [log.go:166] BOaOMZjFktcUTuD9H9dFa11PE9ZEYxFh [ORM]2017/01/03 01:22:59  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377779880`, `1`, `1483370579880`
+
+2017/01/03 01:22:59 [N] [queue.go:63] BOaOMZjFktcUTuD9H9dFa11PE9ZEYxFh  Model info: <QuerySeter> no row found
+2017/01/03 01:22:59 [I] [log.go:166] BOaOMZjFktcUTuD9H9dFa11PE9ZEYxFh [ORM]2017/01/03 01:22:59  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377779882`, `0`, `3`, `3`
+
+2017/01/03 01:22:59 [N] [task.go:59] BOaOMZjFktcUTuD9H9dFa11PE9ZEYxFh  Not found task info.
+2017/01/03 01:23:00 [I] [task.go:52] BhvodlSehXqjWtxRFbJXj6rjsnNVB0om  Start processing tasks
+2017/01/03 01:23:00 [I] [log.go:166] BhvodlSehXqjWtxRFbJXj6rjsnNVB0om [ORM]2017/01/03 01:23:00  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377780879`, `1`, `1483370580879`
+
+2017/01/03 01:23:00 [N] [queue.go:63] BhvodlSehXqjWtxRFbJXj6rjsnNVB0om  Model info: <QuerySeter> no row found
+2017/01/03 01:23:00 [I] [log.go:166] BhvodlSehXqjWtxRFbJXj6rjsnNVB0om [ORM]2017/01/03 01:23:00  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377780880`, `0`, `3`, `3`
+
+2017/01/03 01:23:00 [N] [task.go:59] BhvodlSehXqjWtxRFbJXj6rjsnNVB0om  Not found task info.
+2017/01/03 01:23:01 [I] [task.go:52] 66bwCWzgoMwhWecsZJtA5Dvpax3J5ZCm  Start processing tasks
+2017/01/03 01:23:01 [I] [log.go:166] 66bwCWzgoMwhWecsZJtA5Dvpax3J5ZCm [ORM]2017/01/03 01:23:01  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`modified_at` = ?, T0.`status` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `1483377781883`, `3`, `1`, `1483370581883`
+
+2017/01/03 01:23:01 [N] [queue.go:63] 66bwCWzgoMwhWecsZJtA5Dvpax3J5ZCm  Model info: <QuerySeter> no row found
+2017/01/03 01:23:01 [I] [log.go:166] 66bwCWzgoMwhWecsZJtA5Dvpax3J5ZCm [ORM]2017/01/03 01:23:01  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377781884`, `0`, `3`, `3`
+
+2017/01/03 01:23:01 [N] [task.go:59] 66bwCWzgoMwhWecsZJtA5Dvpax3J5ZCm  Not found task info.
+2017/01/03 01:23:02 [I] [task.go:52] Vxmr92Ffm8eYZuXwOMKqOW2Fk74EMOXE  Start processing tasks
+2017/01/03 01:23:02 [I] [log.go:166] Vxmr92Ffm8eYZuXwOMKqOW2Fk74EMOXE [ORM]2017/01/03 01:23:02  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377782879`, `1`, `1483370582879`
+
+2017/01/03 01:23:02 [N] [queue.go:63] Vxmr92Ffm8eYZuXwOMKqOW2Fk74EMOXE  Model info: <QuerySeter> no row found
+2017/01/03 01:23:02 [I] [log.go:166] Vxmr92Ffm8eYZuXwOMKqOW2Fk74EMOXE [ORM]2017/01/03 01:23:02  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377782879`, `0`, `3`, `3`
+
+2017/01/03 01:23:02 [N] [task.go:59] Vxmr92Ffm8eYZuXwOMKqOW2Fk74EMOXE  Not found task info.
+2017/01/03 01:23:02 [I] [task.go:52] zO6Fo8i0HbjQU0JrqTO5qU49PEfJzahN  Start processing tasks
+2017/01/03 01:23:02 [I] [log.go:166] zO6Fo8i0HbjQU0JrqTO5qU49PEfJzahN [ORM]2017/01/03 01:23:02  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377782884`, `1`, `1483370582884`
+
+2017/01/03 01:23:02 [N] [queue.go:63] zO6Fo8i0HbjQU0JrqTO5qU49PEfJzahN  Model info: <QuerySeter> no row found
+2017/01/03 01:23:02 [I] [log.go:166] zO6Fo8i0HbjQU0JrqTO5qU49PEfJzahN [ORM]2017/01/03 01:23:02  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377782884`, `0`, `3`, `3`
+
+2017/01/03 01:23:02 [N] [task.go:59] zO6Fo8i0HbjQU0JrqTO5qU49PEfJzahN  Not found task info.
+2017/01/03 01:23:03 [I] [task.go:52] KdPHKgS4UUaKiJ0kBO33b0RY8O9Cuppv  Start processing tasks
+2017/01/03 01:23:03 [I] [log.go:166] KdPHKgS4UUaKiJ0kBO33b0RY8O9Cuppv [ORM]2017/01/03 01:23:03  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377783882`, `1`, `1483370583882`
+
+2017/01/03 01:23:03 [N] [queue.go:63] KdPHKgS4UUaKiJ0kBO33b0RY8O9Cuppv  Model info: <QuerySeter> no row found
+2017/01/03 01:23:03 [I] [log.go:166] KdPHKgS4UUaKiJ0kBO33b0RY8O9Cuppv [ORM]2017/01/03 01:23:03  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377783883`, `0`, `3`, `3`
+
+2017/01/03 01:23:03 [N] [task.go:59] KdPHKgS4UUaKiJ0kBO33b0RY8O9Cuppv  Not found task info.
+2017/01/03 01:23:04 [I] [task.go:52] x0DKp02c7HgAmr85lmDD76kkVAUEdir0  Start processing tasks
+2017/01/03 01:23:04 [I] [log.go:166] x0DKp02c7HgAmr85lmDD76kkVAUEdir0 [ORM]2017/01/03 01:23:04  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377784886`, `1`, `1483370584886`
+
+2017/01/03 01:23:04 [N] [queue.go:63] x0DKp02c7HgAmr85lmDD76kkVAUEdir0  Model info: <QuerySeter> no row found
+2017/01/03 01:23:04 [I] [log.go:166] x0DKp02c7HgAmr85lmDD76kkVAUEdir0 [ORM]2017/01/03 01:23:04  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377784886`, `0`, `3`, `3`
+
+2017/01/03 01:23:04 [N] [task.go:59] x0DKp02c7HgAmr85lmDD76kkVAUEdir0  Not found task info.
+2017/01/03 01:23:05 [I] [task.go:52] omoWs1vEoihdV6FJJOFW2k6WQU3lRDwn  Start processing tasks
+2017/01/03 01:23:05 [I] [log.go:166] omoWs1vEoihdV6FJJOFW2k6WQU3lRDwn [ORM]2017/01/03 01:23:05  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377785880`, `1`, `1483370585880`
+
+2017/01/03 01:23:05 [N] [queue.go:63] omoWs1vEoihdV6FJJOFW2k6WQU3lRDwn  Model info: <QuerySeter> no row found
+2017/01/03 01:23:05 [I] [log.go:166] omoWs1vEoihdV6FJJOFW2k6WQU3lRDwn [ORM]2017/01/03 01:23:05  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377785881`, `0`, `3`, `3`
+
+2017/01/03 01:23:05 [N] [task.go:59] omoWs1vEoihdV6FJJOFW2k6WQU3lRDwn  Not found task info.
+2017/01/03 01:23:05 [I] [task.go:52] 2H0a1164mFBhTIuCXYF0Zc4mYah42sQD  Start processing tasks
+2017/01/03 01:23:05 [I] [log.go:166] 2H0a1164mFBhTIuCXYF0Zc4mYah42sQD [ORM]2017/01/03 01:23:05  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377785885`, `1`, `1483370585885`
+
+2017/01/03 01:23:05 [N] [queue.go:63] 2H0a1164mFBhTIuCXYF0Zc4mYah42sQD  Model info: <QuerySeter> no row found
+2017/01/03 01:23:05 [I] [log.go:166] 2H0a1164mFBhTIuCXYF0Zc4mYah42sQD [ORM]2017/01/03 01:23:05  -[Queries/default] - [  OK /    db.Query /     0.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377785886`, `0`, `3`, `3`
+
+2017/01/03 01:23:05 [N] [task.go:59] 2H0a1164mFBhTIuCXYF0Zc4mYah42sQD  Not found task info.
+2017/01/03 01:23:06 [I] [task.go:52] NCuuHJQvD1OUlNhTQaCpVxjCjco3JwQI  Start processing tasks
+2017/01/03 01:23:06 [I] [log.go:166] NCuuHJQvD1OUlNhTQaCpVxjCjco3JwQI [ORM]2017/01/03 01:23:06  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377786885`, `1`, `1483370586885`
+
+2017/01/03 01:23:06 [N] [queue.go:63] NCuuHJQvD1OUlNhTQaCpVxjCjco3JwQI  Model info: <QuerySeter> no row found
+2017/01/03 01:23:06 [I] [log.go:166] NCuuHJQvD1OUlNhTQaCpVxjCjco3JwQI [ORM]2017/01/03 01:23:06  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377786886`, `0`, `3`, `3`
+
+2017/01/03 01:23:06 [N] [task.go:59] NCuuHJQvD1OUlNhTQaCpVxjCjco3JwQI  Not found task info.
+2017/01/03 01:23:07 [I] [task.go:52] ARvnbqOzH0CKs3HeLKbr0v2uM1oqCAkN  Start processing tasks
+2017/01/03 01:23:07 [I] [log.go:166] ARvnbqOzH0CKs3HeLKbr0v2uM1oqCAkN [ORM]2017/01/03 01:23:07  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377787887`, `1`, `1483370587887`
+
+2017/01/03 01:23:07 [N] [queue.go:63] ARvnbqOzH0CKs3HeLKbr0v2uM1oqCAkN  Model info: <QuerySeter> no row found
+2017/01/03 01:23:07 [I] [log.go:166] ARvnbqOzH0CKs3HeLKbr0v2uM1oqCAkN [ORM]2017/01/03 01:23:07  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377787888`, `0`, `3`, `3`
+
+2017/01/03 01:23:07 [N] [task.go:59] ARvnbqOzH0CKs3HeLKbr0v2uM1oqCAkN  Not found task info.
+2017/01/03 01:23:08 [I] [task.go:52] zv2NfnAumu7ViUmQVjGbOFSHHDTAjc5I  Start processing tasks
+2017/01/03 01:23:08 [I] [log.go:166] zv2NfnAumu7ViUmQVjGbOFSHHDTAjc5I [ORM]2017/01/03 01:23:08  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`modified_at` = ?, T0.`status` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `1483377788882`, `3`, `1`, `1483370588882`
+
+2017/01/03 01:23:08 [N] [queue.go:63] zv2NfnAumu7ViUmQVjGbOFSHHDTAjc5I  Model info: <QuerySeter> no row found
+2017/01/03 01:23:08 [I] [log.go:166] zv2NfnAumu7ViUmQVjGbOFSHHDTAjc5I [ORM]2017/01/03 01:23:08  -[Queries/default] - [  OK /    db.Query /     1.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377788883`, `0`, `3`, `3`
+
+2017/01/03 01:23:08 [N] [task.go:59] zv2NfnAumu7ViUmQVjGbOFSHHDTAjc5I  Not found task info.
+2017/01/03 01:23:08 [I] [task.go:52] mXQ981MDRyjBbKJsBiq8fdTHDrqizs55  Start processing tasks
+2017/01/03 01:23:08 [I] [log.go:166] mXQ981MDRyjBbKJsBiq8fdTHDrqizs55 [ORM]2017/01/03 01:23:08  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377788887`, `1`, `1483370588887`
+
+2017/01/03 01:23:08 [N] [queue.go:63] mXQ981MDRyjBbKJsBiq8fdTHDrqizs55  Model info: <QuerySeter> no row found
+2017/01/03 01:23:08 [I] [log.go:166] mXQ981MDRyjBbKJsBiq8fdTHDrqizs55 [ORM]2017/01/03 01:23:08  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377788888`, `0`, `3`, `3`
+
+2017/01/03 01:23:08 [N] [task.go:59] mXQ981MDRyjBbKJsBiq8fdTHDrqizs55  Not found task info.
+2017/01/03 01:23:09 [I] [task.go:52] jNEKT7OUcAVGlB2wlutVFOWOWH28il1V  Start processing tasks
+2017/01/03 01:23:09 [I] [log.go:166] jNEKT7OUcAVGlB2wlutVFOWOWH28il1V [ORM]2017/01/03 01:23:09  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377789888`, `1`, `1483370589888`
+
+2017/01/03 01:23:09 [N] [queue.go:63] jNEKT7OUcAVGlB2wlutVFOWOWH28il1V  Model info: <QuerySeter> no row found
+2017/01/03 01:23:09 [I] [log.go:166] jNEKT7OUcAVGlB2wlutVFOWOWH28il1V [ORM]2017/01/03 01:23:09  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377789888`, `0`, `3`, `3`
+
+2017/01/03 01:23:09 [N] [task.go:59] jNEKT7OUcAVGlB2wlutVFOWOWH28il1V  Not found task info.
+2017/01/03 01:23:10 [I] [task.go:52] oqtMQvkICxhibIeRmKd3NNKiJLVKg5xx  Start processing tasks
+2017/01/03 01:23:10 [I] [log.go:166] oqtMQvkICxhibIeRmKd3NNKiJLVKg5xx [ORM]2017/01/03 01:23:10  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377790890`, `1`, `1483370590890`
+
+2017/01/03 01:23:10 [N] [queue.go:63] oqtMQvkICxhibIeRmKd3NNKiJLVKg5xx  Model info: <QuerySeter> no row found
+2017/01/03 01:23:10 [I] [log.go:166] oqtMQvkICxhibIeRmKd3NNKiJLVKg5xx [ORM]2017/01/03 01:23:10  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377790890`, `0`, `3`, `3`
+
+2017/01/03 01:23:10 [N] [task.go:59] oqtMQvkICxhibIeRmKd3NNKiJLVKg5xx  Not found task info.
+2017/01/03 01:23:11 [I] [task.go:52] oEYIcxJnTsxvObvkTluHPC9hozVdmQ4X  Start processing tasks
+2017/01/03 01:23:11 [I] [log.go:166] oEYIcxJnTsxvObvkTluHPC9hozVdmQ4X [ORM]2017/01/03 01:23:11  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377791885`, `1`, `1483370591885`
+
+2017/01/03 01:23:11 [N] [queue.go:63] oEYIcxJnTsxvObvkTluHPC9hozVdmQ4X  Model info: <QuerySeter> no row found
+2017/01/03 01:23:11 [I] [log.go:166] oEYIcxJnTsxvObvkTluHPC9hozVdmQ4X [ORM]2017/01/03 01:23:11  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377791885`, `0`, `3`, `3`
+
+2017/01/03 01:23:11 [N] [task.go:59] oEYIcxJnTsxvObvkTluHPC9hozVdmQ4X  Not found task info.
+2017/01/03 01:23:11 [I] [task.go:52] tJm9q29KzyCk2RGY4gxDDRTUZJOiAk17  Start processing tasks
+2017/01/03 01:23:11 [I] [log.go:166] tJm9q29KzyCk2RGY4gxDDRTUZJOiAk17 [ORM]2017/01/03 01:23:11  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377791890`, `1`, `1483370591890`
+
+2017/01/03 01:23:11 [N] [queue.go:63] tJm9q29KzyCk2RGY4gxDDRTUZJOiAk17  Model info: <QuerySeter> no row found
+2017/01/03 01:23:11 [I] [log.go:166] tJm9q29KzyCk2RGY4gxDDRTUZJOiAk17 [ORM]2017/01/03 01:23:11  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377791890`, `0`, `3`, `3`
+
+2017/01/03 01:23:11 [N] [task.go:59] tJm9q29KzyCk2RGY4gxDDRTUZJOiAk17  Not found task info.
+2017/01/03 01:23:12 [I] [task.go:52] BSAKm9tiVhbIe963yhhY5MX1jBHchFPW  Start processing tasks
+2017/01/03 01:23:12 [I] [log.go:166] BSAKm9tiVhbIe963yhhY5MX1jBHchFPW [ORM]2017/01/03 01:23:12  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377792889`, `1`, `1483370592889`
+
+2017/01/03 01:23:12 [N] [queue.go:63] BSAKm9tiVhbIe963yhhY5MX1jBHchFPW  Model info: <QuerySeter> no row found
+2017/01/03 01:23:12 [I] [log.go:166] BSAKm9tiVhbIe963yhhY5MX1jBHchFPW [ORM]2017/01/03 01:23:12  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377792890`, `0`, `3`, `3`
+
+2017/01/03 01:23:12 [N] [task.go:59] BSAKm9tiVhbIe963yhhY5MX1jBHchFPW  Not found task info.
+2017/01/03 01:23:13 [I] [task.go:52] djXvMOFjcAvb0TA7Q5dUHgxIoIccW4nt  Start processing tasks
+2017/01/03 01:23:13 [I] [log.go:166] djXvMOFjcAvb0TA7Q5dUHgxIoIccW4nt [ORM]2017/01/03 01:23:13  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377793892`, `1`, `1483370593892`
+
+2017/01/03 01:23:13 [N] [queue.go:63] djXvMOFjcAvb0TA7Q5dUHgxIoIccW4nt  Model info: <QuerySeter> no row found
+2017/01/03 01:23:13 [I] [log.go:166] djXvMOFjcAvb0TA7Q5dUHgxIoIccW4nt [ORM]2017/01/03 01:23:13  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377793893`, `0`, `3`, `3`
+
+2017/01/03 01:23:13 [N] [task.go:59] djXvMOFjcAvb0TA7Q5dUHgxIoIccW4nt  Not found task info.
+2017/01/03 01:23:14 [I] [task.go:52] QLCads9Hus79Jo5tQROHEDg0TkqgY3Jw  Start processing tasks
+2017/01/03 01:23:14 [I] [log.go:166] QLCads9Hus79Jo5tQROHEDg0TkqgY3Jw [ORM]2017/01/03 01:23:14  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377794886`, `1`, `1483370594886`
+
+2017/01/03 01:23:14 [N] [queue.go:63] QLCads9Hus79Jo5tQROHEDg0TkqgY3Jw  Model info: <QuerySeter> no row found
+2017/01/03 01:23:14 [I] [log.go:166] QLCads9Hus79Jo5tQROHEDg0TkqgY3Jw [ORM]2017/01/03 01:23:14  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377794886`, `0`, `3`, `3`
+
+2017/01/03 01:23:14 [N] [task.go:59] QLCads9Hus79Jo5tQROHEDg0TkqgY3Jw  Not found task info.
+2017/01/03 01:23:14 [I] [task.go:52] x7XWxVn9IccRi8mTs73fEOw4J7uMqJO1  Start processing tasks
+2017/01/03 01:23:14 [I] [log.go:166] x7XWxVn9IccRi8mTs73fEOw4J7uMqJO1 [ORM]2017/01/03 01:23:14  -[Queries/default] - [  OK /     db.Exec /     0.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377794891`, `1`, `1483370594891`
+
+2017/01/03 01:23:14 [N] [queue.go:63] x7XWxVn9IccRi8mTs73fEOw4J7uMqJO1  Model info: <QuerySeter> no row found
+2017/01/03 01:23:14 [I] [log.go:166] x7XWxVn9IccRi8mTs73fEOw4J7uMqJO1 [ORM]2017/01/03 01:23:14  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377794891`, `0`, `3`, `3`
+
+2017/01/03 01:23:14 [N] [task.go:59] x7XWxVn9IccRi8mTs73fEOw4J7uMqJO1  Not found task info.
+2017/01/03 01:23:15 [I] [task.go:52] GwYgRTcAGyXNDxguzsvQ63lAkv6d1dHG  Start processing tasks
+2017/01/03 01:23:15 [I] [log.go:166] GwYgRTcAGyXNDxguzsvQ63lAkv6d1dHG [ORM]2017/01/03 01:23:15  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377795892`, `1`, `1483370595892`
+
+2017/01/03 01:23:15 [N] [queue.go:63] GwYgRTcAGyXNDxguzsvQ63lAkv6d1dHG  Model info: <QuerySeter> no row found
+2017/01/03 01:23:15 [I] [log.go:166] GwYgRTcAGyXNDxguzsvQ63lAkv6d1dHG [ORM]2017/01/03 01:23:15  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377795893`, `0`, `3`, `3`
+
+2017/01/03 01:23:15 [N] [task.go:59] GwYgRTcAGyXNDxguzsvQ63lAkv6d1dHG  Not found task info.
+2017/01/03 01:23:16 [I] [task.go:52] e4UH5p9oZM0fCmO853SuMNyipztGGkNB  Start processing tasks
+2017/01/03 01:23:16 [I] [log.go:166] e4UH5p9oZM0fCmO853SuMNyipztGGkNB [ORM]2017/01/03 01:23:16  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377796895`, `1`, `1483370596895`
+
+2017/01/03 01:23:16 [N] [queue.go:63] e4UH5p9oZM0fCmO853SuMNyipztGGkNB  Model info: <QuerySeter> no row found
+2017/01/03 01:23:16 [I] [log.go:166] e4UH5p9oZM0fCmO853SuMNyipztGGkNB [ORM]2017/01/03 01:23:16  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377796896`, `0`, `3`, `3`
+
+2017/01/03 01:23:16 [N] [task.go:59] e4UH5p9oZM0fCmO853SuMNyipztGGkNB  Not found task info.
+2017/01/03 01:23:17 [I] [task.go:52] qQapd4oXaeOKjxZFTIIu1sKzjyJd1R0G  Start processing tasks
+2017/01/03 01:23:17 [I] [log.go:166] qQapd4oXaeOKjxZFTIIu1sKzjyJd1R0G [ORM]2017/01/03 01:23:17  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377797888`, `1`, `1483370597888`
+
+2017/01/03 01:23:17 [N] [queue.go:63] qQapd4oXaeOKjxZFTIIu1sKzjyJd1R0G  Model info: <QuerySeter> no row found
+2017/01/03 01:23:17 [I] [log.go:166] qQapd4oXaeOKjxZFTIIu1sKzjyJd1R0G [ORM]2017/01/03 01:23:17  -[Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377797889`, `0`, `3`, `3`
+
+2017/01/03 01:23:17 [N] [task.go:59] qQapd4oXaeOKjxZFTIIu1sKzjyJd1R0G  Not found task info.
+2017/01/03 01:23:17 [I] [task.go:52] RB4oG8P7stOkdduHhKM8jm5JWWciGMjP  Start processing tasks
+2017/01/03 01:23:17 [I] [log.go:166] RB4oG8P7stOkdduHhKM8jm5JWWciGMjP [ORM]2017/01/03 01:23:17  -[Queries/default] - [  OK /     db.Exec /     1.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377797893`, `1`, `1483370597893`
+
+2017/01/03 01:23:17 [N] [queue.go:63] RB4oG8P7stOkdduHhKM8jm5JWWciGMjP  Model info: <QuerySeter> no row found
+2017/01/03 01:23:17 [I] [log.go:166] RB4oG8P7stOkdduHhKM8jm5JWWciGMjP [ORM]2017/01/03 01:23:17  -[Queries/default] - [  OK /    db.Query /     0.9ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377797894`, `0`, `3`, `3`
+
+2017/01/03 01:23:17 [N] [task.go:59] RB4oG8P7stOkdduHhKM8jm5JWWciGMjP  Not found task info.
+2017/01/03 01:23:18 [I] [task.go:52] plITBWCWNwW64RCbyCxbhOC34Fim0xOQ  Start processing tasks
+2017/01/03 01:23:18 [I] [log.go:166] plITBWCWNwW64RCbyCxbhOC34Fim0xOQ [ORM]2017/01/03 01:23:18  -[Queries/default] - [  OK /     db.Exec /     0.9ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1483377798895`, `1`, `1483370598895`
+
+2017/01/03 01:23:18 [N] [queue.go:63] plITBWCWNwW64RCbyCxbhOC34Fim0xOQ  Model info: <QuerySeter> no row found
+2017/01/03 01:23:18 [I] [log.go:166] plITBWCWNwW64RCbyCxbhOC34Fim0xOQ [ORM]2017/01/03 01:23:18  -[Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1483377798896`, `0`, `3`, `3`
+
+2017/01/03 01:23:18 [N] [task.go:59] plITBWCWNwW64RCbyCxbhOC34Fim0xOQ  Not found task info.
