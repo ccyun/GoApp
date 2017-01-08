@@ -7,9 +7,11 @@ import (
 
 	"time"
 
+	"github.com/ccyun/GoApp/application/function"
 	"github.com/ccyun/GoApp/application/library/hbase/thrift"
 )
 
+//REVERSED =>true
 var (
 	hostPort string
 	trans    *thrift.TSocket
@@ -36,7 +38,7 @@ func initHbase(t *testing.T) {
 	log.Println("1")
 	var tputs []*TPut
 	for i := 1000000001; i < 1000160000; i++ {
-		k := strconv.Itoa(i)
+		k := function.ReverseString(strconv.Itoa(i))
 
 		tput := NewTPut()
 		tput.Row = []byte(k)
@@ -45,12 +47,14 @@ func initHbase(t *testing.T) {
 		tColumnValue.Qualifier = []byte("title")
 		tColumnValue.Value = []byte(k)
 		tput.ColumnValues = append(tput.ColumnValues, tColumnValue)
+
 		tputs = append(tputs, tput)
 	}
 	log.Println("2")
 	if err = client.PutMultiple([]byte("news"), tputs); err != nil {
 		t.Error("Put error:", err)
 	}
+
 	defer func() {
 		if err = trans.Close(); err != nil {
 			t.Error("initHbase NewTSocket close error:", err)
