@@ -50,6 +50,7 @@ func RegisterModels() {
 	orm.RegisterModelWithPrefix(DBPrefix, new(Bbs))
 	orm.RegisterModelWithPrefix(DBPrefix, new(Editor))
 	orm.RegisterModelWithPrefix(DBPrefix, new(PublishScope))
+	orm.RegisterModelWithPrefix(DBPrefix, new(Feed))
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)
 }
