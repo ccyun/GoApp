@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
+	"git.apache.org/thrift.git/lib/go/thrift"
 	"github.com/astaxie/beego/logs"
-	"github.com/ccyun/GoApp/application/library/hbase/thrift"
 )
 
 var (

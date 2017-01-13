@@ -7,8 +7,10 @@ import (
 	"flag"
 	"fmt"
 
+	"git.apache.org/thrift.git/lib/go/thrift"
+
 	"github.com/ccyun/GoApp/application/library/hbase"
-	"github.com/ccyun/GoApp/application/library/hbase/thrift"
+
 	//"git.apache.org/thrift.git/lib/go/thrift"
 	//"hbase"
 	"math"

@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"time"
+	"git.apache.org/thrift.git/lib/go/thrift"
 
-	"github.com/ccyun/GoApp/application/library/hbase/thrift"
+	"time"
 )
 
 //REVERSED =>true

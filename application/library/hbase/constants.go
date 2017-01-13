@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/ccyun/GoApp/application/library/hbase/thrift"
+	"git.apache.org/thrift.git/lib/go/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)
@@ -16,4 +16,5 @@ var _ = fmt.Printf
 var _ = bytes.Equal
 
 func init() {
+
 }
