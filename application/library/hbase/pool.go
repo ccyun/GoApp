@@ -14,9 +14,9 @@ var (
 
 //Pool 基本方法
 type Pool interface {
-	Get() (interface{}, error)
-	Put(interface{}) error
-	Close(interface{}) error
+	Get() (*THBaseServiceClient, error)
+	Put(*THBaseServiceClient) error
+	Close(*THBaseServiceClient) error
 	Release()
 	Len() int
 }
@@ -28,9 +28,9 @@ type PoolConfig struct {
 	//连接池中拥有的最大的连接数
 	MaxCap int
 	//生成连接的方法
-	Factory func() (interface{}, error)
+	Factory func() (*THBaseServiceClient, error)
 	//关闭链接的方法
-	Close func(interface{}) error
+	Close func(*THBaseServiceClient) error
 	//链接最大空闲时间，超过该事件则将失效
 	IdleTimeout time.Duration
 }
@@ -39,13 +39,13 @@ type PoolConfig struct {
 type channelPool struct {
 	mu          sync.Mutex
 	conns       chan *idleConn
-	factory     func() (interface{}, error)
-	close       func(interface{}) error
+	factory     func() (*THBaseServiceClient, error)
+	close       func(*THBaseServiceClient) error
 	idleTimeout time.Duration
 }
 
 type idleConn struct {
-	conn interface{}
+	conn *THBaseServiceClient
 	t    time.Time
 }
 
@@ -83,7 +83,7 @@ func (c *channelPool) getConns() chan *idleConn {
 }
 
 //Get 从pool中取一个连接
-func (c *channelPool) Get() (interface{}, error) {
+func (c *channelPool) Get() (*THBaseServiceClient, error) {
 	conns := c.getConns()
 	if conns == nil {
 		return nil, ErrClosed
@@ -115,7 +115,7 @@ func (c *channelPool) Get() (interface{}, error) {
 }
 
 //Put 将连接放回pool中
-func (c *channelPool) Put(conn interface{}) error {
+func (c *channelPool) Put(conn *THBaseServiceClient) error {
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
 	}
@@ -137,7 +137,7 @@ func (c *channelPool) Put(conn interface{}) error {
 }
 
 //Close 关闭单条连接
-func (c *channelPool) Close(conn interface{}) error {
+func (c *channelPool) Close(conn *THBaseServiceClient) error {
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
 	}

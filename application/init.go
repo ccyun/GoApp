@@ -33,6 +33,7 @@ func init() {
 			}
 		}
 	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase)
+
 }
 
 //InitConfig 初始化配置
@@ -117,12 +118,13 @@ func InitHbase() error {
 	var (
 		err    error
 		config struct {
-			Host   []string `json:"host"`
-			ZKroot string   `json:"zkroot"`
+			Host string `json:"host"`
+			Port string `json:"port"`
+			Pool int    `json:"pool"`
 		}
 	)
 	if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
 		return err
 	}
-	return hbase.InitHbase(config.Host, config.ZKroot)
+	return hbase.InitHbase(config.Host, config.Port, config.Pool)
 }

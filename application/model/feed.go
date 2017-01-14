@@ -58,10 +58,15 @@ func (F *Feed) HbaseTableName() string {
 
 //SaveHbase 保存数据到hbase
 func (F *Feed) SaveHbase(userIDs []uint64, feedData HbaseFeed) error {
+	client, err := hbase.OpenClient()
+	if err != nil {
+		return err
+	}
+	defer hbase.CloseClient(client)
 	var (
-		Data                       []hbase.DDL
 		feedByte                   []byte
 		boardID, feedID, fevFeedID string
+		data                       []*hbase.TPut
 	)
 	feed, err := json.Marshal(feedData)
 	if err != nil {
@@ -72,34 +77,51 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData HbaseFeed) error {
 	boardID = strconv.FormatUint(feedData.BoardID, 10)
 	feedID = strconv.FormatUint((MinFeedNum + feedData.FeedID), 10)
 	fevFeedID = strconv.FormatUint((MaxFeedNum - feedData.FeedID), 10)
+
 	for _, u := range userIDs {
 		userID := function.ReverseString(strconv.FormatUint(u, 10))
-		Data = append(Data, hbase.DDL{
-			RowKey:    []byte(fmt.Sprintf("%s:LastFeed:%s", userID, feedID)),
-			Family:    []byte("data"),
-			Qualifier: []byte("feed"),
-			Value:     feedByte,
-		}, hbase.DDL{
-			RowKey:    []byte(fmt.Sprintf("%s:%s:NewList", userID, boardID)),
-			Family:    []byte("data"),
-			Qualifier: []byte(fevFeedID),
-			Value:     feedByte,
-		}, hbase.DDL{
-			RowKey:    []byte(fmt.Sprintf("%s:%s:Home:%s", userID, boardID, feedID)),
-			Family:    []byte("data"),
-			Qualifier: []byte("feed"),
-			Value:     feedByte,
-		}, hbase.DDL{
-			RowKey:    []byte(fmt.Sprintf("%s:%s:%s:%s", userID, boardID, feedData.FeedType, feedID)),
-			Family:    []byte("data"),
-			Qualifier: []byte("feed"),
-			Value:     feedByte,
+		data = append(data, &hbase.TPut{
+			Row: []byte(fmt.Sprintf("%s:LastFeed:%s", userID, feedID)),
+			ColumnValues: []*hbase.TColumnValue{
+				&hbase.TColumnValue{
+					Family:    []byte("data"),
+					Qualifier: []byte("feed"),
+					Value:     feedByte,
+				},
+			},
+		}, &hbase.TPut{
+			Row: []byte(fmt.Sprintf("%s:%s:NewList", userID, boardID)),
+			ColumnValues: []*hbase.TColumnValue{
+				&hbase.TColumnValue{
+					Family:    []byte("data"),
+					Qualifier: []byte(fevFeedID),
+					Value:     feedByte,
+				},
+			},
+		}, &hbase.TPut{
+			Row: []byte(fmt.Sprintf("%s:%s:Home:%s", userID, boardID, feedID)),
+			ColumnValues: []*hbase.TColumnValue{
+				&hbase.TColumnValue{
+					Family:    []byte("data"),
+					Qualifier: []byte("feed"),
+					Value:     feedByte,
+				},
+			},
+		}, &hbase.TPut{
+			Row: []byte(fmt.Sprintf("%s:%s:%s:%s", userID, boardID, feedData.FeedType, feedID)),
+			ColumnValues: []*hbase.TColumnValue{
+				&hbase.TColumnValue{
+					Family:    []byte("data"),
+					Qualifier: []byte("feed"),
+					Value:     feedByte,
+				},
+			},
 		})
 	}
-	return hbase.Puts(F.HbaseTableName(), Data)
+	return client.PutMultiple([]byte(F.HbaseTableName()), data)
 }
 
-//GetLastFeed 查询最新feed
-func (F *Feed) GetLastFeed(userID uint64) {
-	hbase.GetLastOne(F.HbaseTableName(), fmt.Sprintf("%s:LastFeed", function.ReverseString(strconv.FormatUint(userID, 10))), "data", "feed")
-}
+// //GetLastFeed 查询最新feed
+// func (F *Feed) GetLastFeed(userID uint64) {
+// 	hbase.GetLastOne(F.HbaseTableName(), fmt.Sprintf("%s:LastFeed", function.ReverseString(strconv.FormatUint(userID, 10))), "data", "feed")
+// }
