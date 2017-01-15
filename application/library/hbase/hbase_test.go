@@ -1,70 +1,51 @@
 package hbase
 
-import (
-	"log"
-	"strconv"
-	"testing"
+import "testing"
 
-	"time"
+var isInit bool
 
-	"github.com/ccyun/GoApp/application/function"
-	"github.com/ccyun/GoApp/application/library/hbase/thrift"
-)
-
-//REVERSED =>true
-var (
-	hostPort string
-	trans    *thrift.TSocket
-	client   *THBaseServiceClient
-	err      error
-	isinit   bool
-)
-
-func initHbase(t *testing.T) {
-	if isinit {
-		return
+func initHbase() {
+	if isInit == false {
+		InitHbase("192.168.197.128", "9090", 10)
 	}
-	hostPort = "192.168.40.12:9090"
-	if trans, err = thrift.NewTSocket(hostPort); err != nil {
-		t.Error("initHbase NewTSocket error:", err)
-	}
-
-	trans.SetTimeout(60 * time.Second)
-
-	client := NewTHBaseServiceClientFactory(trans, thrift.NewTBinaryProtocolFactoryDefault())
-	if err = trans.Open(); err != nil {
-		t.Error("initHbase NewTSocket open error:", err)
-	}
-	log.Println("1")
-	var tputs []*TPut
-	for i := 1000000001; i < 1000160000; i++ {
-		k := function.ReverseString(strconv.Itoa(i))
-
-		tput := NewTPut()
-		tput.Row = []byte(k)
-		tColumnValue := NewTColumnValue()
-		tColumnValue.Family = []byte("info")
-		tColumnValue.Qualifier = []byte("title")
-		tColumnValue.Value = []byte(k)
-		tput.ColumnValues = append(tput.ColumnValues, tColumnValue)
-
-		tputs = append(tputs, tput)
-	}
-	log.Println("2")
-	if err = client.PutMultiple([]byte("news"), tputs); err != nil {
-		t.Error("Put error:", err)
-	}
-
-	defer func() {
-		if err = trans.Close(); err != nil {
-			t.Error("initHbase NewTSocket close error:", err)
-		}
-
-	}()
-	isinit = true
+	isInit = true
 }
 
-func TestHbase(t *testing.T) {
-	initHbase(t)
+func TestHbasePut(t *testing.T) {
+	initHbase()
+	client, _ := OpenClient()
+	defer CloseClient(client)
+	TPut := &TPut{
+		Row: []byte("ddddd"),
+		ColumnValues: []*TColumnValue{
+			&TColumnValue{
+				Family:    []byte("data"),
+				Qualifier: []byte("feed"),
+				Value:     []byte("ddddd32"),
+			},
+		},
+	}
+	if err := client.Put([]byte("news"), TPut); err != nil {
+		t.Error(err)
+	}
+}
 
+func TestHbaseDel(t *testing.T) {
+	initHbase()
+	client, _ := OpenClient()
+	defer CloseClient(client)
+	tdel := &TDelete{
+		Row: []byte("ddddd"),
+		// Columns: []*TColumn{
+		// 	&TColumn{
+		// 		Family:    []byte("data"),
+		// 		Qualifier: []byte("feed"),
+		// 		//	Timestamp:
+		// 	},
+		// },
+		DeleteType: TDeleteType_DELETE_COLUMN,
+	}
+	if err := client.DeleteSingle([]byte("news"), tdel); err != nil {
+		t.Error(err)
+	}
 }
