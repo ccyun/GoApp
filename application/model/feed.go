@@ -25,10 +25,8 @@ const (
 	MinFeedNum = 100000000000000
 )
 
-var (
-	//seed rowkey高位随机种子
-	seed = [36]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
-)
+//seed rowkey高位随机种子
+var seed = [36]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
 //TableName 表名
 func (F *Feed) TableName() string {
