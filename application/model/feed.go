@@ -1,11 +1,8 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
 	"strconv"
 
-	"github.com/astaxie/beego/logs"
 	"github.com/ccyun/GoApp/application/function"
 	"github.com/ccyun/GoApp/application/library/hbase"
 )
@@ -16,34 +13,21 @@ type Feed struct {
 	SiteID    uint64 `orm:"column(site_id)"`
 	BoardID   uint64 `orm:"column(board_id)"`
 	BbsID     uint64 `orm:"column(bbs_id)"`
-	FeedType  uint64 `orm:"column(feed_type)"`
+	FeedType  string `orm:"column(feed_type)"`
 	Data      uint64 `orm:"column(data)"`
 	MsgID     uint64 `orm:"column(msg_id)"`
 	CreatedAt uint64 `orm:"column(created_at)"`
-}
-
-//HbaseFeed hbase数据结构
-type HbaseFeed struct {
-	BoardID        uint64 `json:"board_id"`
-	BbsID          uint64 `json:"bbs_id"`
-	FeedID         uint64 `json:"feed_id"`
-	FeedType       string `json:"feed_type"`
-	MsgID          uint64 `json:"msg_id"`
-	DiscussID      uint64 `json:"discuss_id"`
-	UserID         uint64 `json:"user_id"`
-	Title          string `json:"title"`
-	Description    string `json:"description"`
-	Thumb          string `json:"thumb"`
-	Category       string `json:"category"`
-	Type           string `json:"type"`
-	CommentEnabled uint64 `json:"comment_enabled"`
-	CreatedAt      uint64 `json:"created_at"`
 }
 
 //MaxFeedNum feed容量
 const (
 	MaxFeedNum = 200000000000000
 	MinFeedNum = 100000000000000
+)
+
+var (
+	//seed rowkey高位随机种子
+	seed = [36]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 )
 
 //TableName 表名
@@ -56,72 +40,63 @@ func (F *Feed) HbaseTableName() string {
 	return "bbs_feed"
 }
 
-//SaveHbase 保存数据到hbase
-func (F *Feed) SaveHbase(userIDs []uint64, feedData HbaseFeed) error {
-	client, err := hbase.OpenClient()
-	if err != nil {
-		return err
-	}
-	defer hbase.CloseClient(client)
-	var (
-		feedByte                   []byte
-		boardID, feedID, fevFeedID string
-		data                       []*hbase.TPut
-	)
-	feed, err := json.Marshal(feedData)
-	if err != nil {
-		logs.Error(L("SaveHbase json Marshal error:"), err)
-		return err
-	}
-	feedByte = []byte(string(feed))
-	boardID = strconv.FormatUint(feedData.BoardID, 10)
-	feedID = strconv.FormatUint((MinFeedNum + feedData.FeedID), 10)
-	fevFeedID = strconv.FormatUint((MaxFeedNum - feedData.FeedID), 10)
+//ReverseString 反转字符串
+func makeRowkey(userID int64) string {
+	userIDstr := strconv.FormatInt(userID, 10)
+	reverseUserID, _ := strconv.ParseInt(function.ReverseString(userIDstr), 10, 0)
+	seedK1 := userID % 36
+	seedK2 := reverseUserID % 36
+	seedK3 := (seedK1 + seedK2) % 36
+	return seed[seedK3] + seed[seedK1] + seed[seedK2] + "_" + userIDstr
+}
 
+//SaveHbase 保存数据到hbase
+func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
+	client, err := hbase.OpenClient()
+	defer hbase.CloseClient(client)
+	if err != nil {
+		return err
+	}
+	var (
+		boardID, bbsID, family []byte
+		data                   []*hbase.TPut
+		timeStamp              int64
+	)
+	boardID = []byte(strconv.FormatUint(feedData.BoardID, 10))
+	bbsID = []byte(strconv.FormatUint(feedData.BbsID, 10))
+	family = []byte("cf")
+	timeStamp = int64(feedData.ID)
 	for _, u := range userIDs {
-		userID := function.ReverseString(strconv.FormatUint(u, 10))
-		data = append(data, &hbase.TPut{
-			Row: []byte(fmt.Sprintf("%s:LastFeed:%s", userID, feedID)),
-			ColumnValues: []*hbase.TColumnValue{
-				&hbase.TColumnValue{
-					Family:    []byte("data"),
-					Qualifier: []byte("feed"),
-					Value:     feedByte,
+		rowkey := makeRowkey(int64(u))
+		data = []*hbase.TPut{
+			&hbase.TPut{
+				Row: []byte(rowkey + "_home"),
+				ColumnValues: []*hbase.TColumnValue{
+					&hbase.TColumnValue{
+						Family:    family,
+						Qualifier: boardID,
+						Value:     bbsID,
+						Timestamp: &timeStamp,
+					},
 				},
 			},
-		}, &hbase.TPut{
-			Row: []byte(fmt.Sprintf("%s:%s:NewList", userID, boardID)),
-			ColumnValues: []*hbase.TColumnValue{
-				&hbase.TColumnValue{
-					Family:    []byte("data"),
-					Qualifier: []byte(fevFeedID),
-					Value:     feedByte,
+		}
+		switch feedData.FeedType {
+		case "bbs":
+		case "task":
+		case "form":
+			data = append(data, &hbase.TPut{
+				Row: []byte(rowkey + "_list"),
+				ColumnValues: []*hbase.TColumnValue{
+					&hbase.TColumnValue{
+						Family:    family,
+						Qualifier: boardID,
+						Value:     bbsID,
+						Timestamp: &timeStamp,
+					},
 				},
-			},
-		}, &hbase.TPut{
-			Row: []byte(fmt.Sprintf("%s:%s:Home:%s", userID, boardID, feedID)),
-			ColumnValues: []*hbase.TColumnValue{
-				&hbase.TColumnValue{
-					Family:    []byte("data"),
-					Qualifier: []byte("feed"),
-					Value:     feedByte,
-				},
-			},
-		}, &hbase.TPut{
-			Row: []byte(fmt.Sprintf("%s:%s:%s:%s", userID, boardID, feedData.FeedType, feedID)),
-			ColumnValues: []*hbase.TColumnValue{
-				&hbase.TColumnValue{
-					Family:    []byte("data"),
-					Qualifier: []byte("feed"),
-					Value:     feedByte,
-				},
-			},
-		})
+			})
+		}
 	}
 	return client.PutMultiple([]byte(F.HbaseTableName()), data)
 }
-
-// //GetLastFeed 查询最新feed
-// func (F *Feed) GetLastFeed(userID uint64) {
-// 	hbase.GetLastOne(F.HbaseTableName(), fmt.Sprintf("%s:LastFeed", function.ReverseString(strconv.FormatUint(userID, 10))), "data", "feed")
-// }

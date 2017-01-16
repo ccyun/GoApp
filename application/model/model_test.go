@@ -146,8 +146,6 @@ func TestSaveHbase(t *testing.T) {
 	a.SaveHbase(userIDs, feedData)
 }
 
-// //TestGetLastFeed 读取最新feed
-// func TestGetLastFeed(t *testing.T) {
-// 	a := new(Feed)
-// 	a.GetLastFeed(100080)
-// }
+func TestMakeRowkey(t *testing.T) {
+	log.Println(makeRowkey(45441266))
+}
