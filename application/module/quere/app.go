@@ -11,6 +11,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/utils"
+	"github.com/ccyun/GoApp/application/library/hook"
 	"github.com/ccyun/GoApp/application/model"
 )
 
@@ -34,6 +35,7 @@ func initRegister() {
 
 //Run 启动
 func (app *App) Run() {
+	hook.AppRunStart()
 	initRegister()
 	if len(os.Args) > 1 {
 		app.thread, _ = strconv.Atoi(os.Args[1])

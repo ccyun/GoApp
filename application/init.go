@@ -26,14 +26,13 @@ import (
 var Conf config.Configer
 
 func init() {
-	func(f ...func() error) {
-		for _, function := range f {
-			if err := function(); err != nil {
+	func(funcs ...func() error) {
+		for _, f := range funcs {
+			if err := f(); err != nil {
 				panic(err)
 			}
 		}
 	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase)
-
 }
 
 //InitConfig 初始化配置

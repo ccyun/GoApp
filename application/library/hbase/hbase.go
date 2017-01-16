@@ -12,6 +12,12 @@ var p Pool
 //InitHbase 初始化hbase
 func InitHbase(host, port string, pool int) error {
 	var err error
+	if port == "" {
+		port = "9090"
+	}
+	if pool == 0 {
+		pool = 10
+	}
 	hostPort := host + ":" + port
 	config := new(PoolConfig)
 	config.InitialCap = pool / 2
@@ -22,7 +28,6 @@ func InitHbase(host, port string, pool int) error {
 		if err != nil {
 			return nil, err
 		}
-
 		trans.SetTimeout(1 * time.Minute)
 		client := NewTHBaseServiceClientFactory(trans, thrift.NewTBinaryProtocolFactoryDefault())
 		if err := trans.Open(); err != nil {
