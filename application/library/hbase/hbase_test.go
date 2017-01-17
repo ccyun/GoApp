@@ -71,11 +71,12 @@ func TestHbaseDel(t *testing.T) {
 			&TColumn{
 				Family:    []byte("cf"),
 				Qualifier: []byte(board_id),
-				Timestamp: &bbs_id_int,
+				Timestamp: &feed_id_int,
 			},
 		},
 		DeleteType: TDeleteType_DELETE_COLUMN,
 	}
+	log.Println(feed_id_int)
 	if err := client.DeleteSingle([]byte("bbs_feed"), tdel); err != nil {
 		t.Error(err)
 	}
@@ -97,8 +98,8 @@ func TestHbaseGet(t *testing.T) {
 		},
 		MaxVersions: &maxV,
 		TimeRange: &TTimeRange{
-			MinStamp: int64(1922),
-			MaxStamp: int64(192100000000000000),
+			//MinStamp: int64(1922),
+			MaxStamp: int64(1919),
 		},
 	}
 

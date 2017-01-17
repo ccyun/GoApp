@@ -46,10 +46,39 @@ type UMSOrg struct {
 	CustomerCode string `json:"customercode"`
 }
 
+//GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
+func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
+	var data []uint64
+	cache := newCache(customerCode, "GetAllUserIDsByOrgIDs", orgIDs)
+	if cache.getCache(data) == true {
+		return data, nil
+	}
+
+	UserList, err := U.GetAllUserByOrgIDs(customerCode, orgIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, userInfo := range UserList {
+		data = append(data, userInfo.UserID)
+	}
+	cache.setCache(data)
+	return data, nil
+}
+
 //GetAllUserByOrgIDs 批量获取组织下所有用户
-func (U *UMS) GetAllUserByOrgIDs(orgIDs []uint64) ([]UMSUser, error) {
-	var pageSize uint64 = 500
-	data, totalCount, err := U._getAllUserByOrgIDs(orgIDs, pageSize, 1)
+func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUser, error) {
+	var (
+		pageSize   uint64 = 500
+		totalCount uint64
+		err        error
+		data       []UMSUser
+	)
+	cache := newCache(customerCode, "GetAllUserByOrgIDs", orgIDs)
+	if cache.getCache(data) == true {
+		return data, nil
+	}
+
+	data, totalCount, err = U._getAllUserByOrgIDs(orgIDs, pageSize, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +99,7 @@ func (U *UMS) GetAllUserByOrgIDs(orgIDs []uint64) ([]UMSUser, error) {
 	if uint64(len(data)) != totalCount {
 		return nil, fmt.Errorf("GetAllUserByOrgIDs error")
 	}
+	cache.setCache(data)
 	return data, nil
 }
 

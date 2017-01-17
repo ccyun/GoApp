@@ -19,12 +19,6 @@ type Feed struct {
 	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
-//MaxFeedNum feed容量
-const (
-	MaxFeedNum = 200000000000000
-	MinFeedNum = 100000000000000
-)
-
 //seed rowkey高位随机种子
 var seed = [36]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
@@ -66,23 +60,18 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
 	timeStamp = int64(feedData.ID)
 	for _, u := range userIDs {
 		rowkey := makeRowkey(int64(u))
-		data = []*hbase.TPut{
-			&hbase.TPut{
-				Row: []byte(rowkey + "_home"),
-				ColumnValues: []*hbase.TColumnValue{
-					&hbase.TColumnValue{
-						Family:    family,
-						Qualifier: boardID,
-						Value:     bbsID,
-						Timestamp: &timeStamp,
-					},
+		data = append(data, &hbase.TPut{
+			Row: []byte(rowkey + "_home"),
+			ColumnValues: []*hbase.TColumnValue{
+				&hbase.TColumnValue{
+					Family:    family,
+					Qualifier: boardID,
+					Value:     bbsID,
+					Timestamp: &timeStamp,
 				},
 			},
-		}
-		switch feedData.FeedType {
-		case "bbs":
-		case "task":
-		case "form":
+		})
+		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
 			data = append(data, &hbase.TPut{
 				Row: []byte(rowkey + "_list"),
 				ColumnValues: []*hbase.TColumnValue{

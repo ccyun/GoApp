@@ -8,6 +8,8 @@ import (
 
 	"time"
 
+	"fmt"
+
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
@@ -107,7 +109,7 @@ func (c *C) makeKey(args ...interface{}) string {
 		logs.Error(L("GetCache make key error"), err)
 		return ""
 	}
-	return "D" + strconv.FormatUint(SiteID, 10) + c.tableName + ":" + function.Md5(string(k), 16)
+	return fmt.Sprintf("D%d%s:%s", SiteID, c.tableName, function.Md5(string(k), 16))
 }
 
 //setCache 设置缓存

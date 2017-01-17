@@ -3,6 +3,7 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 )
@@ -32,11 +33,14 @@ func Test__getAllUserByOrgIDs(t *testing.T) {
 }
 
 func Test_GetAllUserByOrgIDs(t *testing.T) {
-	UMSBusinessURL = "http://192.168.28.173:8081/umsapi"
-	a := new(UMS)
-	data, err := a.GetAllUserByOrgIDs([]uint64{2752})
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(len(data))
+
+	s := fmt.Sprintf("D%d%s:%s", uint64(10), "ddd", "sss")
+	log.Println(s)
+	// UMSBusinessURL = "http://192.168.28.173:8081/umsapi"
+	// a := new(UMS)
+	// data, err := a.GetAllUserByOrgIDs([]uint64{2752})
+	// if err != nil {
+	// 	t.Error(err)
+	// }
+	// t.Log(len(data))
 }

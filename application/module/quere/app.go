@@ -12,6 +12,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/utils"
 	"github.com/ccyun/GoApp/application/library/hook"
+	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
 )
 
@@ -64,7 +65,8 @@ func (app *App) work() {
 				orm.DebugLog = orm.NewLog(o)
 				option := make(map[string]string)
 				option["requestID"] = requestID
-				model.Init(option) //model 初始化配置
+				model.Init(option)             //model 初始化配置
+				httpcurl.RequestID = requestID //httpcurl 初始化
 				app.DoFunc(option)
 				time.Sleep(3 * time.Second)
 			}

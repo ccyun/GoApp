@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	//redis 驱动
+	"github.com/ccyun/GoApp/application/library/hbase"
 	_ "github.com/ccyun/GoApp/application/library/redis"
 	//mysql driver
 
@@ -123,27 +124,27 @@ func TestBbsGetOne(t *testing.T) {
 
 ///////////////////////////////////////////////feed case //////////////////////////////////////////////
 func TestSaveHbase(t *testing.T) {
+	hbase.InitHbase("192.168.197.128", "9090", 10)
 	a := new(Feed)
 	var userIDs []uint64
-	for i := 100000; i < 101000; i++ {
+	for i := 100000; i < 100001; i++ {
 		userIDs = append(userIDs, uint64(i))
 	}
-	feedData := HbaseFeed{
-		BoardID:        111,
-		BbsID:          123,
-		FeedID:         113,
-		FeedType:       "bbs",
-		MsgID:          0,
-		DiscussID:      0,
-		Title:          "测试hbase广播标题",
-		Description:    "测试hbase广播摘要",
-		Thumb:          "http://testcloudb.quanshi.com:80/ucfserver/hddown?fid=NjE1MDY4MDQvOC90ZW1wX25vdGljZV5eXnRhbmdoZGZzXl5eYWQ2ZmQ5MTg2NzIxZjRlODE2MzliZmNiOGQ5ZWY4ZjleXl50YW5naGRmc15eXjYwMjA3OA$&u=61506804",
-		Category:       "bbs",
-		Type:           "default",
-		CommentEnabled: 1,
-		CreatedAt:      1481879624794,
+	for i := 10; i < 20; i++ {
+		for ii := 100; ii < 200; ii++ {
+			for iii := 10; iii < 20; iii++ {
+				feedData := Feed{
+					BoardID:   uint64(i),
+					BbsID:     uint64(ii),
+					ID:        uint64(iii),
+					FeedType:  "task",
+					MsgID:     0,
+					CreatedAt: 1481879624794,
+				}
+				a.SaveHbase(userIDs, feedData)
+			}
+		}
 	}
-	a.SaveHbase(userIDs, feedData)
 }
 
 func TestMakeRowkey(t *testing.T) {
