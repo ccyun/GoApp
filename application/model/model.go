@@ -53,6 +53,8 @@ func RegisterModels() {
 	orm.RegisterModelWithPrefix(DBPrefix, new(Editor))
 	orm.RegisterModelWithPrefix(DBPrefix, new(PublishScope))
 	orm.RegisterModelWithPrefix(DBPrefix, new(Feed))
+	orm.RegisterModelWithPrefix(DBPrefix, new(BbsTask))
+
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)
 }
@@ -109,7 +111,7 @@ func (c *C) makeKey(args ...interface{}) string {
 		logs.Error(L("GetCache make key error"), err)
 		return ""
 	}
-	return fmt.Sprintf("D%d%s:%s", SiteID, c.tableName, function.Md5(string(k), 16))
+	return fmt.Sprintf("D%d%s:%s", SiteID, c.tableName, function.Md5(string(k), 32))
 }
 
 //setCache 设置缓存

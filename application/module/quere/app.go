@@ -68,10 +68,10 @@ func (app *App) work() {
 				model.Init(option)             //model 初始化配置
 				httpcurl.RequestID = requestID //httpcurl 初始化
 				app.DoFunc(option)
-				time.Sleep(3 * time.Second)
+				time.Sleep(2 * time.Second)
 			}
 		}(i)
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 	for i := 0; i < app.thread; i++ {
 		<-app.done

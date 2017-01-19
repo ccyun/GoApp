@@ -50,7 +50,7 @@ type UMSOrg struct {
 func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
 	var data []uint64
 	cache := newCache(customerCode, "GetAllUserIDsByOrgIDs", orgIDs)
-	if cache.getCache(data) == true {
+	if cache.getCache(&data) == true {
 		return data, nil
 	}
 
@@ -74,10 +74,9 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		data       []UMSUser
 	)
 	cache := newCache(customerCode, "GetAllUserByOrgIDs", orgIDs)
-	if cache.getCache(data) == true {
+	if cache.getCache(&data) == true {
 		return data, nil
 	}
-
 	data, totalCount, err = U._getAllUserByOrgIDs(orgIDs, pageSize, 1)
 	if err != nil {
 		return nil, err

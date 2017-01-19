@@ -80,7 +80,7 @@ func (c *C) makeKey(args ...interface{}) string {
 		logs.Error(L("GetCache make key error"), err)
 		return ""
 	}
-	return fmt.Sprintf("U%s:%s", c.customerCode, function.Md5(string(k), 16))
+	return fmt.Sprintf("U%s:%s", c.customerCode, function.Md5(string(k), 32))
 }
 
 //setCache 设置缓存

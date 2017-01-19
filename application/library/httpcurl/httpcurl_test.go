@@ -3,9 +3,11 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
+
+	"github.com/astaxie/beego/cache"
+	_ "github.com/ccyun/GoApp/application/library/redis"
 )
 
 func Test_Request(t *testing.T) {
@@ -33,14 +35,13 @@ func Test__getAllUserByOrgIDs(t *testing.T) {
 }
 
 func Test_GetAllUserByOrgIDs(t *testing.T) {
-
-	s := fmt.Sprintf("D%d%s:%s", uint64(10), "ddd", "sss")
-	log.Println(s)
-	// UMSBusinessURL = "http://192.168.28.173:8081/umsapi"
-	// a := new(UMS)
-	// data, err := a.GetAllUserByOrgIDs([]uint64{2752})
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// t.Log(len(data))
+	ca, err := cache.NewCache("redis", `{"nodes":["192.168.32.241:7000","192.168.32.242:7000","192.168.32.242:7001"],"prefix":"bee"}`)
+	Cache = ca
+	UMSBusinessURL = "http://192.168.28.173:8081/umsapi"
+	a := new(UMS)
+	data, err := a.GetAllUserIDsByOrgIDs("0000445", []uint64{54169})
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(len(data))
 }

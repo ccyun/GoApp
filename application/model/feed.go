@@ -14,13 +14,78 @@ type Feed struct {
 	BoardID   uint64 `orm:"column(board_id)"`
 	BbsID     uint64 `orm:"column(bbs_id)"`
 	FeedType  string `orm:"column(feed_type)"`
-	Data      uint64 `orm:"column(data)"`
+	Data      string `orm:"column(data)"`
 	MsgID     uint64 `orm:"column(msg_id)"`
 	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
-//seed rowkey高位随机种子
-var seed = [36]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
+//FeedBbs 图文广播feed
+type FeedBbs struct {
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	CreatedAt      string `json:"created_at"`
+	UserID         string `json:"user_id"`
+	Type           string `json:"type"`
+	Category       string `json:"category"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+}
+
+//FeedForm 表单feed
+type FeedForm struct {
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	CreatedAt      string `json:"created_at"`
+	UserID         string `json:"user_id"`
+	Type           string `json:"type"`
+	Category       string `json:"category"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+}
+
+//FeedTask 广播任务feed
+type FeedTask struct {
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	CreatedAt      string `json:"created_at"`
+	UserID         string `json:"user_id"`
+	Type           string `json:"type"`
+	Category       string `json:"category"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+	EndTime        uint64 `json:"end_time"`
+	AllowExpired   uint8  `json:"allow_expired"`
+}
+
+//FeedTaskReply 广播任务提醒
+type FeedTaskReply struct {
+	Title          string `json:"title"`
+	CreatedAt      string `json:"created_at"`
+	Status         uint8  `json:"status"`
+	Category       string `json:"category"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+	EndTime        uint64 `json:"end_time"`
+	AllowExpired   uint8  `json:"allow_expired"`
+}
+
+//FeedTaskAudit 广播任务审核
+type FeedTaskAudit struct {
+	Title          string `json:"title"`
+	CreatedAt      string `json:"created_at"`
+	Status         uint8  `json:"status"`
+	Category       string `json:"category"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+	EndTime        uint64 `json:"end_time"`
+	AllowExpired   uint8  `json:"allow_expired"`
+}
+
+//FeedTaskClose 广播任务关闭
+type FeedTaskClose struct {
+	Title          string `json:"title"`
+	CreatedAt      string `json:"created_at"`
+	Category       string `json:"category"`
+	Status         uint8  `json:"status"`
+	CommentEnabled uint8  `json:"comment_enabled"`
+	EndTime        uint64 `json:"end_time"`
+	AllowExpired   uint8  `json:"allow_expired"`
+}
 
 //TableName 表名
 func (F *Feed) TableName() string {
@@ -30,16 +95,6 @@ func (F *Feed) TableName() string {
 //HbaseTableName hbase表名
 func (F *Feed) HbaseTableName() string {
 	return "bbs_feed"
-}
-
-//ReverseString 反转字符串
-func makeRowkey(userID int64) string {
-	userIDstr := strconv.FormatInt(userID, 10)
-	reverseUserID, _ := strconv.ParseInt(function.ReverseString(userIDstr), 10, 0)
-	seedK1 := userID % 36
-	seedK2 := reverseUserID % 36
-	seedK3 := (seedK1 + seedK2) % 36
-	return seed[seedK3] + seed[seedK1] + seed[seedK2] + "_" + userIDstr
 }
 
 //SaveHbase 保存数据到hbase
@@ -59,7 +114,7 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
 	family = []byte("cf")
 	timeStamp = int64(feedData.ID)
 	for _, u := range userIDs {
-		rowkey := makeRowkey(int64(u))
+		rowkey := function.MakeRowkey(int64(u))
 		data = append(data, &hbase.TPut{
 			Row: []byte(rowkey + "_home"),
 			ColumnValues: []*hbase.TColumnValue{

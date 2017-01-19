@@ -1,0 +1,49 @@
+2017/01/19 17:27:20 [I] [task.go:53] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  Start processing tasks
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /     db.Exec /     3.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1484818040709`, `1`, `1484810840709`
+
+2017/01/19 17:27:20 [N] [queue.go:63] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  Model info: <QuerySeter> no row found
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1484818040712`, `0`, `3`, `3`
+
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /     db.Exec /     4.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ?, T0.`try_count` = T0.`try_count` + ? WHERE T0.`id` = ? AND T0.`status` = ? AND T0.`modified_at` = ? ] - `1`, `1484818040713`, `1`, `1711`, `0`, `1484817944758`
+
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /    db.Begin /     1.0ms] - [START TRANSACTION]
+
+2017/01/19 17:27:20 [I] [bbs.go:51] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  GetCache value Assertion error nil reply
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK / db.QueryRow /     5.0ms] - [SELECT `id`, `site_id`, `board_id`, `title`, `description`, `content`, `publish_scope`, `publish_scope_user_ids`, `msg_count`, `attachments`, `user_id`, `created_at`, `publish_at`, `modified_at`, `set_timer`, `category`, `type`, `is_deleted`, `status`, `comment_enabled` FROM `bbs_bbs` WHERE `id` = ?] - `50001598`
+
+2017/01/19 17:27:20 [I] [board.go:28] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  GetCache value Assertion error nil reply
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK / db.QueryRow /     1.0ms] - [SELECT `id`, `site_id`, `board_name`, `discuss_id`, `avatar`, `created_at`, `modified_at`, `user_id`, `status`, `is_deleted` FROM `bbs_board` WHERE `id` = ?] - `50000091`
+
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`board_id`, T0.`editor_id` FROM `bbs_editor` T0 WHERE T0.`board_id` IN (?) ] - `50000091`
+
+2017/01/19 17:27:20 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:20  - 2017-01-19 17:27:20 - [Queries/default] - [  OK /    db.Query /     1.0ms] - [SELECT T0.`board_id`, T0.`publish_scope` FROM `bbs_publishscope` T0 WHERE T0.`board_id` IN (?) ] - `50000091`
+
+2017/01/19 17:27:20 [I] [ums.go:53] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  GetCache value Assertion error redigo: nil returned
+2017/01/19 17:27:20 [I] [ums.go:77] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  GetCache value Assertion error redigo: nil returned
+2017/01/19 17:27:21 [D] [ums.go:80] _getAllUserByOrgIDs url: http://192.168.28.173:8081/umsapi/rs/organizations/query/orgs/users?pageNum=1&pageSize=500&productID=20 body: [54635,93298,63669051] code: 200
+2017/01/19 17:27:22 [I] [log.go:166] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV [ORM]2017/01/19 17:27:22  - 2017-01-19 17:27:22 - [Queries/default] - [  OK /   tx.Commit /     0.0ms] - [COMMIT]
+
+2017/01/19 17:27:22 [I] [task.go:53] aVF4Auc4g8sn0RJPCWKaxorcGE5QtPLV  Successful
+2017/01/19 17:27:23 [I] [task.go:53] Jd2a5gajzlnyST3BFhv029ezamBHA6hU  Start processing tasks
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK /     db.Exec /     3.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1484818043709`, `1`, `1484810843709`
+
+2017/01/19 17:27:23 [N] [queue.go:63] Jd2a5gajzlnyST3BFhv029ezamBHA6hU  Model info: <QuerySeter> no row found
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK /    db.Query /     4.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1484818043712`, `0`, `3`, `3`
+
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK /     db.Exec /     3.0ms] - [UPDATE `bbs_task` T0 SET T0.`try_count` = T0.`try_count` + ?, T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`id` = ? AND T0.`status` = ? AND T0.`modified_at` = ? ] - `1`, `1`, `1484818043716`, `1712`, `0`, `1484817946851`
+
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK /    db.Begin /     1.0ms] - [START TRANSACTION]
+
+2017/01/19 17:27:23 [I] [bbs.go:51] Jd2a5gajzlnyST3BFhv029ezamBHA6hU  GetCache value Assertion error nil reply
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK / db.QueryRow /     2.0ms] - [SELECT `id`, `site_id`, `board_id`, `title`, `description`, `content`, `publish_scope`, `publish_scope_user_ids`, `msg_count`, `attachments`, `user_id`, `created_at`, `publish_at`, `modified_at`, `set_timer`, `category`, `type`, `is_deleted`, `status`, `comment_enabled` FROM `bbs_bbs` WHERE `id` = ?] - `50001599`
+
+2017/01/19 17:27:23 [I] [log.go:166] Jd2a5gajzlnyST3BFhv029ezamBHA6hU [ORM]2017/01/19 17:27:23  - 2017-01-19 17:27:23 - [Queries/default] - [  OK /   tx.Commit /     0.0ms] - [COMMIT]
+
+2017/01/19 17:27:23 [I] [task.go:53] Jd2a5gajzlnyST3BFhv029ezamBHA6hU  Successful
+2017/01/19 17:27:24 [I] [task.go:53] QpIrgoR231FuiNdeDcV5nvE3IXjSMSuS  Start processing tasks
+2017/01/19 17:27:24 [I] [log.go:166] QpIrgoR231FuiNdeDcV5nvE3IXjSMSuS [ORM]2017/01/19 17:27:24  - 2017-01-19 17:27:24 - [Queries/default] - [  OK /     db.Exec /     2.0ms] - [UPDATE `bbs_task` T0 SET T0.`status` = ?, T0.`modified_at` = ? WHERE T0.`status` = ? AND T0.`modified_at` < ? ] - `3`, `1484818044044`, `1`, `1484810844044`
+
+2017/01/19 17:27:24 [N] [queue.go:63] QpIrgoR231FuiNdeDcV5nvE3IXjSMSuS  Model info: <QuerySeter> no row found
+2017/01/19 17:27:24 [I] [log.go:166] QpIrgoR231FuiNdeDcV5nvE3IXjSMSuS [ORM]2017/01/19 17:27:24  - 2017-01-19 17:27:24 - [Queries/default] - [  OK /    db.Query /     2.0ms] - [SELECT T0.`id`, T0.`site_id`, T0.`customer_code`, T0.`task_type`, T0.`action`, T0.`status`, T0.`try_count`, T0.`set_timer`, T0.`modified_at` FROM `bbs_task` T0 WHERE T0.`set_timer` < ? AND ( T0.`status` = ? OR ( T0.`status` = ? AND T0.`try_count` < ? ) ) ORDER BY T0.`status` ASC, T0.`id` ASC LIMIT 1] - `1484818044046`, `0`, `3`, `3`
+
+2017/01/19 17:27:24 [N] [task.go:59] QpIrgoR231FuiNdeDcV5nvE3IXjSMSuS  Not found task info.

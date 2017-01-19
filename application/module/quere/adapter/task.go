@@ -16,6 +16,7 @@ type Tasker interface {
 	CreateRelation() error
 	CreateUnread() error
 	GetPublishScopeUsers() error
+	UpdateStatus() error
 	SendMsg() error
 }
 
@@ -62,6 +63,7 @@ func (q *queue) run() {
 		return
 	}
 	if q.runTask() == false {
+		//任务失败
 		return
 	}
 	logs.Info(L("Successful"))
@@ -75,7 +77,6 @@ func (q *queue) getTask() bool {
 	if q.model.TimeOut() {
 		return false
 	}
-
 	if q.task, err = q.model.Pull(); err == nil {
 		return true
 	}
@@ -91,7 +92,7 @@ func (q *queue) getTask() bool {
 func (q *queue) checkTask() bool {
 	mode, ok := modes[q.task.TaskType]
 	if !ok {
-		logs.Error(L("taskInfo.TaskType not in('bbs','taskReply','taskAudit','taskClose')."))
+		logs.Error(L("taskInfo.TaskType not in('bbs','delete','taskReply','taskAudit','taskClose')."))
 		if q.model.Fail(q.task.ID) == false {
 			logs.Error(L("checkTask Fail error"))
 		}
@@ -103,13 +104,6 @@ func (q *queue) checkTask() bool {
 
 //runTask 执行任务
 func (q *queue) runTask() bool {
-	//开启事务
-	if err := q.mode.Begin(); err != nil {
-		logs.Error(L("runTask Begin error"), err)
-		q.mode.Rollback()
-		return false
-	}
-
 	//新的任务
 	if err := q.mode.NewTask(q.task); err != nil {
 		logs.Error(L("runTask NewTask error"), err)
@@ -117,25 +111,57 @@ func (q *queue) runTask() bool {
 		return false
 	}
 	//分析发布范围
-
+	if err := q.mode.GetPublishScopeUsers(); err != nil {
+		logs.Error(L("runTask GetPublishScopeUsers error"), err)
+		q.mode.Rollback()
+		return false
+	}
+	//开启事务
+	if err := q.mode.Begin(); err != nil {
+		logs.Error(L("runTask Begin error"), err)
+		q.mode.Rollback()
+		return false
+	}
 	//创建feed
-
+	if err := q.mode.CreateFeed(); err != nil {
+		logs.Error(L("runTask CreateFeed error"), err)
+		q.mode.Rollback()
+		return false
+	}
 	//创建关系
-
+	if err := q.mode.CreateRelation(); err != nil {
+		logs.Error(L("runTask CreateRelation error"), err)
+		q.mode.Rollback()
+		return false
+	}
 	//写入未读计数
-
+	if err := q.mode.CreateUnread(); err != nil {
+		logs.Error(L("runTask CreateUnread error"), err)
+		q.mode.Rollback()
+		return false
+	}
 	//修改广播状态
-
+	if err := q.mode.UpdateStatus(); err != nil {
+		logs.Error(L("runTask UpdateStatus error"), err)
+		q.mode.Rollback()
+		return false
+	}
 	//提交事务
 	if err := q.mode.Commit(); err != nil {
 		logs.Error(L("runTask Commit error"), err)
 		return false
 	}
-
-	// if err := q.model.Delete(q.taskInfo.ID); err != nil {
-	// 	logs.Error(q.requestID, err)
+	//关闭任务
+	// if q.model.Delete(q.model.ID) == false {
+	// 	logs.Error(L("runTask Delete error"))
 	// 	return false
 	// }
+	//发送消息
+	if err := q.mode.SendMsg(); err != nil {
+		logs.Error(L("runTask SendMsg error"), err)
+		return false
+	}
+
 	return true
 }
 
