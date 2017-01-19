@@ -49,6 +49,11 @@ func (B *base) NewTask(task model.Queue) error {
 	return nil
 }
 
+//GetPublishScopeUsers 分析发布范围
+func (B *base) GetPublishScopeUsers() error {
+	return nil
+}
+
 //CreateFeed 创建Feed
 func (B *base) CreateFeed() error {
 	return nil
@@ -56,11 +61,6 @@ func (B *base) CreateFeed() error {
 
 //CreateRelation 创建接收者关系
 func (B *base) CreateRelation() error {
-	return nil
-}
-
-//GetPublishScopeUsers 分析发布范围
-func (B *base) GetPublishScopeUsers() error {
 	return nil
 }
 

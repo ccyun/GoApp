@@ -77,8 +77,27 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	return nil
 }
 
-//CreateFeed 创建feed
+//CreateFeed 创建Feed
 func (B *Bbs) CreateFeed() error {
+	return nil
+}
 
+//CreateRelation 创建接收者关系
+func (B *Bbs) CreateRelation() error {
+	return nil
+}
+
+//CreateUnread 创建未读计数
+func (B *Bbs) CreateUnread() error {
+	return nil
+}
+
+//UpdateStatus 更新状态
+func (B *Bbs) UpdateStatus() error {
+	return nil
+}
+
+//SendMsg 发送消息
+func (B *Bbs) SendMsg() error {
 	return nil
 }
