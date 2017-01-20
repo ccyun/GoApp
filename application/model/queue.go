@@ -8,6 +8,7 @@ import (
 
 //Queue 任务表结构
 type Queue struct {
+	base
 	ID           uint64 `orm:"column(id)"`
 	SiteID       uint64 `orm:"column(site_id)"`
 	CustomerCode string `orm:"column(customer_code)"`
@@ -60,18 +61,18 @@ func (Q *Queue) TimeOut() bool {
 		"ModifiedAt": nowTime,
 	}
 	num, err := o.QueryTable(Q).Filter("Status", 1).Filter("ModifiedAt__lt", (nowTime - 7200000)).Update(data)
-	return AfterUpdate(Q.TableName(), num, err)
+	return Q.AfterUpdate(Q.TableName(), num, err)
 }
 
 //Fail 修改数据
 func (Q *Queue) Fail(ID uint64) bool {
 	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
-	return AfterUpdate(Q.TableName(), num, err)
+	return Q.AfterUpdate(Q.TableName(), num, err)
 
 }
 
 //Delete 删除数据
 func (Q *Queue) Delete(ID uint64) bool {
 	num, err := o.Delete(&Queue{ID: ID})
-	return AfterUpdate(Q.TableName(), num, err)
+	return Q.AfterUpdate(Q.TableName(), num, err)
 }

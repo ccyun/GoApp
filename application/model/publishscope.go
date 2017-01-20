@@ -2,6 +2,7 @@ package model
 
 //PublishScope 任务表结构
 type PublishScope struct {
+	base
 	ID               uint64 `orm:"column(id)"`
 	SiteID           uint64 `orm:"column(site_id)"`
 	BoardID          uint64 `orm:"column(board_id)"`

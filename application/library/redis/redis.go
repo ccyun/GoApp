@@ -4,20 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/chasex/redis-go-cluster"
-
-	"strings"
-
 	"github.com/astaxie/beego/cache"
+	"github.com/chasex/redis-go-cluster"
 )
 
 //DefaultKey 默认前缀
 var DefaultKey = ""
 
-//Cache is Redis cache adapter.
-type Cache struct {
+//Redis is Redis cache adapter.
+type Redis struct {
 	startNodes []string
 	prefix     string
 	p          *redis.Cluster // redis connection pool
@@ -25,21 +23,21 @@ type Cache struct {
 
 //NewRedisCache create new redis cache with default collection name.
 func NewRedisCache() cache.Cache {
-	return &Cache{prefix: DefaultKey}
+	return &Redis{prefix: DefaultKey}
 }
 
 //actually do the redis cmds
-func (rc *Cache) do(commandName string, args ...interface{}) (reply interface{}, err error) {
+func (rc *Redis) do(commandName string, args ...interface{}) (reply interface{}, err error) {
 	return rc.p.Do(commandName, args...)
 }
 
 //realKey 处理key
-func (rc *Cache) realKey(key string) string {
+func (rc *Redis) realKey(key string) string {
 	return rc.prefix + ":" + key
 }
 
 //lock 加锁
-func (rc *Cache) lock(key string) bool {
+func (rc *Redis) lock(key string) bool {
 	key += "_lock"
 	value := time.Now().UnixNano()
 	n, _ := rc.do("SETNX", key, value)
@@ -52,7 +50,7 @@ func (rc *Cache) lock(key string) bool {
 }
 
 //unlock 解锁
-func (rc *Cache) unlock(key string) bool {
+func (rc *Redis) unlock(key string) bool {
 	key += "_lock"
 	n, err := rc.do("DEL", key)
 	if n.(int64) != 1 || err != nil {
@@ -62,7 +60,7 @@ func (rc *Cache) unlock(key string) bool {
 }
 
 //isLock 检查是否是锁定状态
-func (rc *Cache) isLock(key string) bool {
+func (rc *Redis) isLock(key string) bool {
 	var (
 		val    string
 		keyArr []string
@@ -84,7 +82,7 @@ func (rc *Cache) isLock(key string) bool {
 }
 
 //updateIndex 缓存key集合
-func (rc *Cache) updateIndex(key string) error {
+func (rc *Redis) updateIndex(key string) error {
 	var (
 		val      string
 		indexVal string
@@ -112,7 +110,7 @@ func (rc *Cache) updateIndex(key string) error {
 }
 
 //clearIndex 清理索引
-func (rc *Cache) clearIndex(key string) error {
+func (rc *Redis) clearIndex(key string) error {
 	var (
 		val    string
 		keyArr []string
@@ -134,7 +132,7 @@ func (rc *Cache) clearIndex(key string) error {
 }
 
 //clearAll 删除数据
-func (rc *Cache) clearAll(key string) error {
+func (rc *Redis) clearAll(key string) error {
 	//加锁
 	if rc.lock(key) == false {
 		return errors.New("clearAll lock error")
@@ -160,7 +158,7 @@ func (rc *Cache) clearAll(key string) error {
 }
 
 //Get cache from redis.
-func (rc *Cache) Get(key string) interface{} {
+func (rc *Redis) Get(key string) interface{} {
 	key = rc.realKey(key)
 	if rc.isLock(key) == true {
 		return nil
@@ -172,7 +170,7 @@ func (rc *Cache) Get(key string) interface{} {
 }
 
 //GetMulti get cache from redis.
-func (rc *Cache) GetMulti(keys []string) []interface{} {
+func (rc *Redis) GetMulti(keys []string) []interface{} {
 	var rv []interface{}
 	for _, key := range keys {
 		key = rc.realKey(key)
@@ -186,7 +184,7 @@ func (rc *Cache) GetMulti(keys []string) []interface{} {
 }
 
 //Put put cache to redis.
-func (rc *Cache) Put(key string, val interface{}, timeout time.Duration) error {
+func (rc *Redis) Put(key string, val interface{}, timeout time.Duration) error {
 	key = rc.realKey(key)
 	if rc.isLock(key) == true {
 		return nil
@@ -199,7 +197,7 @@ func (rc *Cache) Put(key string, val interface{}, timeout time.Duration) error {
 }
 
 //Delete delete cache in redis.
-func (rc *Cache) Delete(key string) error {
+func (rc *Redis) Delete(key string) error {
 	key = rc.realKey(key)
 	if strings.HasSuffix(key, "*") == true {
 		key = strings.TrimRight(key, "*")
@@ -212,7 +210,7 @@ func (rc *Cache) Delete(key string) error {
 }
 
 //IsExist check cache's existence in redis.
-func (rc *Cache) IsExist(key string) bool {
+func (rc *Redis) IsExist(key string) bool {
 	key = rc.realKey(key)
 	v, err := redis.Bool(rc.do("EXISTS", key))
 	if err != nil || v == false {
@@ -223,21 +221,21 @@ func (rc *Cache) IsExist(key string) bool {
 }
 
 //Incr increase counter in redis.
-func (rc *Cache) Incr(key string) error {
+func (rc *Redis) Incr(key string) error {
 	key = rc.realKey(key)
 	_, err := redis.Bool(rc.do("INCRBY", key, 1))
 	return err
 }
 
 //Decr decrease counter in redis.
-func (rc *Cache) Decr(key string) error {
+func (rc *Redis) Decr(key string) error {
 	key = rc.realKey(key)
 	_, err := redis.Bool(rc.do("INCRBY", key, -1))
 	return err
 }
 
 //ClearAll clean all cache in redis. delete this redis collection.
-func (rc *Cache) ClearAll() error {
+func (rc *Redis) ClearAll() error {
 	return rc.clearAll(rc.prefix)
 }
 
@@ -245,7 +243,7 @@ func (rc *Cache) ClearAll() error {
 //config is like {"key":"collection key","conn":"connection info","dbNum":"0"}
 //the cache item in redis are stored forever,
 //so no gc operation.
-func (rc *Cache) StartAndGC(config string) error {
+func (rc *Redis) StartAndGC(config string) error {
 	var conf struct {
 		Nodes  []string `json:"nodes"`
 		Prefix string   `json:"prefix"`
@@ -261,7 +259,7 @@ func (rc *Cache) StartAndGC(config string) error {
 }
 
 //connectInit connect to redis.
-func (rc *Cache) connectInit() {
+func (rc *Redis) connectInit() {
 	cluster, err := redis.NewCluster(
 		&redis.Options{
 			StartNodes:   rc.startNodes,

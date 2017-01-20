@@ -2,14 +2,17 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/ccyun/GoApp/application/library/redis"
 )
 
 //Bbs 任务表结构
 type Bbs struct {
+	base
 	ID                  uint64        `orm:"column(id)"`
 	SiteID              uint64        `orm:"column(site_id)"`
 	BoardID             uint64        `orm:"column(board_id)"`
@@ -47,8 +50,8 @@ func (B *Bbs) TableName() string {
 //GetOne 读取单条数据
 func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	bbsInfo := Bbs{ID: ID}
-	c := newCache(B.TableName(), "GetOne", ID)
-	if c.getCache(&bbsInfo) == true {
+	c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
+	if c.Get(&bbsInfo) == true {
 		return bbsInfo, nil
 	}
 	if err := o.Read(&bbsInfo); err != nil {
@@ -58,7 +61,7 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	if err != nil {
 		return Bbs{}, err
 	}
-	c.setCache(data[0])
+	c.Set(data[0])
 	return data[0], nil
 }
 

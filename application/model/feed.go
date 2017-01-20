@@ -9,6 +9,7 @@ import (
 
 //Feed 任务表结构
 type Feed struct {
+	base
 	ID        uint64 `orm:"column(id)"`
 	SiteID    uint64 `orm:"column(site_id)"`
 	BoardID   uint64 `orm:"column(board_id)"`

@@ -10,6 +10,7 @@ import (
 	"math"
 
 	"github.com/astaxie/beego/logs"
+	"github.com/ccyun/GoApp/application/library/redis"
 )
 
 var (
@@ -21,7 +22,6 @@ var (
 
 //UMS UMS
 type UMS struct {
-	base
 }
 
 //UMSUser 用户
@@ -50,8 +50,9 @@ type UMSOrg struct {
 //GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
 func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
 	var data []uint64
-	cache := newCache(customerCode, U.requestID, "GetAllUserIDsByOrgIDs", orgIDs)
-	if cache.getCache(&data) == true {
+
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserIDsByOrgIDs", orgIDs)
+	if cache.Get(&data) == true {
 		return data, nil
 	}
 
@@ -62,7 +63,7 @@ func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uin
 	for _, userInfo := range UserList {
 		data = append(data, userInfo.UserID)
 	}
-	cache.setCache(data)
+	cache.Set(data)
 	return data, nil
 }
 
@@ -74,8 +75,8 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		err        error
 		data       []UMSUser
 	)
-	cache := newCache(customerCode, U.requestID, "GetAllUserByOrgIDs", orgIDs)
-	if cache.getCache(&data) == true {
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserByOrgIDs", orgIDs)
+	if cache.Get(&data) == true {
 		return data, nil
 	}
 	data, totalCount, err = U._getAllUserByOrgIDs(orgIDs, pageSize, 1)
@@ -99,7 +100,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 	if uint64(len(data)) != totalCount {
 		return nil, fmt.Errorf("GetAllUserByOrgIDs error")
 	}
-	cache.setCache(data)
+	cache.Set(data)
 	return data, nil
 }
 

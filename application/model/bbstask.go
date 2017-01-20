@@ -1,7 +1,14 @@
 package model
 
+import (
+	"fmt"
+
+	"github.com/ccyun/GoApp/application/library/redis"
+)
+
 //BbsTask 任务表结构
 type BbsTask struct {
+	base
 	ID           uint64 `orm:"column(id)"`
 	SiteID       uint64 `orm:"column(site_id)"`
 	BoardID      uint64 `orm:"column(board_id)"`
@@ -23,13 +30,13 @@ func (B *BbsTask) TableName() string {
 //GetOne 读取单条数据
 func (B *BbsTask) GetOne(ID uint64) (BbsTask, error) {
 	bbsTaskInfo := BbsTask{BbsID: ID}
-	c := newCache(B.TableName(), "GetOne", ID)
-	if c.getCache(&bbsTaskInfo) == true {
+	c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
+	if c.Get(&bbsTaskInfo) == true {
 		return bbsTaskInfo, nil
 	}
 	if err := o.Read(&bbsTaskInfo); err != nil {
 		return BbsTask{}, err
 	}
-	c.setCache(bbsTaskInfo)
+	c.Set(bbsTaskInfo)
 	return bbsTaskInfo, nil
 }

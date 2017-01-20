@@ -1,34 +1,11 @@
 package httpcurl //Request UMSRequest
 import (
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"time"
-
-	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/logs"
-	"github.com/ccyun/GoApp/application/function"
-	"github.com/garyburd/redigo/redis"
 )
-
-var (
-	// Cache cache对象
-	Cache cache.Cache
-)
-
-type base struct {
-	requestID string
-}
-
-//C 缓存结构
-type C struct {
-	customerCode string
-	key          string
-	requestID    string
-}
 
 //Request curl请求
 func Request(method string, url string, body io.Reader) (int, []byte, error) {
@@ -59,64 +36,4 @@ func Request(method string, url string, body io.Reader) (int, []byte, error) {
 		return -1, nil, fmt.Errorf("http request fail, url: %s, error:%s", url, err.Error())
 	}
 	return -1, nil, fmt.Errorf("http request fail, url: %s, error:%s", url, err.Error())
-}
-
-//L 语言log
-func (c *C) L(log string) string {
-	return c.requestID + "  " + log
-}
-
-///////////////////////////////Cache//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//newCache 初始化缓存对象
-func newCache(customerCode, requestID string, args ...interface{}) *C {
-	c := new(C)
-	c.customerCode = customerCode
-	c.key = c.makeKey(args)
-	c.requestID = requestID
-	return c
-}
-
-//makeKey 参数产生Key
-func (c *C) makeKey(args ...interface{}) string {
-	k, err := json.Marshal(args)
-	if err != nil {
-		logs.Error(c.L("GetCache make key error"), err)
-		return ""
-	}
-	return fmt.Sprintf("U%s:%s", c.customerCode, function.Md5(string(k), 32))
-}
-
-//setCache 设置缓存
-func (c *C) setCache(data interface{}) bool {
-	var (
-		val []byte
-		err error
-	)
-	if val, err = json.Marshal(data); err != nil {
-		logs.Error(c.L("SetCache data Marshal error"), err)
-		return false
-	}
-	if err := Cache.Put(c.key, val, 48*time.Hour); err != nil {
-		logs.Error(c.L("SetCache Put error"), err)
-		return false
-	}
-	return true
-}
-
-//getCache 读取缓存
-func (c *C) getCache(data interface{}) bool {
-	var (
-		err error
-		val string
-	)
-	if val, err = redis.String(Cache.Get(c.key), nil); err != nil {
-		logs.Info(c.L("GetCache value Assertion error"), err)
-		return false
-	}
-	if err = json.Unmarshal([]byte(val), data); err != nil {
-		logs.Error(c.L("GetCache data Unmarshal error"), err)
-		return false
-	}
-	return true
 }
