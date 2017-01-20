@@ -10,7 +10,6 @@ func main() {
 	app := new(queue.App)
 	app.DoFunc = work
 	app.Run()
-
 }
 
 func work(options map[string]string) {

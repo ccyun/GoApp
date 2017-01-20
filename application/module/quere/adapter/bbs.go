@@ -24,6 +24,7 @@ func (B *base) getBbsTaskInfo() error {
 	var err error
 	model := new(model.BbsTask)
 	B.bbsTaskInfo, err = model.GetOne(B.bbsID)
+
 	return err
 }
 
@@ -66,11 +67,13 @@ func (B *Bbs) NewTask(task model.Queue) error {
 //GetPublishScopeUsers 分析发布范围
 func (B *Bbs) GetPublishScopeUsers() error {
 	ums := new(httpcurl.UMS)
+
 	userIDs, err := ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
 	if err != nil {
 		logs.Error(L("GetPublishScopeUsers ums GetAllUserIDsByOrgIDs error"), err)
 		return err
 	}
+	B.PublishScope = make(map[string][]uint64)
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
 	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs[0:]...)
@@ -79,6 +82,7 @@ func (B *Bbs) GetPublishScopeUsers() error {
 
 //CreateFeed 创建Feed
 func (B *Bbs) CreateFeed() error {
+
 	return nil
 }
 

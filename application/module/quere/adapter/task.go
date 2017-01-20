@@ -50,6 +50,7 @@ func Run(option map[string]string) {
 	if option["requestID"] != "" {
 		RequestID = option["requestID"]
 	}
+
 	q.run()
 }
 

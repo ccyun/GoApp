@@ -19,30 +19,8 @@ type Feed struct {
 	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
-//FeedBbs 图文广播feed
-type FeedBbs struct {
-	Title          string `json:"title"`
-	Description    string `json:"description"`
-	CreatedAt      string `json:"created_at"`
-	UserID         string `json:"user_id"`
-	Type           string `json:"type"`
-	Category       string `json:"category"`
-	CommentEnabled uint8  `json:"comment_enabled"`
-}
-
-//FeedForm 表单feed
-type FeedForm struct {
-	Title          string `json:"title"`
-	Description    string `json:"description"`
-	CreatedAt      string `json:"created_at"`
-	UserID         string `json:"user_id"`
-	Type           string `json:"type"`
-	Category       string `json:"category"`
-	CommentEnabled uint8  `json:"comment_enabled"`
-}
-
-//FeedTask 广播任务feed
-type FeedTask struct {
+//FeedData feeddata 结构
+type FeedData struct {
 	Title          string `json:"title"`
 	Description    string `json:"description"`
 	CreatedAt      string `json:"created_at"`
@@ -52,39 +30,7 @@ type FeedTask struct {
 	CommentEnabled uint8  `json:"comment_enabled"`
 	EndTime        uint64 `json:"end_time"`
 	AllowExpired   uint8  `json:"allow_expired"`
-}
-
-//FeedTaskReply 广播任务提醒
-type FeedTaskReply struct {
-	Title          string `json:"title"`
-	CreatedAt      string `json:"created_at"`
 	Status         uint8  `json:"status"`
-	Category       string `json:"category"`
-	CommentEnabled uint8  `json:"comment_enabled"`
-	EndTime        uint64 `json:"end_time"`
-	AllowExpired   uint8  `json:"allow_expired"`
-}
-
-//FeedTaskAudit 广播任务审核
-type FeedTaskAudit struct {
-	Title          string `json:"title"`
-	CreatedAt      string `json:"created_at"`
-	Status         uint8  `json:"status"`
-	Category       string `json:"category"`
-	CommentEnabled uint8  `json:"comment_enabled"`
-	EndTime        uint64 `json:"end_time"`
-	AllowExpired   uint8  `json:"allow_expired"`
-}
-
-//FeedTaskClose 广播任务关闭
-type FeedTaskClose struct {
-	Title          string `json:"title"`
-	CreatedAt      string `json:"created_at"`
-	Category       string `json:"category"`
-	Status         uint8  `json:"status"`
-	CommentEnabled uint8  `json:"comment_enabled"`
-	EndTime        uint64 `json:"end_time"`
-	AllowExpired   uint8  `json:"allow_expired"`
 }
 
 //TableName 表名
@@ -95,6 +41,12 @@ func (F *Feed) TableName() string {
 //HbaseTableName hbase表名
 func (F *Feed) HbaseTableName() string {
 	return "bbs_feed"
+}
+
+//CreateFeed 创建feed
+func (F *Feed) CreateFeed() (uint64, error) {
+
+	return 0, nil
 }
 
 //SaveHbase 保存数据到hbase
@@ -141,4 +93,43 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
 		}
 	}
 	return client.PutMultiple([]byte(F.HbaseTableName()), data)
+}
+
+//DelHbase 删除数据
+func (F *Feed) DelHbase(userIDs []uint64, boardID uint64, feedIDs []uint64) error {
+	client, err := hbase.OpenClient()
+	defer hbase.CloseClient(client)
+	if err != nil {
+		return err
+	}
+	var (
+		qualifier, family []byte
+		data              []*hbase.TDelete
+		columns           []*hbase.TColumn
+	)
+	qualifier = []byte(strconv.FormatUint(boardID, 10))
+	family = []byte("cf")
+	for _, feedID := range feedIDs {
+		feedIDi := int64(feedID)
+		columns = append(columns, &hbase.TColumn{
+			Family:    family,
+			Qualifier: qualifier,
+			Timestamp: &feedIDi,
+		})
+	}
+	for _, u := range userIDs {
+		rowkey := function.MakeRowkey(int64(u))
+		data = append(data, &hbase.TDelete{
+			Row:        []byte(rowkey + "_home"),
+			Columns:    columns,
+			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
+		}, &hbase.TDelete{
+			Row:        []byte(rowkey + "_list"),
+			Columns:    columns,
+			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
+		})
+
+	}
+	_, err = client.DeleteMultiple([]byte(F.HbaseTableName()), data)
+	return err
 }

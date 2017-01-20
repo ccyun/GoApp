@@ -21,6 +21,7 @@ var (
 
 //UMS UMS
 type UMS struct {
+	base
 }
 
 //UMSUser 用户
@@ -49,7 +50,7 @@ type UMSOrg struct {
 //GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
 func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
 	var data []uint64
-	cache := newCache(customerCode, "GetAllUserIDsByOrgIDs", orgIDs)
+	cache := newCache(customerCode, U.requestID, "GetAllUserIDsByOrgIDs", orgIDs)
 	if cache.getCache(&data) == true {
 		return data, nil
 	}
@@ -73,7 +74,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		err        error
 		data       []UMSUser
 	)
-	cache := newCache(customerCode, "GetAllUserByOrgIDs", orgIDs)
+	cache := newCache(customerCode, U.requestID, "GetAllUserByOrgIDs", orgIDs)
 	if cache.getCache(&data) == true {
 		return data, nil
 	}

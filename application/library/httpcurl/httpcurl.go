@@ -17,14 +17,17 @@ import (
 var (
 	// Cache cache对象
 	Cache cache.Cache
-	//RequestID 请求ID
-	RequestID string
 )
+
+type base struct {
+	requestID string
+}
 
 //C 缓存结构
 type C struct {
 	customerCode string
 	key          string
+	requestID    string
 }
 
 //Request curl请求
@@ -59,17 +62,18 @@ func Request(method string, url string, body io.Reader) (int, []byte, error) {
 }
 
 //L 语言log
-func L(log string) string {
-	return RequestID + "  " + log
+func (c *C) L(log string) string {
+	return c.requestID + "  " + log
 }
 
 ///////////////////////////////Cache//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //newCache 初始化缓存对象
-func newCache(customerCode string, args ...interface{}) *C {
+func newCache(customerCode, requestID string, args ...interface{}) *C {
 	c := new(C)
 	c.customerCode = customerCode
 	c.key = c.makeKey(args)
+	c.requestID = requestID
 	return c
 }
 
@@ -77,7 +81,7 @@ func newCache(customerCode string, args ...interface{}) *C {
 func (c *C) makeKey(args ...interface{}) string {
 	k, err := json.Marshal(args)
 	if err != nil {
-		logs.Error(L("GetCache make key error"), err)
+		logs.Error(c.L("GetCache make key error"), err)
 		return ""
 	}
 	return fmt.Sprintf("U%s:%s", c.customerCode, function.Md5(string(k), 32))
@@ -90,11 +94,11 @@ func (c *C) setCache(data interface{}) bool {
 		err error
 	)
 	if val, err = json.Marshal(data); err != nil {
-		logs.Error(L("SetCache data Marshal error"), err)
+		logs.Error(c.L("SetCache data Marshal error"), err)
 		return false
 	}
 	if err := Cache.Put(c.key, val, 48*time.Hour); err != nil {
-		logs.Error(L("SetCache Put error"), err)
+		logs.Error(c.L("SetCache Put error"), err)
 		return false
 	}
 	return true
@@ -107,11 +111,11 @@ func (c *C) getCache(data interface{}) bool {
 		val string
 	)
 	if val, err = redis.String(Cache.Get(c.key), nil); err != nil {
-		logs.Info(L("GetCache value Assertion error"), err)
+		logs.Info(c.L("GetCache value Assertion error"), err)
 		return false
 	}
 	if err = json.Unmarshal([]byte(val), data); err != nil {
-		logs.Error(L("GetCache data Unmarshal error"), err)
+		logs.Error(c.L("GetCache data Unmarshal error"), err)
 		return false
 	}
 	return true
