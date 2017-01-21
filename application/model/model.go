@@ -46,11 +46,11 @@ func RegisterModels() {
 //AfterUpdate 错误处理,处理 增/删/改；以及更新缓存
 func (b *base) AfterUpdate(tableName string, num int64, err error) bool {
 	if num == 0 {
-		logs.Notice("Model info:", orm.ErrNoRows)
+		logs.Notice("Model info error:", tableName, num, orm.ErrNoRows)
 		return false
 	}
 	if err != nil {
-		logs.Error("Model error:", err)
+		logs.Error("Model error:", tableName, num, err)
 		return false
 	}
 	//异步 clearCache

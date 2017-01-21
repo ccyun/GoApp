@@ -22,13 +22,11 @@ type Tasker interface {
 
 //queue 队列
 type queue struct {
-	task  model.Queue
-	mode  Tasker
-	model *model.Queue
+	task      model.Queue
+	mode      Tasker
+	model     *model.Queue
+	RequestID string
 }
-
-//RequestID 请求ID
-var RequestID string
 
 //适配器
 var modes = make(map[string]Tasker)
@@ -48,26 +46,27 @@ func Register(name string, mode Tasker) {
 func Run(option map[string]string) {
 	q := new(queue)
 	if option["requestID"] != "" {
-		RequestID = option["requestID"]
+		q.RequestID = option["requestID"]
 	}
-
 	q.run()
 }
 
 func (q *queue) run() {
-	logs.Info(L("Start processing tasks"))
+	logs.Info(q.L("Start processing tasks"))
 	q.model = new(model.Queue)
 	if q.getTask() == false {
 		return
 	}
+	logs.Info(q.L("Start checkTask"))
 	if q.checkTask() == false {
 		return
 	}
+	logs.Info(q.L("Start runTask"))
 	if q.runTask() == false {
 		//任务失败
 		return
 	}
-	logs.Info(L("Successful"))
+	logs.Info(q.L("Successful"))
 }
 
 //getTask 读取任务
@@ -82,9 +81,9 @@ func (q *queue) getTask() bool {
 		return true
 	}
 	if err == orm.ErrNoRows {
-		logs.Notice(L("Not found task info."))
+		logs.Notice(q.L("Not found task info."))
 	} else {
-		logs.Error(L("getTaskInfo Pull"), err)
+		logs.Error(q.L("getTaskInfo Pull"), err)
 	}
 	return false
 }
@@ -93,9 +92,9 @@ func (q *queue) getTask() bool {
 func (q *queue) checkTask() bool {
 	mode, ok := modes[q.task.TaskType]
 	if !ok {
-		logs.Error(L("taskInfo.TaskType not in('bbs','delete','taskReply','taskAudit','taskClose')."))
+		logs.Error(q.L("taskInfo.TaskType not in('bbs','delete','taskReply','taskAudit','taskClose')."))
 		if q.model.Fail(q.task.ID) == false {
-			logs.Error(L("checkTask Fail error"))
+			logs.Error(q.L("checkTask Fail error"))
 		}
 		return false
 	}
@@ -106,60 +105,70 @@ func (q *queue) checkTask() bool {
 //runTask 执行任务
 func (q *queue) runTask() bool {
 	//新的任务
+	logs.Info(q.L("Start NewTask"))
 	if err := q.mode.NewTask(q.task); err != nil {
-		logs.Error(L("runTask NewTask error"), err)
+		logs.Error(q.L("runTask NewTask error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//分析发布范围
+	logs.Info(q.L("Start GetPublishScopeUsers"))
 	if err := q.mode.GetPublishScopeUsers(); err != nil {
-		logs.Error(L("runTask GetPublishScopeUsers error"), err)
+		logs.Error(q.L("runTask GetPublishScopeUsers error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//创建关系
+	logs.Info(q.L("Start CreateRelation"))
 	if err := q.mode.CreateRelation(); err != nil {
-		logs.Error(L("runTask CreateRelation error"), err)
+		logs.Error(q.L("runTask CreateRelation error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//开启事务
+	logs.Info(q.L("Start Begin"))
 	if err := q.mode.Begin(); err != nil {
-		logs.Error(L("runTask Begin error"), err)
+		logs.Error(q.L("runTask Begin error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//创建feed
+	logs.Info(q.L("Start CreateFeed"))
 	if err := q.mode.CreateFeed(); err != nil {
-		logs.Error(L("runTask CreateFeed error"), err)
+		logs.Error(q.L("runTask CreateFeed error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//写入未读计数
+	logs.Info(q.L("Start CreateUnread"))
 	if err := q.mode.CreateUnread(); err != nil {
-		logs.Error(L("runTask CreateUnread error"), err)
+		logs.Error(q.L("runTask CreateUnread error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//修改广播状态
+	logs.Info(q.L("Start UpdateStatus"))
 	if err := q.mode.UpdateStatus(); err != nil {
-		logs.Error(L("runTask UpdateStatus error"), err)
+		logs.Error(q.L("runTask UpdateStatus error"), err)
 		q.mode.Rollback()
 		return false
 	}
 	//提交事务
+	logs.Info(q.L("Start Commit"))
 	if err := q.mode.Commit(); err != nil {
-		logs.Error(L("runTask Commit error"), err)
+		logs.Error(q.L("runTask Commit error"), err)
 		return false
 	}
 	//关闭任务
+	logs.Info(q.L("Start Delete task"))
 	// if q.model.Delete(q.model.ID) == false {
-	// 	logs.Error(L("runTask Delete error"))
+	// 	logs.Error(q.L("runTask Delete error"))
 	// 	return false
 	// }
 	//发送消息
+	logs.Info(q.L("Start SendMsg"))
 	if err := q.mode.SendMsg(); err != nil {
-		logs.Error(L("runTask SendMsg error"), err)
+		logs.Error(q.L("runTask SendMsg error"), err)
 		return false
 	}
 
@@ -167,6 +176,6 @@ func (q *queue) runTask() bool {
 }
 
 //L 语言log
-func L(l string) string {
-	return RequestID + "  " + l
+func (q *queue) L(l string) string {
+	return q.RequestID + "  " + l
 }

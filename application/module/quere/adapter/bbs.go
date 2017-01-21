@@ -5,7 +5,8 @@ import (
 
 	"encoding/json"
 
-	"github.com/astaxie/beego/logs"
+	"fmt"
+
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
 )
@@ -34,29 +35,24 @@ func (B *Bbs) NewTask(task model.Queue) error {
 
 	var action map[string]string
 	if err := json.Unmarshal([]byte(B.action), &action); err != nil {
-		logs.Error(L("NewTask action Unmarshal err"), "taskid: ", B.taskID, "action error, action:", B.action, err)
-		return err
+		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", B.taskID, B.action)
 	}
 	bbsID, err := strconv.Atoi(action["bbs_id"])
 	if err != nil {
-		logs.Error(L("NewTask strconv.Atoi err"), "taskid: ", B.taskID, "action error, action:", B.action, err)
-		return err
+		return fmt.Errorf("NewTask strconv.Atoi error,taskID:%d,action:%s", B.taskID, B.action)
 	}
 	B.bbsID = uint64(bbsID)
 	B.attachmentsBase64 = action["attachments_base64"]
 	if err := B.getBbsInfo(); err != nil {
-		logs.Error(L("getBbsInfo error"), err)
 		return err
 	}
 	if err := B.getBoardInfo(); err != nil {
-		logs.Error(L("getBoardInfo error"), err)
 		return err
 	}
 	///////判断广播类型
 	switch B.category {
 	case "task":
 		if err := B.getBbsTaskInfo(); err != nil {
-			logs.Error(L("getBbsTaskInfo error"), err)
 			return err
 		}
 	}
@@ -70,7 +66,6 @@ func (B *Bbs) GetPublishScopeUsers() error {
 
 	userIDs, err := ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
 	if err != nil {
-		logs.Error(L("GetPublishScopeUsers ums GetAllUserIDsByOrgIDs error"), err)
 		return err
 	}
 	B.PublishScope = make(map[string][]uint64)

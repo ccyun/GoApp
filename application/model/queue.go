@@ -61,6 +61,7 @@ func (Q *Queue) TimeOut() bool {
 		"ModifiedAt": nowTime,
 	}
 	num, err := o.QueryTable(Q).Filter("Status", 1).Filter("ModifiedAt__lt", (nowTime - 7200000)).Update(data)
+
 	return Q.AfterUpdate(Q.TableName(), num, err)
 }
 

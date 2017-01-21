@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/cache"
+
 	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
@@ -17,7 +18,7 @@ import (
 	//syslog 驱动
 	_ "github.com/ccyun/GoApp/application/library/log"
 	//redis 驱动
-	_ "github.com/ccyun/GoApp/application/library/redis"
+	"github.com/ccyun/GoApp/application/library/redis"
 	//mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -107,8 +108,7 @@ func InitCache() error {
 	if err != nil {
 		return err
 	}
-	model.Cache = ca
-	httpcurl.Cache = ca
+	redis.Cache = ca
 	return nil
 }
 
