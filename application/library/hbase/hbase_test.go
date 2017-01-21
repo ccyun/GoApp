@@ -1,29 +1,58 @@
 package hbase
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 	"testing"
+
+	"github.com/astaxie/beego/config"
 )
 
 var (
-	isInit                             bool
-	user_id, board_id, feed_id, bbs_id string
-	feed_id_int, bbs_id_int            int64
+	userID, boardID, feedID, bbsID string
+	feedIDInt, bbsIDInt            int64
 )
 
-func initHbase() {
-	if isInit == false {
-		InitHbase("192.168.197.128", "9090", 10)
-		user_id = "63669051"
-		board_id = "50000116"
-		feed_id = "1921"
-		bbs_id = "50001588"
-		feed_id_int, _ = strconv.ParseInt(feed_id, 10, 0)
-		bbs_id_int, _ = strconv.ParseInt(bbs_id, 10, 0)
-	}
+//Conf 配置
+var Conf config.Configer
 
-	isInit = true
+func initHbase() {
+	func(funcs ...func() error) {
+		for _, f := range funcs {
+			if err := f(); err != nil {
+				panic(err)
+			}
+		}
+	}(func() error {
+		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
+		if err != nil {
+			return err
+		}
+		Conf = conf
+		return nil
+	}, func() error {
+		var (
+			err    error
+			config struct {
+				Host string `json:"host"`
+				Port string `json:"port"`
+				Pool int    `json:"pool"`
+			}
+		)
+		if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
+			return err
+		}
+		return InitHbase(config.Host, config.Port, config.Pool)
+	})
+
+	userID = "63669051"
+	boardID = "50000116"
+	feedID = "1921"
+	bbsID = "50001588"
+	feedIDInt, _ = strconv.ParseInt(feedID, 10, 0)
+	bbsIDInt, _ = strconv.ParseInt(bbsID, 10, 0)
+
 }
 
 func TestHbasePut(t *testing.T) {
@@ -33,24 +62,24 @@ func TestHbasePut(t *testing.T) {
 
 	TPuts := []*TPut{
 		&TPut{
-			Row: []byte(user_id + "_home"),
+			Row: []byte(userID + "_home"),
 			ColumnValues: []*TColumnValue{
 				&TColumnValue{
 					Family:    []byte("cf"),
-					Qualifier: []byte(board_id),
-					Value:     []byte(bbs_id),
-					Timestamp: &feed_id_int,
+					Qualifier: []byte(boardID),
+					Value:     []byte(bbsID),
+					Timestamp: &feedIDInt,
 				},
 			},
 		},
 		&TPut{
-			Row: []byte(user_id + "_list"),
+			Row: []byte(userID + "_list"),
 			ColumnValues: []*TColumnValue{
 				&TColumnValue{
 					Family:    []byte("cf"),
-					Qualifier: []byte(board_id),
-					Value:     []byte(bbs_id),
-					Timestamp: &feed_id_int,
+					Qualifier: []byte(boardID),
+					Value:     []byte(bbsID),
+					Timestamp: &feedIDInt,
 				},
 			},
 		},
@@ -66,17 +95,17 @@ func TestHbaseDel(t *testing.T) {
 	client, _ := OpenClient()
 	defer CloseClient(client)
 	tdel := &TDelete{
-		Row: []byte(user_id + "_list"),
+		Row: []byte(userID + "_list"),
 		Columns: []*TColumn{
 			&TColumn{
 				Family:    []byte("cf"),
-				Qualifier: []byte(board_id),
-				Timestamp: &feed_id_int,
+				Qualifier: []byte(boardID),
+				Timestamp: &feedIDInt,
 			},
 		},
 		DeleteType: TDeleteType_DELETE_COLUMN,
 	}
-	log.Println(feed_id_int)
+	log.Println(feedIDInt)
 	if err := client.DeleteSingle([]byte("bbs_feed"), tdel); err != nil {
 		t.Error(err)
 	}
@@ -89,11 +118,11 @@ func TestHbaseGet(t *testing.T) {
 	var maxV int32 = 5
 	//minStamp := int64()
 	tget := &TGet{
-		Row: []byte(user_id + "_list"),
+		Row: []byte(userID + "_list"),
 		Columns: []*TColumn{
 			&TColumn{
 				Family:    []byte("cf"),
-				Qualifier: []byte(board_id),
+				Qualifier: []byte(boardID),
 			},
 		},
 		MaxVersions: &maxV,

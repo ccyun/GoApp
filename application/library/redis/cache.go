@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/logs"
 	"github.com/ccyun/GoApp/application/function"
-	"github.com/garyburd/redigo/redis"
+	"github.com/chasex/redis-go-cluster"
 )
 
 //C 缓存结构

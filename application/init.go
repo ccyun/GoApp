@@ -14,6 +14,7 @@ import (
 
 	"github.com/ccyun/GoApp/application/library/hbase"
 	"github.com/ccyun/GoApp/application/library/httpcurl"
+	"github.com/ccyun/GoApp/application/library/neo4j"
 	"github.com/ccyun/GoApp/application/model"
 	//syslog 驱动
 	_ "github.com/ccyun/GoApp/application/library/log"
@@ -104,11 +105,11 @@ func InitHTTPCurl() error {
 
 //InitCache 初始化缓存
 func InitCache() error {
-	ca, err := cache.NewCache("redis", Conf.String("cache"))
+	cache, err := cache.NewCache("redis", Conf.String("cache"))
 	if err != nil {
 		return err
 	}
-	redis.Cache = ca
+	redis.Cache = cache
 	return nil
 }
 
@@ -126,4 +127,22 @@ func InitHbase() error {
 		return err
 	}
 	return hbase.InitHbase(config.Host, config.Port, config.Pool)
+}
+
+//InitNeo4j 初始化Neo4j
+func InitNeo4j() error {
+	var (
+		err    error
+		config struct {
+			Host     string `json:"host"`
+			Port     string `json:"port"`
+			UserName string `json:"username"`
+			Password string `json:"password"`
+			Pool     int    `json:"pool"`
+		}
+	)
+	if err = json.Unmarshal([]byte(Conf.String("neo4j")), &config); err != nil {
+		return err
+	}
+	return neo4j.Init(config.Host, config.Port, config.UserName, config.Password, config.Pool)
 }
