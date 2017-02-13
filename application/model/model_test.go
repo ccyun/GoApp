@@ -86,6 +86,21 @@ func TestBbsGetOne(t *testing.T) {
 
 }
 
+func TestBbsUpdate(t *testing.T) {
+	InitDB()
+	a := new(Bbs)
+	var (
+		err     error
+		bbsinfo Bbs
+	)
+	bbsinfo.ID = 50001599
+	bbsinfo.MsgCount = 100
+	if err = a.Update(bbsinfo, "Start", "MsgCount"); err != nil {
+		t.Error("model->bbs.Test_Bbs_Update err", err)
+	}
+
+}
+
 ///////////////////////////////////////////////feed case //////////////////////////////////////////////
 func TestSaveHbase(t *testing.T) {
 	hbase.InitHbase("192.168.197.128", "9090", 10)
@@ -102,7 +117,7 @@ func TestSaveHbase(t *testing.T) {
 					BbsID:     uint64(ii),
 					ID:        uint64(iii),
 					FeedType:  "task",
-					MsgID:     0,
+					MsgID:     "0",
 					CreatedAt: 1481879624794,
 				}
 				a.SaveHbase(userIDs, feedData)

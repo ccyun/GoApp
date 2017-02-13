@@ -31,14 +31,18 @@ type base struct {
 //RegisterModels 注册Model
 func RegisterModels() {
 	orm.Debug = Debug
-	orm.RegisterModelWithPrefix(DBPrefix, new(Queue))
-	orm.RegisterModelWithPrefix(DBPrefix, new(Board))
-	orm.RegisterModelWithPrefix(DBPrefix, new(Bbs))
-	orm.RegisterModelWithPrefix(DBPrefix, new(Editor))
-	orm.RegisterModelWithPrefix(DBPrefix, new(PublishScope))
-	orm.RegisterModelWithPrefix(DBPrefix, new(Feed))
-	orm.RegisterModelWithPrefix(DBPrefix, new(BbsTask))
-
+	orm.RegisterModelWithPrefix(
+		DBPrefix,
+		new(Queue),
+		new(Board),
+		new(Bbs),
+		new(Editor),
+		new(PublishScope),
+		new(Feed),
+		new(BbsTask),
+		new(Unread),
+		new(Todo),
+	)
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)
 }

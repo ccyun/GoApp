@@ -97,8 +97,16 @@ func InitDB() error {
 
 //InitHTTPCurl 初始化数据库
 func InitHTTPCurl() error {
+
+	//初始化ums配置
 	httpcurl.UMSLoginURL = Conf.String("ums_login_url")
 	httpcurl.UMSBusinessURL = Conf.String("ums_business_url")
+
+	//初始化uc配置
+	httpcurl.UcOpenAPIURL = Conf.String("uc_open_api_url")
+	httpcurl.UcAPPID = Conf.String("uc_open_appid")
+	httpcurl.UcPaddword = Conf.String("uc_open_password")
+
 	return nil
 }
 

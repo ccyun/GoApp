@@ -16,7 +16,7 @@ type Feed struct {
 	BbsID     uint64 `orm:"column(bbs_id)"`
 	FeedType  string `orm:"column(feed_type)"`
 	Data      string `orm:"column(data)"`
-	MsgID     uint64 `orm:"column(msg_id)"`
+	MsgID     string `orm:"column(msg_id)"`
 	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
@@ -24,8 +24,8 @@ type Feed struct {
 type FeedData struct {
 	Title          string `json:"title"`
 	Description    string `json:"description"`
-	CreatedAt      string `json:"created_at"`
-	UserID         string `json:"user_id"`
+	CreatedAt      uint64 `json:"created_at"`
+	UserID         uint64 `json:"user_id"`
 	Type           string `json:"type"`
 	Category       string `json:"category"`
 	CommentEnabled uint8  `json:"comment_enabled"`
@@ -45,9 +45,13 @@ func (F *Feed) HbaseTableName() string {
 }
 
 //CreateFeed 创建feed
-func (F *Feed) CreateFeed() (uint64, error) {
+func (F *Feed) CreateFeed(feedData Feed) (uint64, error) {
+	feedID, err := o.Insert(&feedData)
+	if err != nil {
+		return 0, err
+	}
 
-	return 0, nil
+	return uint64(feedID), nil
 }
 
 //SaveHbase 保存数据到hbase
@@ -81,7 +85,7 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
 		})
 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
 			data = append(data, &hbase.TPut{
-				Row: []byte(rowkey + "_list"),
+				Row: []byte(rowkey + "_" + feedData.FeedType),
 				ColumnValues: []*hbase.TColumnValue{
 					&hbase.TColumnValue{
 						Family:    family,

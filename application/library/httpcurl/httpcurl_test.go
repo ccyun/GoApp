@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/astaxie/beego/cache"
 	_ "github.com/ccyun/GoApp/application/library/redis"
 )
 
@@ -35,8 +34,6 @@ func Test__getAllUserByOrgIDs(t *testing.T) {
 }
 
 func Test_GetAllUserByOrgIDs(t *testing.T) {
-	ca, err := cache.NewCache("redis", `{"nodes":["192.168.32.241:7000","192.168.32.242:7000","192.168.32.242:7001"],"prefix":"bee"}`)
-	Cache = ca
 	UMSBusinessURL = "http://192.168.28.173:8081/umsapi"
 	a := new(UMS)
 	data, err := a.GetAllUserIDsByOrgIDs("0000445", []uint64{54169})
@@ -44,4 +41,13 @@ func Test_GetAllUserByOrgIDs(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(len(data))
+}
+
+func Test_GetToken(t *testing.T) {
+	UcAPPID = "10488557"
+	UcOpenAPIURL = "http://testcloud.quanshi.com/ucopenapi"
+	UcPaddword = "5yAnVkzK7gMUFXTw"
+
+	a := new(UC)
+	a.GetToken()
 }

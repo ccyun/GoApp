@@ -66,7 +66,7 @@ func (B *base) CreateRelation() error {
 
 //CreateUnread 创建未读计数
 func (B *base) CreateUnread() error {
-	return nil
+	return new(model.Unread).IncrCount(B.siteID, B.boardID, B.userIDs)
 }
 
 //UpdateStatus 更新状态

@@ -22,7 +22,7 @@ type Bbs struct {
 	PublishScopeString  string        `orm:"column(publish_scope)"`
 	PublishScope        PublishScoper `orm:"-"`
 	PublishScopeUserIDs string        `orm:"column(publish_scope_user_ids)"`
-	MsgCount            uint8         `orm:"column(msg_count)"`
+	MsgCount            uint64        `orm:"column(msg_count)"`
 	Attachments         string        `orm:"column(attachments)"`
 	UsesID              uint64        `orm:"column(user_id)"`
 	CreatedAt           uint64        `orm:"column(created_at)"`
@@ -65,9 +65,10 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	return data[0], nil
 }
 
-//Update 修改数据
-func (B *Bbs) Update(ID uint64) error {
-	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
+//Update 更新数据
+func (B *Bbs) Update(bbs Bbs, field ...string) error {
+	bbs.ModifiedAt = uint64(time.Now().UnixNano() / 1e6)
+	num, err := o.Update(&bbs, field...)
 	if num == 0 {
 		err = orm.ErrNoRows
 	}

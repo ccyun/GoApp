@@ -118,13 +118,6 @@ func (q *queue) runTask() bool {
 		q.mode.Rollback()
 		return false
 	}
-	//创建关系
-	logs.Info(q.L("Start CreateRelation"))
-	if err := q.mode.CreateRelation(); err != nil {
-		logs.Error(q.L("runTask CreateRelation error"), err)
-		q.mode.Rollback()
-		return false
-	}
 	//开启事务
 	logs.Info(q.L("Start Begin"))
 	if err := q.mode.Begin(); err != nil {
@@ -136,6 +129,13 @@ func (q *queue) runTask() bool {
 	logs.Info(q.L("Start CreateFeed"))
 	if err := q.mode.CreateFeed(); err != nil {
 		logs.Error(q.L("runTask CreateFeed error"), err)
+		q.mode.Rollback()
+		return false
+	}
+	//创建关系
+	logs.Info(q.L("Start CreateRelation"))
+	if err := q.mode.CreateRelation(); err != nil {
+		logs.Error(q.L("runTask CreateRelation error"), err)
 		q.mode.Rollback()
 		return false
 	}
