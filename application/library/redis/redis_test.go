@@ -7,30 +7,50 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/config"
 	"github.com/chasex/redis-go-cluster"
 )
 
-func initRedis(t *testing.T) cache.Cache {
-	bm, err := cache.NewCache("redis", `{"nodes":["192.168.40.12:7000","192.168.40.12:8000","192.168.40.12:9000"],"prefix":"bee"}`)
-	if err != nil {
-		t.Error("init err")
-	}
-	return bm
+//Conf 配置
+var Conf config.Configer
+
+func initCache() {
+	func(funcs ...func() error) {
+		for _, f := range funcs {
+			if err := f(); err != nil {
+				panic(err)
+			}
+		}
+	}(func() error {
+		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
+		if err != nil {
+			return err
+		}
+		Conf = conf
+		return nil
+	}, func() error {
+		cache, err := cache.NewCache("redis", Conf.String("cache"))
+		if err != nil {
+			return err
+		}
+		Cache = cache
+		return nil
+	})
 }
 
 //TestLock 测试锁机制
 func TestLock(t *testing.T) {
-	bm := initRedis(t)
+	initCache()
 	var w sync.WaitGroup
 	w.Add(2)
 	go func() {
 		n := 0
 		for i := 0; i < 10000; i++ {
 			key := "db:name:" + strconv.Itoa(i)
-			if err := bm.Put(key, "1", 86400*time.Second); err != nil {
+			if err := Cache.Put(key, "1", 86400*time.Second); err != nil {
 				t.Error("set Error", err)
 			}
-			if bm.IsExist(key) == false {
+			if Cache.IsExist(key) == false {
 				n++
 			}
 		}
@@ -40,94 +60,91 @@ func TestLock(t *testing.T) {
 
 	go func() {
 		time.Sleep(1 * time.Second)
-		bm.Delete("db:name*")
+		Cache.Delete("db:name*")
 		time.Sleep(3 * time.Second)
-		bm.Delete("db*")
+		Cache.Delete("db*")
 		//	time.Sleep(20 * time.Second)
 		w.Done()
 	}()
 	w.Wait()
-	bm.ClearAll()
+	Cache.ClearAll()
 }
 
 func TestIndex(t *testing.T) {
-	//updateIndex
-	bm := initRedis(t)
-	if err := bm.Put("db:name:1:2:3:4:5:6", 1, 2*time.Second); err != nil {
+	initCache()
+	if err := Cache.Put("db:name:1:2:3:4:5:6", 1, 2*time.Second); err != nil {
 		t.Error("set Error", err)
 	}
-	if ok := bm.IsExist("db:name:1:2:3:4:5"); ok != true {
+	if ok := Cache.IsExist("db:name:1:2:3:4:5"); ok != true {
 		t.Error("index Error")
 	}
-
-	if ok := bm.IsExist("db"); ok != true {
+	if ok := Cache.IsExist("db"); ok != true {
 		t.Error("index Error")
 	}
-	bm.ClearAll()
-	if ok := bm.IsExist("db:name:1:2:3:4"); ok == true {
+	Cache.ClearAll()
+	if ok := Cache.IsExist("db:name:1:2:3:4"); ok == true {
 		t.Error("index Error")
 	}
-	if ok := bm.IsExist("db:name"); ok == true {
+	if ok := Cache.IsExist("db:name"); ok == true {
 		t.Error("index Error")
 	}
 }
 
 func TestRedisCache(t *testing.T) {
+	initCache()
 	var err error
-	bm := initRedis(t)
-
 	timeoutDuration := 10 * time.Second
-	if err = bm.Put("astaxie", 1, timeoutDuration); err != nil {
+	if err = Cache.Put("astaxie", 1, timeoutDuration); err != nil {
 		t.Error("set Error", err)
 	}
 
-	if !bm.IsExist("astaxie") {
+	if !Cache.IsExist("astaxie") {
 		t.Error("check err")
 	}
 	time.Sleep(11 * time.Second)
-	if bm.IsExist("astaxie") {
+	if Cache.IsExist("astaxie") {
 		t.Error("check err")
 	}
-	if err = bm.Put("astaxie", 1, timeoutDuration); err != nil {
+	if err = Cache.Put("astaxie", 1, timeoutDuration); err != nil {
 		t.Error("set Error", err)
 	}
-	if v, _ := redis.Int(bm.Get("astaxie"), err); v != 1 {
+	if v, _ := redis.Int(Cache.Get("astaxie"), err); v != 1 {
 		t.Error("get err")
 	}
-	if err = bm.Incr("astaxie"); err != nil {
+	if err = Cache.Incr("astaxie"); err != nil {
 		t.Error("Incr Error", err)
 	}
-	if v, _ := redis.Int(bm.Get("astaxie"), err); v != 2 {
+	if v, _ := redis.Int(Cache.Get("astaxie"), err); v != 2 {
 		t.Error("get err")
 	}
-	if err = bm.Decr("astaxie"); err != nil {
+	if err = Cache.Decr("astaxie"); err != nil {
 		t.Error("Decr Error", err)
 	}
-	if v, _ := redis.Int(bm.Get("astaxie"), err); v != 1 {
+	if v, _ := redis.Int(Cache.Get("astaxie"), err); v != 1 {
 		t.Error("get err")
 	}
-	bm.Delete("astaxie")
-	if bm.IsExist("astaxie") {
+	Cache.Delete("astaxie")
+	if Cache.IsExist("astaxie") {
 		t.Error("delete err")
 	}
 	//test string
-	if err = bm.Put("astaxie", "author", timeoutDuration); err != nil {
+	if err = Cache.Put("astaxie", "author", timeoutDuration); err != nil {
 		t.Error("set Error", err)
 	}
-	if !bm.IsExist("astaxie") {
+	if !Cache.IsExist("astaxie") {
 		t.Error("check err")
 	}
-	if v, _ := redis.String(bm.Get("astaxie"), err); v != "author" {
+	if v, _ := redis.String(Cache.Get("astaxie"), err); v != "author" {
 		t.Error("get err")
 	}
 	//test GetMulti
-	if err = bm.Put("astaxie1", "author1", timeoutDuration); err != nil {
+	if err = Cache.Put("astaxie1", "author1", timeoutDuration); err != nil {
 		t.Error("set Error", err)
 	}
-	if !bm.IsExist("astaxie1") {
+	if !Cache.IsExist("astaxie1") {
 		t.Error("check err")
 	}
-	vv := bm.GetMulti([]string{"astaxie", "astaxie1"})
+	vv := Cache.GetMulti([]string{"astaxie", "astaxie1"})
 	if len(vv) != 2 {
 		t.Error("GetMulti ERROR")
 	}
@@ -138,7 +155,7 @@ func TestRedisCache(t *testing.T) {
 		t.Error("GetMulti ERROR")
 	}
 	// test clear all
-	if err = bm.ClearAll(); err != nil {
+	if err = Cache.ClearAll(); err != nil {
 		t.Error("clear all err")
 	}
 
