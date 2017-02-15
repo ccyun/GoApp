@@ -3,6 +3,7 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
@@ -65,25 +66,39 @@ type CustomizedSender struct {
 	ToPartyIds  []string `json:"toPartyIds"`
 }
 
-//_afterAPI
-func (U *UC) _afterAPI() {
+//ResponseData response 结构体
+type ResponseData struct {
+	ErrorCode    uint64 `json:"errorCode"`
+	ErrorMessage string `json:"errorMessage"`
+	Data         []byte `json:"data"`
+	RequestID    string `json:"requestId"`
+}
 
+//_afterAPI
+func (U *UC) httpCurl(method string, url string, body io.Reader) {
+	var resData ResponseData
+	body, _ := json.Marshal(data)
+	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)))
+	logs.Debug("GetToken url:", url, "body:", string(body), "code:", statusCode)
+	if err != nil {
+		logs.Error("GetToken error:", err)
+	}
 }
 
 //GetToken 获取token
 func (U *UC) GetToken() string {
 	url := fmt.Sprintf("%s/auth/token/create", UcOpenAPIURL)
-	data := make(map[string]string)
-	data["role"] = "3"
-	data["appId"] = UcAPPID
-	data["password"] = UcPaddword
-	body, _ := json.Marshal(data)
-	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)))
-	if err != nil {
-		logs.Error("GetToken url:", url, "body:", string(body), "error:", err)
-	}
-	logs.Debug("GetToken url:", url, "body:", string(body), "code:", statusCode)
+	data := map[string]string{"role": "3", "appId": UcAPPID, "password": UcPaddword}
 
-	log.Println(string(res))
+	U.httpCurl("POST", "/auth/token/create", getData, postData)
+
+	body, _ := json.Marshal(data)
+
+	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)))
+	logs.Debug("GetToken url:", url, "body:", string(body), "code:", statusCode)
+	if err != nil {
+		logs.Error("GetToken error:", err)
+	}
+	log.Println(res)
 	return ""
 }

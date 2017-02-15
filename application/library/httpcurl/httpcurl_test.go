@@ -36,8 +36,13 @@ func initHTTPCurl() {
 		redis.Cache = cache
 		return nil
 	}, func() error {
+		//初始化ums配置
 		UMSLoginURL = Conf.String("ums_login_url")
 		UMSBusinessURL = Conf.String("ums_business_url")
+		//初始化uc配置
+		UcOpenAPIURL = Conf.String("uc_open_api_url")
+		UcAPPID = Conf.String("uc_open_appid")
+		UcPaddword = Conf.String("uc_open_password")
 		return nil
 
 	})
@@ -67,10 +72,7 @@ func TestGetAllUserByOrgIDs(t *testing.T) {
 }
 
 func Test_GetToken(t *testing.T) {
-	UcAPPID = "10488557"
-	UcOpenAPIURL = "http://testcloud.quanshi.com/ucopenapi"
-	UcPaddword = "5yAnVkzK7gMUFXTw"
-
+	initHTTPCurl()
 	a := new(UC)
 	a.GetToken()
 }
