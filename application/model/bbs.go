@@ -13,27 +13,28 @@ import (
 //Bbs 任务表结构
 type Bbs struct {
 	base
-	ID                  uint64        `orm:"column(id)"`
-	SiteID              uint64        `orm:"column(site_id)"`
-	BoardID             uint64        `orm:"column(board_id)"`
-	Title               string        `orm:"column(title)"`
-	Description         string        `orm:"column(description)"`
-	Content             string        `orm:"column(content)"`
-	PublishScopeString  string        `orm:"column(publish_scope)"`
-	PublishScope        PublishScoper `orm:"-"`
-	PublishScopeUserIDs string        `orm:"column(publish_scope_user_ids)"`
-	MsgCount            uint64        `orm:"column(msg_count)"`
-	Attachments         string        `orm:"column(attachments)"`
-	UsesID              uint64        `orm:"column(user_id)"`
-	CreatedAt           uint64        `orm:"column(created_at)"`
-	PublishAt           uint64        `orm:"column(publish_at)"`
-	ModifiedAt          uint64        `orm:"column(modified_at)"`
-	SetTimer            uint64        `orm:"column(set_timer)"`
-	Category            string        `orm:"column(category)"`
-	Type                string        `orm:"column(type)"`
-	IsDeleted           string        `orm:"column(is_deleted)"`
-	Status              uint8         `orm:"column(status)"`
-	CommentEnabled      uint8         `orm:"column(comment_enabled)"`
+	ID                  uint64              `orm:"column(id)"`
+	SiteID              uint64              `orm:"column(site_id)"`
+	BoardID             uint64              `orm:"column(board_id)"`
+	Title               string              `orm:"column(title)"`
+	Description         string              `orm:"column(description)"`
+	Content             string              `orm:"column(content)"`
+	PublishScopeString  string              `orm:"column(publish_scope)"`
+	PublishScope        PublishScoper       `orm:"-"`
+	PublishScopeUserIDs string              `orm:"column(publish_scope_user_ids)"`
+	MsgCount            uint64              `orm:"column(msg_count)"`
+	AttachmentsString   string              `orm:"column(attachments)"`
+	Attachments         []map[string]string `orm:"-"`
+	UsesID              uint64              `orm:"column(user_id)"`
+	CreatedAt           uint64              `orm:"column(created_at)"`
+	PublishAt           uint64              `orm:"column(publish_at)"`
+	ModifiedAt          uint64              `orm:"column(modified_at)"`
+	SetTimer            uint64              `orm:"column(set_timer)"`
+	Category            string              `orm:"column(category)"`
+	Type                string              `orm:"column(type)"`
+	IsDeleted           string              `orm:"column(is_deleted)"`
+	Status              uint8               `orm:"column(status)"`
+	CommentEnabled      uint8               `orm:"column(comment_enabled)"`
 }
 
 //PublishScoper 广播发布范围
@@ -81,6 +82,9 @@ func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
 	for key, item := range data {
 		//处理发布范围
 		item.PublishScope, err = B.publishScopeHandle(item.PublishScopeString)
+		if item.AttachmentsString != "" {
+			err = json.Unmarshal([]byte(item.AttachmentsString), &item.Attachments)
+		}
 		if err == nil {
 			data[key] = item
 		}

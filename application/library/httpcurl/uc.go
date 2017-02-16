@@ -3,9 +3,8 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"reflect"
+	"strings"
 
 	"github.com/astaxie/beego/logs"
 )
@@ -26,7 +25,7 @@ type UC struct {
 //OASender OA消息
 type OASender struct {
 	SiteID         uint64                  `json:"siteId"`
-	AppID          uint64                  `json:"appId"`
+	AppID          string                  `json:"appId"`
 	Title          string                  `json:"title"`
 	Color          string                  `json:"color"`
 	TitleStyle     string                  `json:"titleStyle"`
@@ -36,8 +35,8 @@ type OASender struct {
 	DetailAuth     uint8                   `json:"detailAuth"`
 	CustomizedType string                  `json:"customizedType"`
 	CustomizedData string                  `json:"customizedData"`
-	ToUsers        []string                `json:"toUsers"`
-	ToPartyIds     []string                `json:"toPartyIds"`
+	ToUsers        []uint64                `json:"toUsers,omitempty"`
+	ToPartyIds     []uint64                `json:"toPartyIds,omitempty"`
 	Elements       []OASendElementser      `json:"elements"`
 }
 
@@ -50,11 +49,11 @@ type OASendTitleElementser struct {
 
 //OASendElementser 内容元素
 type OASendElementser struct {
-	Type      uint8  `json:"type"`
-	Status    string `json:"status"`
-	ImageType string `json:"ImageType"`
-	ImageID   string `json:"imageId"`
-	Content   string `json:"content"`
+	Type      string `json:"type"`
+	Status    uint8  `json:"status"`
+	ImageType string `json:"ImageType,omitempty"`
+	ImageID   string `json:"imageId,omitempty"`
+	Content   string `json:"content,omitempty"`
 }
 
 //CustomizedSender 定制消息
@@ -62,8 +61,8 @@ type CustomizedSender struct {
 	SiteID      uint64   `json:"siteId"`
 	AppID       uint64   `json:"appId"`
 	WebPushData string   `json:"webPushData,omitempty"`
-	ToUsers     []string `json:"toUsers"`
-	ToPartyIds  []string `json:"toPartyIds"`
+	ToUsers     []string `json:"toUsers,omitempty"`
+	ToPartyIds  []string `json:"toPartyIds,omitempty"`
 }
 
 //ResponseData response 结构体
@@ -86,14 +85,16 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	if statusCode != 200 {
 		err = fmt.Errorf("uc httpcurl status code: %d", statusCode)
 	}
-	if err = json.Unmarshal(res, resData); err == nil {
-		t := reflect.ValueOf(resData)
-		requestID := t.FieldByName("RequestID").String()
-		errorCode := t.FieldByName("ErrorCode").Uint()
-		errorMessage := t.FieldByName("ErrorMessage").String()
-		if errorCode != 0 {
-			err = fmt.Errorf("uc httpcurl errorCode: %d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
-		}
+	if err = json.Unmarshal(res, resData); err != nil {
+		return err
+	}
+	rv := reflect.ValueOf(resData).Elem()
+	requestID := rv.FieldByName("RequestID").String()
+	errorCode := rv.FieldByName("ErrorCode").Uint()
+	errorMessage := rv.FieldByName("ErrorMessage").String()
+	logs.Debug("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
+	if errorCode != 0 {
+		err = fmt.Errorf("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
 	}
 	if err != nil {
 		logs.Error("uc httpcurl error:", err, "response:", string(res))
@@ -111,9 +112,44 @@ func (U *UC) GetToken() string {
 		} `json:"data"`
 	}
 	url := fmt.Sprintf("%s/auth/token/create", UcOpenAPIURL)
-	data := map[string]string{"role": "3", "appId": UcAPPID, "password": UcPaddword}
-	if err := U.httpCurl("POST", url, data, tokenData); err != nil {
+	postData := map[string]string{"role": "3", "appId": UcAPPID, "password": UcPaddword}
+	if err := U.httpCurl("POST", url, postData, &tokenData); err != nil {
 		logs.Error("GetToken error:", err)
 	}
 	return tokenData.Data.Token
+}
+
+//OASend OA消息
+func (U *UC) OASend(postData OASender) error {
+	var data struct {
+		Token string   `json:"token"`
+		Data  OASender `json:"data"`
+	}
+	postData.AppID = UcAPPID
+	postData.Color = "yellow"
+	postData.TitleStyle = "simple"
+	postData.Status = 1
+	postData.DetailAuth = 1
+	postData.CustomizedType = "application/json"
+	postData.TitleElements[0].Status = 1
+	postData.TitleElements[0].Color = "white"
+	postData.Elements[0].Type = "image"
+	postData.Elements[0].ImageType = "url"
+	postData.Elements[0].Status = 1
+	postData.Elements[1].Type = "text"
+	postData.Elements[1].Status = 1
+	data.Data = postData
+	data.Token = U.GetToken()
+	url := fmt.Sprintf("%s/appmsg/oa/send", UcOpenAPIURL)
+	var resData ResponseData
+	err := U.httpCurl("POST", url, data, &resData)
+	if err != nil {
+		logs.Error("OASend error:", err)
+	}
+	return err
+}
+
+//CustomizedSend 定制消息
+func (U *UC) CustomizedSend() {
+
 }

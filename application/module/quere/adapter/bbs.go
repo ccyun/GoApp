@@ -16,6 +16,20 @@ type Bbs struct {
 	base
 }
 
+//OACustomizedDataer OA消息定制数据
+type OACustomizedDataer struct {
+	BoardID        uint64 `json:"board_id"`
+	BoardName      string `json:"board_name"`
+	Avatar         string `json:"avatar"`
+	BbsID          uint64 `json:"bbs_id"`
+	FeedID         uint64 `json:"feed_id"`
+	Title          string `json:"title"`
+	CreatedAt      uint64 `json:"created_at"`
+	Category       string `json:"category"`
+	Type           string `json:"type"`
+	CommentEnabled uint8  `orm:"column(comment_enabled)"`
+}
+
 func init() {
 	Register("bbs", new(Bbs))
 }
@@ -168,13 +182,52 @@ func (B *Bbs) SendMsg() error {
 	switch B.category {
 	case "bbs":
 		if B.boardInfo.DiscussID == 0 {
-
-		} else {
-
+			return B.oaMsg()
 		}
+
 	case "task":
 
 	}
 
 	return nil
+}
+
+//oaMsg
+func (B *Bbs) oaMsg() error {
+	description := B.bbsInfo.Description
+	if B.bbsInfo.Description == "" {
+		description = B.boardInfo.BoardName
+	}
+	customizedData := OACustomizedDataer{
+		BoardID:        B.boardID,
+		BoardName:      B.boardInfo.BoardName,
+		Avatar:         B.boardInfo.Avatar,
+		BbsID:          B.bbsID,
+		FeedID:         B.feedID,
+		Title:          B.bbsInfo.Title,
+		CreatedAt:      B.bbsInfo.CreatedAt,
+		Category:       B.bbsInfo.Category,
+		Type:           B.bbsInfo.Type,
+		CommentEnabled: B.bbsInfo.CommentEnabled,
+	}
+	customizedDataByte, err := json.Marshal(customizedData)
+	if err != nil {
+		return err
+	}
+	uc := new(httpcurl.UC)
+	data := httpcurl.OASender{
+		SiteID: B.siteID,
+		Title:  B.bbsInfo.Title,
+		TitleElements: []httpcurl.OASendTitleElementser{
+			httpcurl.OASendTitleElementser{Title: B.bbsInfo.Title},
+		},
+		Elements: []httpcurl.OASendElementser{
+			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
+			httpcurl.OASendElementser{Content: description},
+		},
+		ToUsers:    B.bbsInfo.PublishScope.UserIDs,
+		ToPartyIds: B.bbsInfo.PublishScope.GroupIDs,
+	}
+	data.CustomizedData = string(customizedDataByte)
+	return uc.OASend(data)
 }
