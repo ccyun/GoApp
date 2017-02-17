@@ -9,8 +9,8 @@ import (
 //p 连接池
 var p Pool
 
-//InitHbase 初始化hbase
-func InitHbase(host, port string, pool int) error {
+//Init 初始化hbase
+func Init(host, port string, pool int) error {
 	var err error
 	if port == "" {
 		port = "9090"

@@ -59,10 +59,14 @@ type OASendElementser struct {
 //CustomizedSender 定制消息
 type CustomizedSender struct {
 	SiteID      uint64   `json:"siteId"`
-	AppID       uint64   `json:"appId"`
+	AppID       string   `json:"appId"`
 	WebPushData string   `json:"webPushData,omitempty"`
-	ToUsers     []string `json:"toUsers,omitempty"`
-	ToPartyIds  []string `json:"toPartyIds,omitempty"`
+	ToUsers     []uint64 `json:"toUsers,omitempty"`
+	ToPartyIds  []uint64 `json:"toPartyIds,omitempty"`
+	Data1       string   `json:"data1,omitempty"`
+	Data2       string   `json:"data2,omitempty"`
+	Data3       string   `json:"data3,omitempty"`
+	Data4       string   `json:"data4,omitempty"`
 }
 
 //ResponseData response 结构体
@@ -121,10 +125,13 @@ func (U *UC) GetToken() string {
 
 //OASend OA消息
 func (U *UC) OASend(postData OASender) error {
-	var data struct {
-		Token string   `json:"token"`
-		Data  OASender `json:"data"`
-	}
+	var (
+		resData ResponseData
+		data    struct {
+			Token string   `json:"token"`
+			Data  OASender `json:"data"`
+		}
+	)
 	postData.AppID = UcAPPID
 	postData.Color = "yellow"
 	postData.TitleStyle = "simple"
@@ -141,7 +148,6 @@ func (U *UC) OASend(postData OASender) error {
 	data.Data = postData
 	data.Token = U.GetToken()
 	url := fmt.Sprintf("%s/appmsg/oa/send", UcOpenAPIURL)
-	var resData ResponseData
 	err := U.httpCurl("POST", url, data, &resData)
 	if err != nil {
 		logs.Error("OASend error:", err)
@@ -150,6 +156,21 @@ func (U *UC) OASend(postData OASender) error {
 }
 
 //CustomizedSend 定制消息
-func (U *UC) CustomizedSend() {
-
+func (U *UC) CustomizedSend(postData CustomizedSender) error {
+	var (
+		resData ResponseData
+		data    struct {
+			Token string           `json:"token"`
+			Data  CustomizedSender `json:"data"`
+		}
+	)
+	postData.AppID = UcAPPID
+	data.Data = postData
+	data.Token = U.GetToken()
+	url := fmt.Sprintf("%s/appmsg/customized/send", UcOpenAPIURL)
+	err := U.httpCurl("POST", url, data, &resData)
+	if err != nil {
+		logs.Error("CustomizedSend error:", err)
+	}
+	return nil
 }

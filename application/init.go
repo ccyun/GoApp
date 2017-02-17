@@ -16,6 +16,7 @@ import (
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/library/neo4j"
 	"github.com/ccyun/GoApp/application/model"
+	"github.com/ccyun/GoApp/application/module/feed"
 	//syslog 驱动
 	_ "github.com/ccyun/GoApp/application/library/log"
 	//redis 驱动
@@ -34,7 +35,7 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase)
+	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase, InitPackage)
 }
 
 //InitConfig 初始化配置
@@ -134,7 +135,7 @@ func InitHbase() error {
 	if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
 		return err
 	}
-	return hbase.InitHbase(config.Host, config.Port, config.Pool)
+	return hbase.Init(config.Host, config.Port, config.Pool)
 }
 
 //InitNeo4j 初始化Neo4j
@@ -153,4 +154,18 @@ func InitNeo4j() error {
 		return err
 	}
 	return neo4j.Init(config.Host, config.Port, config.UserName, config.Password, config.Pool)
+}
+
+//InitPackage 初始化其他包
+func InitPackage() error {
+	config := map[string]string{
+		"server_name": Conf.String("server_name"),
+		"app_domain":  Conf.String("app_domain"),
+		"app_path":    Conf.String("app_path"),
+		"feed_icons":  Conf.String("feed_icons"),
+	}
+	if err := feed.Init(config); err != nil {
+		return err
+	}
+	return nil
 }

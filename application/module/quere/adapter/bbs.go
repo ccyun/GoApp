@@ -178,21 +178,19 @@ func (B *Bbs) UpdateStatus() error {
 
 //SendMsg 发送消息
 func (B *Bbs) SendMsg() error {
-
+	if B.boardInfo.DiscussID != 0 {
+		return B.discussMsg()
+	}
 	switch B.category {
 	case "bbs":
-		if B.boardInfo.DiscussID == 0 {
-			return B.oaMsg()
-		}
-
-	case "task":
-
+		return B.oaMsg()
+	case "task", "form":
+		return B.customizedMsg()
 	}
-
 	return nil
 }
 
-//oaMsg
+//oaMsg OA消息
 func (B *Bbs) oaMsg() error {
 	description := B.bbsInfo.Description
 	if B.bbsInfo.Description == "" {
@@ -230,4 +228,22 @@ func (B *Bbs) oaMsg() error {
 	}
 	data.CustomizedData = string(customizedDataByte)
 	return uc.OASend(data)
+}
+
+//customizedMsg 定制消息（任务）
+func (B *Bbs) customizedMsg() error {
+	uc := new(httpcurl.UC)
+	data := httpcurl.CustomizedSender{
+		SiteID:      B.siteID,
+		ToUsers:     B.bbsInfo.PublishScope.UserIDs,
+		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
+		WebPushData: "您有一个“i 广播”消息",
+	}
+
+	return uc.CustomizedSend(data)
+}
+
+//discussMsg 讨论组消息
+func (B *Bbs) discussMsg() error {
+	return nil
 }
