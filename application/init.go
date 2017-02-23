@@ -17,6 +17,7 @@ import (
 	"github.com/ccyun/GoApp/application/library/neo4j"
 	"github.com/ccyun/GoApp/application/model"
 	"github.com/ccyun/GoApp/application/module/feed"
+	"github.com/ccyun/GoApp/application/module/pic"
 	//syslog 驱动
 	_ "github.com/ccyun/GoApp/application/library/log"
 	//redis 驱动
@@ -109,6 +110,9 @@ func InitHTTPCurl() error {
 	httpcurl.UcAPPID = Conf.String("uc_open_appid")
 	httpcurl.UcPaddword = Conf.String("uc_open_password")
 
+	//初始化ucc配置
+	httpcurl.UccServerURL = Conf.String("uccserver_url")
+
 	return nil
 }
 
@@ -165,6 +169,9 @@ func InitPackage() error {
 		"feed_icons":  Conf.String("feed_icons"),
 	}
 	if err := feed.Init(config); err != nil {
+		return err
+	}
+	if err := pic.Init(config); err != nil {
 		return err
 	}
 	return nil

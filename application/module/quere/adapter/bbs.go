@@ -9,6 +9,7 @@ import (
 
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
+	"github.com/ccyun/GoApp/application/module/feed"
 )
 
 //Bbs 图文广播
@@ -27,7 +28,7 @@ type OACustomizedDataer struct {
 	CreatedAt      uint64 `json:"created_at"`
 	Category       string `json:"category"`
 	Type           string `json:"type"`
-	CommentEnabled uint8  `orm:"column(comment_enabled)"`
+	CommentEnabled uint8  `json:"comment_enabled"`
 }
 
 func init() {
@@ -93,6 +94,7 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
 	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs[0:]...)
+
 	return nil
 }
 
@@ -118,6 +120,7 @@ func (B *Bbs) CreateFeed() error {
 	case "task":
 		data.EndTime = B.bbsTaskInfo.EndTime
 		data.AllowExpired = B.bbsTaskInfo.AllowExpired
+		data.Status = -1
 	}
 	dataByte, err := json.Marshal(data)
 	if err != nil {
@@ -160,6 +163,7 @@ func (B *Bbs) CreateUnread() error {
 }
 
 //UpdateStatus 更新状态及接收者用户列表
+//更新BBS状态及接收者总数及列表
 func (B *Bbs) UpdateStatus() error {
 	db := new(model.Bbs)
 	data := model.Bbs{ID: B.bbsID}
@@ -190,27 +194,39 @@ func (B *Bbs) SendMsg() error {
 	return nil
 }
 
-//oaMsg OA消息
-func (B *Bbs) oaMsg() error {
-	description := B.bbsInfo.Description
-	if B.bbsInfo.Description == "" {
-		description = B.boardInfo.BoardName
+//getFeedCustomizer 定制数据
+func (B *Bbs) getFeedCustomizer() feed.Customizer {
+	thumb := ""
+	if B.category == "bbs" {
+		thumb = B.bbsInfo.Attachments[0]["url"]
 	}
-	customizedData := OACustomizedDataer{
+	return feed.Customizer{
 		BoardID:        B.boardID,
 		BoardName:      B.boardInfo.BoardName,
-		Avatar:         B.boardInfo.Avatar,
+		Avatar:         B.boardInfo.BoardName,
+		DiscussID:      B.boardInfo.DiscussID,
 		BbsID:          B.bbsID,
 		FeedID:         B.feedID,
 		Title:          B.bbsInfo.Title,
-		CreatedAt:      B.bbsInfo.CreatedAt,
-		Category:       B.bbsInfo.Category,
+		Description:    B.bbsInfo.Description,
+		Thumb:          thumb,
+		UserID:         B.bbsInfo.UsesID,
 		Type:           B.bbsInfo.Type,
+		Category:       B.bbsInfo.Category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
+		CreatedAt:      B.bbsInfo.CreatedAt,
 	}
-	customizedDataByte, err := json.Marshal(customizedData)
+}
+
+//oaMsg OA消息
+func (B *Bbs) oaMsg() error {
+	feedData, err := feed.NewBbs(B.bbsInfo.Category, B.getFeedCustomizer())
 	if err != nil {
 		return err
+	}
+	description := B.bbsInfo.Description
+	if B.bbsInfo.Description == "" {
+		description = B.boardInfo.BoardName
 	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.OASender{
@@ -219,6 +235,7 @@ func (B *Bbs) oaMsg() error {
 		TitleElements: []httpcurl.OASendTitleElementser{
 			httpcurl.OASendTitleElementser{Title: B.bbsInfo.Title},
 		},
+		DetailURL: feedData.DetailURL,
 		Elements: []httpcurl.OASendElementser{
 			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
 			httpcurl.OASendElementser{Content: description},
@@ -226,12 +243,20 @@ func (B *Bbs) oaMsg() error {
 		ToUsers:    B.bbsInfo.PublishScope.UserIDs,
 		ToPartyIds: B.bbsInfo.PublishScope.GroupIDs,
 	}
-	data.CustomizedData = string(customizedDataByte)
+	data.CustomizedData = feedData.CustomizedData
 	return uc.OASend(data)
 }
 
 //customizedMsg 定制消息（任务）
 func (B *Bbs) customizedMsg() error {
+	feedData, err := feed.NewTask(B.bbsInfo.Category, B.getFeedCustomizer(), feed.CustomizeTasker{
+		EndTime:      B.bbsTaskInfo.EndTime,
+		AllowExpired: B.bbsTaskInfo.AllowExpired,
+		Status:       -1,
+	})
+	if err != nil {
+		return err
+	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
 		SiteID:      B.siteID,
@@ -239,11 +264,48 @@ func (B *Bbs) customizedMsg() error {
 		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
-
+	data3, err := json.Marshal(feedData)
+	if err != nil {
+		return err
+	}
+	data.Data3 = string(data3)
 	return uc.CustomizedSend(data)
 }
 
 //discussMsg 讨论组消息
 func (B *Bbs) discussMsg() error {
-	return nil
+	feedData, err := feed.NewBbs(B.bbsInfo.Category, B.getFeedCustomizer())
+	if err != nil {
+		return err
+	}
+	ucc := new(httpcurl.UCC)
+	postData := httpcurl.UCCMsgSender{
+		SiteID: B.siteID,
+		UserID: B.bbsInfo.UsesID,
+	}
+	postData.Message.Content = ""
+	postData.Control.NoSendself = 1
+	postData.To.ToID = B.boardInfo.DiscussID
+	content := struct {
+		Version        uint64 `json:"version"`
+		Title          string `json:"title"`
+		Content        string `json:"content"`
+		DetailAuth     uint8  `json:"detailAuth"`
+		DetailURL      string `json:"detailURL"`
+		CustomizedData string `json:"customizedData"`
+	}{
+		Version:        1,
+		Title:          B.bbsInfo.Title,
+		Content:        feedData.Elements,
+		DetailAuth:     1,
+		DetailURL:      feedData.DetailURL,
+		CustomizedData: feedData.CustomizedData,
+	}
+	contentByte, err := json.Marshal(content)
+	if err != nil {
+		return nil
+	}
+	postData.Message.Content = string(contentByte)
+	_, err = ucc.MsgSend(postData)
+	return err
 }

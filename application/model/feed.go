@@ -31,7 +31,7 @@ type FeedData struct {
 	CommentEnabled uint8  `json:"comment_enabled"`
 	EndTime        uint64 `json:"end_time"`
 	AllowExpired   uint8  `json:"allow_expired"`
-	Status         uint8  `json:"status"`
+	Status         int8   `json:"status"`
 }
 
 //TableName 表名
@@ -55,6 +55,7 @@ func (F *Feed) CreateFeed(feedData Feed) (uint64, error) {
 }
 
 //SaveHbase 保存数据到hbase
+//'taskReply','taskAudit','taskClose'
 func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
 	client, err := hbase.OpenClient()
 	defer hbase.CloseClient(client)

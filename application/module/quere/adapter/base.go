@@ -1,8 +1,6 @@
 package adapter
 
 import (
-	"log"
-
 	"github.com/astaxie/beego/orm"
 	"github.com/ccyun/GoApp/application/model"
 )
@@ -90,7 +88,6 @@ func (B *base) getBbsInfo() error {
 		B.boardID = B.bbsInfo.BoardID
 		B.category = B.bbsInfo.Category
 	}
-	log.Println(B.bbsInfo.Attachments)
 	return err
 }
 

@@ -8,12 +8,19 @@ import (
 )
 
 //Request curl请求
-func Request(method string, url string, body io.Reader) (int, []byte, error) {
+func Request(method string, url string, body io.Reader, contentType string) (int, []byte, error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return -1, nil, fmt.Errorf("construct http request failed, requrl = %s, err:%s", url, err.Error())
 	}
-	request.Header.Add("Content-Type", "application/json")
+	if method == "POST" {
+		switch contentType {
+		case "json":
+			request.Header.Add("Content-Type", "application/json")
+		case "form":
+			request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		}
+	}
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if response != nil {

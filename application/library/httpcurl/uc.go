@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	//UcOpenAPIURL 登录服务器
+	//UcOpenAPIURL ucopenapi服务器
 	UcOpenAPIURL string
 	//UcAPPID appid
 	UcAPPID string
@@ -69,8 +69,8 @@ type CustomizedSender struct {
 	Data4       string   `json:"data4,omitempty"`
 }
 
-//ResponseData response 结构体
-type ResponseData struct {
+//UCResponseData response 结构体
+type UCResponseData struct {
 	ErrorCode    uint64 `json:"errorCode"`
 	ErrorMessage string `json:"errorMessage"`
 	RequestID    string `json:"requestId"`
@@ -84,8 +84,8 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 		err        error
 	)
 	body, _ := json.Marshal(postData)
-	statusCode, res, err = Request(method, url, strings.NewReader(string(body)))
-	logs.Debug("GetToken url:", url, "body:", string(body), "code:", statusCode)
+	statusCode, res, err = Request(method, url, strings.NewReader(string(body)), "json")
+	logs.Debug("uc httpCurl url:", url, "body:", string(body), "code:", statusCode)
 	if statusCode != 200 {
 		err = fmt.Errorf("uc httpcurl status code: %d", statusCode)
 	}
@@ -110,7 +110,7 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 //GetToken 获取token
 func (U *UC) GetToken() string {
 	var tokenData struct {
-		ResponseData
+		UCResponseData
 		Data struct {
 			Token string `json:"token"`
 		} `json:"data"`
@@ -126,7 +126,7 @@ func (U *UC) GetToken() string {
 //OASend OA消息
 func (U *UC) OASend(postData OASender) error {
 	var (
-		resData ResponseData
+		resData UCResponseData
 		data    struct {
 			Token string   `json:"token"`
 			Data  OASender `json:"data"`
@@ -158,7 +158,7 @@ func (U *UC) OASend(postData OASender) error {
 //CustomizedSend 定制消息
 func (U *UC) CustomizedSend(postData CustomizedSender) error {
 	var (
-		resData ResponseData
+		resData UCResponseData
 		data    struct {
 			Token string           `json:"token"`
 			Data  CustomizedSender `json:"data"`

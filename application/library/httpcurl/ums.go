@@ -108,7 +108,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([]UMSUser, uint64, error) {
 	url := fmt.Sprintf("%s/rs/organizations/query/orgs/users?pageNum=%d&pageSize=%d&productID=%d", UMSBusinessURL, page, pageSize, 20)
 	body, _ := json.Marshal(orgIDs)
-	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)))
+	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)), "json")
 	if err != nil {
 		return nil, 0, err
 	}

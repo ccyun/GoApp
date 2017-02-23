@@ -2,39 +2,38 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/ccyun/GoApp/application/library/redis"
 )
 
 //Bbs 任务表结构
 type Bbs struct {
 	base
-	ID                  uint64              `orm:"column(id)"`
-	SiteID              uint64              `orm:"column(site_id)"`
-	BoardID             uint64              `orm:"column(board_id)"`
-	Title               string              `orm:"column(title)"`
-	Description         string              `orm:"column(description)"`
-	Content             string              `orm:"column(content)"`
-	PublishScopeString  string              `orm:"column(publish_scope)"`
-	PublishScope        PublishScoper       `orm:"-"`
-	PublishScopeUserIDs string              `orm:"column(publish_scope_user_ids)"`
-	MsgCount            uint64              `orm:"column(msg_count)"`
-	AttachmentsString   string              `orm:"column(attachments)"`
-	Attachments         []map[string]string `orm:"-"`
-	UsesID              uint64              `orm:"column(user_id)"`
-	CreatedAt           uint64              `orm:"column(created_at)"`
-	PublishAt           uint64              `orm:"column(publish_at)"`
-	ModifiedAt          uint64              `orm:"column(modified_at)"`
-	SetTimer            uint64              `orm:"column(set_timer)"`
-	Category            string              `orm:"column(category)"`
-	Type                string              `orm:"column(type)"`
-	IsDeleted           string              `orm:"column(is_deleted)"`
-	Status              uint8               `orm:"column(status)"`
-	CommentEnabled      uint8               `orm:"column(comment_enabled)"`
+	ID                     uint64              `orm:"column(id)"`
+	SiteID                 uint64              `orm:"column(site_id)"`
+	BoardID                uint64              `orm:"column(board_id)"`
+	Title                  string              `orm:"column(title)"`
+	Description            string              `orm:"column(description)"`
+	Content                string              `orm:"column(content)"`
+	PublishScopeString     string              `orm:"column(publish_scope)"`
+	PublishScope           PublishScoper       `orm:"-"`
+	PublishScopeUserIDs    string              `orm:"column(publish_scope_user_ids)"`
+	PublishScopeUserIDsArr []uint64            `orm:"-"`
+	MsgCount               uint64              `orm:"column(msg_count)"`
+	AttachmentsString      string              `orm:"column(attachments)"`
+	Attachments            []map[string]string `orm:"-"`
+	UsesID                 uint64              `orm:"column(user_id)"`
+	CreatedAt              uint64              `orm:"column(created_at)"`
+	PublishAt              uint64              `orm:"column(publish_at)"`
+	ModifiedAt             uint64              `orm:"column(modified_at)"`
+	SetTimer               uint64              `orm:"column(set_timer)"`
+	Category               string              `orm:"column(category)"`
+	Type                   string              `orm:"column(type)"`
+	IsDeleted              string              `orm:"column(is_deleted)"`
+	Status                 uint8               `orm:"column(status)"`
+	CommentEnabled         uint8               `orm:"column(comment_enabled)"`
 }
 
 //PublishScoper 广播发布范围
@@ -51,10 +50,10 @@ func (B *Bbs) TableName() string {
 //GetOne 读取单条数据
 func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	bbsInfo := Bbs{ID: ID}
-	c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
-	if c.Get(&bbsInfo) == true {
-		return bbsInfo, nil
-	}
+	// c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
+	// if c.Get(&bbsInfo) == true {
+	// 	return bbsInfo, nil
+	// }
 	if err := o.Read(&bbsInfo); err != nil {
 		return Bbs{}, err
 	}
@@ -62,7 +61,7 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	if err != nil {
 		return Bbs{}, err
 	}
-	c.Set(data[0])
+	// c.Set(data[0])
 	return data[0], nil
 }
 
@@ -81,7 +80,7 @@ func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
 	var err error
 	for key, item := range data {
 		//处理发布范围
-		item.PublishScope, err = B.publishScopeHandle(item.PublishScopeString)
+		item.PublishScope, item.PublishScopeUserIDsArr, err = B.publishScopeHandle(item.PublishScopeString, item.PublishScopeUserIDs)
 		if item.AttachmentsString != "" {
 			err = json.Unmarshal([]byte(item.AttachmentsString), &item.Attachments)
 		}
@@ -93,11 +92,13 @@ func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
 }
 
 //publishScopeHandle 处理发布范围
-func (B *Bbs) publishScopeHandle(publishScopeString string) (PublishScoper, error) {
+func (B *Bbs) publishScopeHandle(publishScopeString, publishScopeUserIDs string) (PublishScoper, []uint64, error) {
 	var data PublishScoper
 	var publishScope map[string][]string
 	var err error
-	err = json.Unmarshal([]byte(publishScopeString), &publishScope)
+	if err = json.Unmarshal([]byte(publishScopeString), &publishScope); err != nil {
+		return data, nil, err
+	}
 	for k, r := range publishScope {
 		for _, v := range r {
 			id, _ := strconv.Atoi(v)
@@ -111,5 +112,9 @@ func (B *Bbs) publishScopeHandle(publishScopeString string) (PublishScoper, erro
 			}
 		}
 	}
-	return data, err
+	publishUser := []uint64{}
+	if err = json.Unmarshal([]byte(publishScopeUserIDs), &publishUser); err != nil {
+		return data, nil, err
+	}
+	return data, publishUser, err
 }

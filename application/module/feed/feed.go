@@ -10,12 +10,11 @@ var (
 	AppDomain string
 	//Path 相对路径
 	Path string
-	//FeedIcons feed模板图标
-	FeedIcons string
 )
 
 //Feeder 结构体
 type Feeder struct {
+	Version        uint64 `json:"version"`
 	BoardID        uint64 `json:"board_id"`
 	BbsID          uint64 `json:"bbs_id"`
 	FeedType       string `json:"feed_type"`
@@ -29,6 +28,7 @@ type Feeder struct {
 
 //Customizer 定制数据
 type Customizer struct {
+	BoardID        uint64 `json:"board_id"`
 	BoardName      string `json:"board_name"`
 	Avatar         string `json:"avatar"`
 	DiscussID      uint64 `json:"discuss_id"`
@@ -48,7 +48,41 @@ type Customizer struct {
 type CustomizeTasker struct {
 	EndTime      uint64 `json:"end_time"`
 	AllowExpired uint8  `json:"allow_expired"`
-	Status       uint8  `json:"status"`
+	Status       int8   `json:"status"`
+}
+
+//Bbs 任务定制数据
+type Bbs struct {
+	Customizer
+}
+
+//Task 任务定制数据
+type Task struct {
+	Customizer
+	CustomizeTasker
+}
+
+//Form 任务定制数据
+type Form struct {
+	Customizer
+}
+
+//Handle 定制消息处理
+func (C *Customizer) Handle(data Customizer) {
+	C.BoardID = data.BoardID
+	C.BoardName = data.BoardName
+	C.Avatar = data.Avatar
+	C.DiscussID = data.DiscussID
+	C.BbsID = data.BbsID
+	C.FeedID = data.FeedID
+	C.Title = data.Title
+	C.Description = data.Description
+	C.Thumb = data.Thumb
+	C.UserID = data.UserID
+	C.Type = data.Type
+	C.Category = data.Category
+	C.CommentEnabled = data.CommentEnabled
+	C.CreatedAt = data.CreatedAt
 }
 
 //Init 初始化配置
@@ -60,25 +94,18 @@ func Init(option map[string]string) error {
 	}
 	AppDomain = appDomain
 	//App 路径
-	path, ok := option["Path"]
+	path, ok := option["app_path"]
 	if !ok {
 		return fmt.Errorf(`config "path" is undefined`)
 	}
 	Path = path
-	//feed 模板图标
-	feedIcons, ok := option["feed_icons"]
-	if !ok {
-		return fmt.Errorf(`config "feed_icons" is undefined`)
-	}
-	FeedIcons = feedIcons
-
 	return nil
 }
 
 //newFeed 创建新的Feed
-func newFeed(boardID uint64, feedType string, data Customizer) Feeder {
+func newFeed(feedType string, data Customizer) Feeder {
 	feedData := Feeder{
-		BoardID:    boardID,
+		BoardID:    data.BoardID,
 		BbsID:      data.BbsID,
 		FeedType:   feedType,
 		FeedID:     data.FeedID,
@@ -93,36 +120,55 @@ func newFeed(boardID uint64, feedType string, data Customizer) Feeder {
 }
 
 //NewBbs 处理bbs 图文广播
-func NewBbs(boardID uint64, feedType string, data Customizer) (Feeder, error) {
-
-	feedData := newFeed(boardID, feedType, data)
-	customizedData, err := json.Marshal(data)
+func NewBbs(feedType string, data Customizer) (Feeder, error) {
+	feedData := newFeed(feedType, data)
+	customized := new(Bbs)
+	customized.Handle(data)
+	customizedData, err := json.Marshal(customized)
 	if err != nil {
 		return feedData, err
 	}
 	feedData.CustomizedData = string(customizedData)
-	feedData.Elements = GetBbsView(data)
+	feedData.Elements = GetBbsView(customized)
 	return feedData, nil
 }
 
 //NewTask 处理task 广播任务
-func NewTask(boardID uint64, feedType string, data Customizer, extData CustomizeTasker) (Feeder, error) {
-	feedData := newFeed(boardID, feedType, data)
-	customized := struct {
-		Customizer
-		CustomizeTasker
-	}{}
-	customized = data
-	customizedData, err := json.Marshal(data)
+func NewTask(feedType string, data Customizer, extData CustomizeTasker) (Feeder, error) {
+	feedData := newFeed(feedType, data)
+	customized := new(Task)
+	customized.Handle(data)
+	customized.AllowExpired = extData.AllowExpired
+	customized.EndTime = extData.EndTime
+	customized.Status = extData.Status
+	customizedData, err := json.Marshal(customized)
 	if err != nil {
 		return feedData, err
 	}
 	feedData.CustomizedData = string(customizedData)
-	feedData.Elements = GetBbsView(data)
+	switch feedType {
+	case "task":
+		feedData.Elements = GetTaskView(customized)
+	case "taskReply":
+		feedData.Elements = GetTaskReplyView(customized)
+	case "taskAudit":
+		feedData.Elements = GetTaskAuditView(customized)
+	case "taskClose":
+		feedData.Elements = GetTaskCloseView(customized)
+	}
 	return feedData, nil
 }
 
 //NewFrom 处理BBS 广播表单
-func NewFrom(BoardID uint64, feedType string, data Customizer) (Feeder, error) {
-	return Feeder{}, nil
+func NewFrom(feedType string, data Customizer) (Feeder, error) {
+	feedData := newFeed(feedType, data)
+	customized := new(Form)
+	customized.Handle(data)
+	customizedData, err := json.Marshal(customized)
+	if err != nil {
+		return feedData, err
+	}
+	feedData.CustomizedData = string(customizedData)
+	feedData.Elements = GetFromView(customized)
+	return feedData, nil
 }
