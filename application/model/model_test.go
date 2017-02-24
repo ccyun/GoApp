@@ -1,63 +1,125 @@
 package model
 
 import (
+	"errors"
 	"log"
 	"testing"
 
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/orm"
 
-	//redis 驱动
-	"github.com/ccyun/GoApp/application/library/hbase"
-	_ "github.com/ccyun/GoApp/application/library/redis"
-	//mysql driver
+	"github.com/astaxie/beego/config"
 
+	//redis 驱动
+
+	"github.com/ccyun/GoApp/application/library/redis"
+
+	//mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//Conf 配置
+var Conf config.Configer
 var isInit = false
 
 //InitDB 初始化数据库
-func InitDB() error {
+func InitDB() {
 	if isInit == true {
+		return
+	}
+	func(funcs ...func() error) {
+		for _, f := range funcs {
+			if err := f(); err != nil {
+				panic(err)
+			}
+		}
+	}(func() error {
+		conf, err := config.NewConfig("ini", "../../cmd/TaskScript/conf.ini")
+		if err != nil {
+			return err
+		}
+		Conf = conf
 		return nil
-	}
-	var err error
-
-	Debug = true
-	DBType = "mysql"
-	DBPrefix = "bbs_"
-	dsn := "root:root@tcp(127.0.0.1:3306)/bee_app?charset=utf8mb4"
-	err = orm.RegisterDriver(DBType, orm.DRMySQL)
-	if err != nil {
-		return err
-	}
-	//最大数据库连接//最大空闲连接
-	err = orm.RegisterDataBase("default", "mysql", dsn, 10, 10)
-	if err != nil {
-		return err
-	}
-	_, err = cache.NewCache("redis", `{"nodes":["192.168.40.12:7000","192.168.40.12:8000","192.168.40.12:9000"],"prefix":"bee"}`)
-	if err != nil {
-		return err
-	}
-
+	}, func() error {
+		cache, err := cache.NewCache("redis", Conf.String("cache"))
+		if err != nil {
+			return err
+		}
+		redis.Cache = cache
+		return nil
+	}, func() error {
+		var err error
+		debug, _ := Conf.Bool("debug")
+		Debug = debug
+		DBType = Conf.String("db_type")
+		DBPrefix = Conf.String("db_prefix")
+		dsn := Conf.String("db_dsn")
+		pool, _ := Conf.Int("db_pool")
+		if dsn == "" || pool <= 0 {
+			return errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]")
+		}
+		switch DBType {
+		case "mysql":
+			err = orm.RegisterDriver(DBType, orm.DRMySQL)
+		case "sqlite":
+			err = orm.RegisterDriver(DBType, orm.DRSqlite)
+		case "oracle":
+			err = orm.RegisterDriver(DBType, orm.DROracle)
+		case "pgsql":
+			err = orm.RegisterDriver(DBType, orm.DRPostgres)
+		case "TiDB":
+			err = orm.RegisterDriver(DBType, orm.DRTiDB)
+		}
+		if err != nil {
+			return err
+		}
+		//最大数据库连接//最大空闲连接
+		err = orm.RegisterDataBase("default", "mysql", dsn, pool, pool)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	RegisterModels()
 	isInit = true
-	return nil
+}
+
+///////////////////////////////////////////////board case //////////////////////////////////////////////
+func TestBoardGetOne(t *testing.T) {
+	InitDB()
+	a := new(Board)
+	var (
+		err       error
+		boardInfo Board
+	)
+	boardInfo, err = a.GetOne(50000018)
+	if err != nil {
+		t.Error("model->board.GetOne err", err)
+	}
+	if boardInfo.ID != 50000018 {
+		t.Error("model->board.GetOne err bbsinfo = nil")
+	}
+	log.Println(boardInfo)
 }
 
 ///////////////////////////////////////////////bbs case //////////////////////////////////////////////
 func TestBbsPublishScopeHandle(t *testing.T) {
-	InitDB()
 	a := new(Bbs)
 	s := `{"discuss_ids":["50032726"],"group_ids":["54299","54342"],"user_ids":["62073932"]}`
-	v, err := a.publishScopeHandle(s)
+	ss := `[11,22,33,44,55]`
+	v, vv, err := a.publishScopeHandle(s, ss)
 	if err != nil {
-		t.Error("model->bbs.publishScopeHandle err", err)
+		t.Error("model->bbs.publishScopeHandle error1", err)
 	}
-	log.Println(v)
-
+	if v.GroupIDs[1] != 54342 {
+		t.Error("model->bbs.publishScopeHandle error2", err)
+	}
+	if v.UserIDs[0] != 62073932 {
+		t.Error("model->bbs.publishScopeHandle error3", err)
+	}
+	if vv[3] != 44 {
+		t.Error("model->bbs.publishScopeHandle error4", err)
+	}
 }
 
 func TestBbsGetOne(t *testing.T) {
@@ -66,24 +128,15 @@ func TestBbsGetOne(t *testing.T) {
 	var (
 		err     error
 		bbsinfo Bbs
-		//bbsinfo2 Bbs
 	)
-
-	bbsinfo, err = a.GetOne(15)
+	bbsinfo, err = a.GetOne(50001141)
 	if err != nil {
-		t.Error("model->bbs.Test_bbs_getOne err", err)
+		t.Error("model->bbs.GetOne err", err)
 	}
-	if bbsinfo.ID != 15 {
-		t.Error("model->bbs.Test_bbs_getOne err bbsinfo = nil")
+	if bbsinfo.ID != 50001141 {
+		t.Error("model->bbs.GetOne err bbsinfo = nil")
 	}
 	log.Println(bbsinfo)
-	// c := NewCache("bbs", "GetOne")
-	// c.GetCache(15, &bbsinfo2)
-	// log.Println(bbsinfo2)
-	// if bbsinfo2.ID != 15 {
-	// 	t.Error("model->bbs.Test_bbs_getOne cache err bbsinfo = nil")
-	// }
-
 }
 
 func TestBbsUpdate(t *testing.T) {
@@ -93,35 +146,44 @@ func TestBbsUpdate(t *testing.T) {
 		err     error
 		bbsinfo Bbs
 	)
-	bbsinfo.ID = 50001599
+	bbsinfo.ID = 50001141
+	bbsinfo.Status = 1
 	bbsinfo.MsgCount = 100
-	if err = a.Update(bbsinfo, "Start", "MsgCount"); err != nil {
-		t.Error("model->bbs.Test_Bbs_Update err", err)
+	if err = a.Update(bbsinfo, "Status", "MsgCount"); err != nil {
+		t.Error("model->bbs.Update err", err)
 	}
 
 }
 
 ///////////////////////////////////////////////feed case //////////////////////////////////////////////
-func TestSaveHbase(t *testing.T) {
-	hbase.InitHbase("192.168.197.128", "9090", 10)
-	a := new(Feed)
-	var userIDs []uint64
-	for i := 100000; i < 100001; i++ {
-		userIDs = append(userIDs, uint64(i))
+
+///////////////////////////////////////////////BbsTask case //////////////////////////////////////////////
+func TestBbsTaskGetOne(t *testing.T) {
+	InitDB()
+	a := new(BbsTask)
+	var (
+		err         error
+		bbsTaskinfo BbsTask
+	)
+	bbsTaskinfo, err = a.GetOne(50001597)
+	if err != nil {
+		t.Error("model->bbsTask.GetOne err", err)
 	}
-	for i := 10; i < 20; i++ {
-		for ii := 100; ii < 200; ii++ {
-			for iii := 10; iii < 20; iii++ {
-				feedData := Feed{
-					BoardID:   uint64(i),
-					BbsID:     uint64(ii),
-					ID:        uint64(iii),
-					FeedType:  "task",
-					MsgID:     "0",
-					CreatedAt: 1481879624794,
-				}
-				a.SaveHbase(userIDs, feedData)
-			}
-		}
+	if bbsTaskinfo.ID != 50001597 {
+		t.Error("model->bbsTask.GetOne err bbsinfo = nil")
+	}
+	log.Println(bbsTaskinfo)
+}
+
+///////////////////////////////////////////////BbsTaskReply case //////////////////////////////////////////////
+func TestGetReplyUserIDs(t *testing.T) {
+	InitDB()
+	a := new(BbsTaskReply)
+	userids, err := a.GetReplyUserIDs(50001129)
+	if err != nil {
+		t.Error("model->GetReplyUserIDs error:", err)
+	}
+	if userids[0] != 62051317 {
+		t.Error("model->GetReplyUserIDs error:!=62051317")
 	}
 }

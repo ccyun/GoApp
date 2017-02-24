@@ -52,7 +52,7 @@ func TestRequest(t *testing.T) {
 	initHTTPCurl()
 	url := fmt.Sprintf("%s/rs/organizations/query/orgs/users?pageNum=%d&pageSize=%d&productID=%d", UMSBusinessURL, 1, 500, 20)
 	b, _ := json.Marshal([]uint{2752})
-	statusCode, _, err := Request("POST", url, strings.NewReader(string(b)))
+	statusCode, _, err := Request("POST", url, strings.NewReader(string(b)), "json")
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +71,7 @@ func TestGetAllUserByOrgIDs(t *testing.T) {
 	t.Log(len(data))
 }
 
-func Test_GetToken(t *testing.T) {
+func TestGetToken(t *testing.T) {
 	initHTTPCurl()
 	a := new(UC)
 	a.GetToken()

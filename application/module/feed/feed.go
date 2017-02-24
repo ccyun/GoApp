@@ -105,6 +105,7 @@ func Init(option map[string]string) error {
 //newFeed 创建新的Feed
 func newFeed(feedType string, data Customizer) Feeder {
 	feedData := Feeder{
+		Version:    1,
 		BoardID:    data.BoardID,
 		BbsID:      data.BbsID,
 		FeedType:   feedType,

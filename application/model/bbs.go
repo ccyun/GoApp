@@ -57,6 +57,7 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	if err := o.Read(&bbsInfo); err != nil {
 		return Bbs{}, err
 	}
+
 	data, err := B.afterSelectHandle([]Bbs{bbsInfo})
 	if err != nil {
 		return Bbs{}, err

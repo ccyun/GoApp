@@ -2,6 +2,7 @@ package feed
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -21,8 +22,9 @@ func GetBbsView(data *Bbs) string {
 func GetTaskView(data *Task) string {
 	endTimeStr := "<!--{{-->不限时<!--}}-->"
 	if data.EndTime != 0 {
-		endTimeStr = `<!--{{-->任务到期时间<!--}}-->：<span style="color:rgb(249,104,104)">` + time.Unix(int64(data.EndTime/1000), 0).Format("01/02 15:14") + `</span>`
+		endTimeStr = `<!--{{-->任务到期时间<!--}}-->：<span style="color:rgb(249,104,104)">` + time.Unix(int64(data.EndTime/1000), 0).Format("01/02 15:04") + `</span>`
 	}
+	log.Println(endTimeStr)
 	return `<div style="font-family:PingFangSC-Medium,Microsoft YaHei,Arial,serif;font-size:12px;padding:5px" class="task"><div style="padding:2px 5px;text-align:center;border-radius:3px;display:inline-block;color:#FFF;float:right;"><img src="` + pic.GetFeedIcons("task") + `" style="width:25px;height:25px"></div><div><div style="font-size:16px;color:rgb(59,79,97);line-height:1.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-wrap:break-word;">` + data.Title + `</div><div style="color:rgb(153,153,153)">` + endTimeStr + `</div></div></div>`
 }
 
@@ -34,7 +36,7 @@ func GetTaskListView(data *Task, keyword string) string {
 	}
 	endTimeStr := "<!--{{-->不限时<!--}}-->"
 	if data.EndTime != 0 {
-		endTimeStr = `<!--{{-->任务到期时间<!--}}-->：<span style="color:rgb(249,104,104)">` + time.Unix(int64(data.EndTime/1000), 0).Format("01/02 15:14") + `</span>`
+		endTimeStr = `<!--{{-->任务到期时间<!--}}-->：<span style="color:rgb(249,104,104)">` + time.Unix(int64(data.EndTime/1000), 0).Format("01/02 15:04") + `</span>`
 	}
 	taskStatusStr := "<div style=\"padding:1px 3px;text-align:center;min-width:44px;border-radius:2px;display:inline-block;color:#FFF;float:right;margin-top:12px;font-size:14px;background-color:rgb(%s);\"><!--{{-->%s<!--}}--></div>"
 	if data.Type == "preview" {

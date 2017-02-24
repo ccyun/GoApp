@@ -22,14 +22,15 @@ func (B *BbsTask) TableName() string {
 }
 
 //GetOne 读取单条数据
-func (B *BbsTask) GetOne(ID uint64) (BbsTask, error) {
-	bbsTaskInfo := BbsTask{BbsID: ID}
+func (B *BbsTask) GetOne(BbsID uint64) (BbsTask, error) {
+	var bbsTaskInfo BbsTask
 	// c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
 	// if c.Get(&bbsTaskInfo) == true {
 	// 	return bbsTaskInfo, nil
 	// }
-	if err := o.Read(&bbsTaskInfo); err != nil {
-		return BbsTask{}, err
+	err := o.QueryTable(B).Filter("BbsID", BbsID).One(&bbsTaskInfo)
+	if err != nil {
+		return bbsTaskInfo, err
 	}
 	//c.Set(bbsTaskInfo)
 	return bbsTaskInfo, nil

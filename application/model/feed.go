@@ -50,7 +50,6 @@ func (F *Feed) CreateFeed(feedData Feed) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	return uint64(feedID), nil
 }
 
