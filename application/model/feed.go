@@ -55,49 +55,53 @@ func (F *Feed) CreateFeed(feedData Feed) (uint64, error) {
 
 //SaveHbase 保存数据到hbase
 //'taskReply','taskAudit','taskClose'
-func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed) error {
+func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) error {
 	client, err := hbase.OpenClient()
 	defer hbase.CloseClient(client)
 	if err != nil {
 		return err
 	}
+	var data []*hbase.TPut
+	valueData := F.makeHbaseValue(feedData)
+	if len(userIDs) > 0 { //普通广播及群广播私信
+		for _, u := range userIDs {
+			rowkey := function.MakeRowkey(int64(u))
+			if discussID != 0 {
+				rowkey += "_member"
+			}
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+			}
+		}
+	} else { //群广播
+		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
+		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+		}
+	}
+	return client.PutMultiple([]byte(F.HbaseTableName()), data)
+}
+
+//makeHbaseValue 构造hbase value
+func (F *Feed) makeHbaseValue(feedData Feed) []*hbase.TColumnValue {
 	var (
 		boardID, bbsID, family []byte
-		data                   []*hbase.TPut
 		timeStamp              int64
 	)
 	boardID = []byte(strconv.FormatUint(feedData.BoardID, 10))
 	bbsID = []byte(strconv.FormatUint(feedData.BbsID, 10))
 	family = []byte("cf")
 	timeStamp = int64(feedData.ID)
-	for _, u := range userIDs {
-		rowkey := function.MakeRowkey(int64(u))
-		data = append(data, &hbase.TPut{
-			Row: []byte(rowkey + "_home"),
-			ColumnValues: []*hbase.TColumnValue{
-				&hbase.TColumnValue{
-					Family:    family,
-					Qualifier: boardID,
-					Value:     bbsID,
-					Timestamp: &timeStamp,
-				},
-			},
-		})
-		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-			data = append(data, &hbase.TPut{
-				Row: []byte(rowkey + "_" + feedData.FeedType),
-				ColumnValues: []*hbase.TColumnValue{
-					&hbase.TColumnValue{
-						Family:    family,
-						Qualifier: boardID,
-						Value:     bbsID,
-						Timestamp: &timeStamp,
-					},
-				},
-			})
-		}
+	return []*hbase.TColumnValue{
+		&hbase.TColumnValue{
+			Family:    family,
+			Qualifier: boardID,
+			Value:     bbsID,
+			Timestamp: &timeStamp,
+		},
 	}
-	return client.PutMultiple([]byte(F.HbaseTableName()), data)
 }
 
 //DelHbase 删除数据

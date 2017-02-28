@@ -69,7 +69,7 @@ func (T *TaskClose) CreateFeed() error {
 		CommentEnabled: T.bbsInfo.CommentEnabled,
 		EndTime:        T.bbsTaskInfo.EndTime,
 		AllowExpired:   T.bbsTaskInfo.AllowExpired,
-		Status:         4,
+		Status:         feed.BbsTaskCloseStatus,
 	}
 	dataByte, err := json.Marshal(data)
 	if err != nil {
@@ -91,7 +91,7 @@ func (T *TaskClose) CreateRelation() error {
 		BbsID:    T.bbsID,
 		FeedType: "taskClose",
 	}
-	return new(model.Feed).SaveHbase(T.userIDs, feedData)
+	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
 }
 
 //CreateUnread 创建未读计数
@@ -125,7 +125,7 @@ func (T *TaskClose) SendMsg() error {
 	}, feed.CustomizeTasker{
 		EndTime:      T.bbsTaskInfo.EndTime,
 		AllowExpired: T.bbsTaskInfo.AllowExpired,
-		Status:       4,
+		Status:       feed.BbsTaskCloseStatus,
 	})
 	if err != nil {
 		return err

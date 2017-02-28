@@ -132,13 +132,6 @@ func (q *queue) runTask() bool {
 		q.mode.Rollback()
 		return false
 	}
-	//创建关系
-	logs.Info(q.L("Start CreateRelation"))
-	if err := q.mode.CreateRelation(); err != nil {
-		logs.Error(q.L("runTask CreateRelation error"), err)
-		q.mode.Rollback()
-		return false
-	}
 	//写入未读计数
 	logs.Info(q.L("Start CreateUnread"))
 	if err := q.mode.CreateUnread(); err != nil {
@@ -157,6 +150,13 @@ func (q *queue) runTask() bool {
 	logs.Info(q.L("Start Commit"))
 	if err := q.mode.Commit(); err != nil {
 		logs.Error(q.L("runTask Commit error"), err)
+		return false
+	}
+	//创建关系
+	logs.Info(q.L("Start CreateRelation"))
+	if err := q.mode.CreateRelation(); err != nil {
+		logs.Error(q.L("runTask CreateRelation error"), err)
+		q.mode.Rollback()
 		return false
 	}
 	//关闭任务

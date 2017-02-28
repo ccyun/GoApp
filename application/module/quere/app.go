@@ -65,12 +65,11 @@ func (app *App) work() {
 				orm.DebugLog = orm.NewLog(o)
 				option := make(map[string]string)
 				option["requestID"] = requestID
-
 				app.DoFunc(option)
 				time.Sleep(2 * time.Second)
 			}
 		}(i)
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 	for i := 0; i < app.thread; i++ {
 		<-app.done

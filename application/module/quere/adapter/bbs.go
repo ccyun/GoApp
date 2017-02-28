@@ -142,7 +142,7 @@ func (B *Bbs) CreateRelation() error {
 		BbsID:    B.bbsID,
 		FeedType: B.category,
 	}
-	return new(model.Feed).SaveHbase(B.userIDs, feedData)
+	return new(model.Feed).SaveHbase(B.userIDs, feedData, B.boardInfo.DiscussID)
 }
 
 //CreateUnread 创建未读计数
@@ -252,7 +252,7 @@ func (B *Bbs) customizedMsg() error {
 	feedData, err := feed.NewTask(B.bbsInfo.Category, B.getFeedCustomizer(), feed.CustomizeTasker{
 		EndTime:      B.bbsTaskInfo.EndTime,
 		AllowExpired: B.bbsTaskInfo.AllowExpired,
-		Status:       -1,
+		Status:       feed.BbsTaskStatus,
 	})
 	if err != nil {
 		return err

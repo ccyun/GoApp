@@ -102,7 +102,8 @@ func (T *TaskAudit) CreateRelation() error {
 		BbsID:    T.bbsID,
 		FeedType: "taskReply",
 	}
-	return new(model.Feed).SaveHbase(T.userIDs, feedData)
+
+	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
 }
 
 //CreateUnread 创建未读计数

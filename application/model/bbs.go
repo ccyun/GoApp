@@ -38,8 +38,8 @@ type Bbs struct {
 
 //PublishScoper 广播发布范围
 type PublishScoper struct {
-	GroupIDs []uint64 `json:"group_ids"`
-	UserIDs  []uint64 `json:"user_ids"`
+	GroupIDs   []uint64 `json:"group_ids"`
+	UserIDs    []uint64 `json:"user_ids"`
 }
 
 //TableName 表名
@@ -109,7 +109,6 @@ func (B *Bbs) publishScopeHandle(publishScopeString, publishScopeUserIDs string)
 					data.GroupIDs = append(data.GroupIDs, uint64(id))
 				case "user_ids":
 					data.UserIDs = append(data.UserIDs, uint64(id))
-				}
 			}
 		}
 	}

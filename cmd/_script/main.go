@@ -31,16 +31,30 @@ type msgData struct {
 var mData map[uint64]msgData
 
 func main() {
+	handleRelation()
+}
+
+//handleFeed 处理关系
+func handleBbs() {
+
+}
+
+//handleFeed 处理关系
+func handleFeed() {
+
+}
+
+//handleRelation 处理关系
+func handleRelation() {
 	o := orm.NewOrm()
 	i := 0
 	for true {
 		var data []FeedMsg
 		o.Raw("select board_id,bbs_id,feed_id,feed_type,send_type,send_to from bbs_msg where feed_id=(select feed_id from bbs_msg where send_type='user' or send_type='org' group by feed_id order by feed_id asc limit ?,1)", i).QueryRows(&data)
-
 		if len(data) == 0 {
 			break
 		} else {
-			var d msgData
+			d := msgData{}
 			for _, v := range data {
 				d.BoardID = v.BoardID
 				d.BbsID = v.BbsID
@@ -64,8 +78,10 @@ func main() {
 				}
 			}
 			d.UserIDs = userIDsUnique(d.UserIDs)
-			userIDstr, _ := json.Marshal(d.UserIDs)
-			o.Raw("UPDATE bbs_bbs SET send_user_ids = ?,msg_count=? where id=?", string(userIDstr), len(d.UserIDs), d.BbsID).Exec()
+			if d.FeedType == "bbs" || d.FeedType == "task" {
+				userIDstr, _ := json.Marshal(d.UserIDs)
+				o.Raw("UPDATE bbs_bbs SET publish_scope_user_ids = ?,msg_count=? where id=?", string(userIDstr), len(d.UserIDs), d.BbsID).Exec()
+			}
 			saveHbase(d)
 		}
 		i++
