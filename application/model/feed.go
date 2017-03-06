@@ -26,6 +26,7 @@ type FeedData struct {
 	Description    string `json:"description"`
 	CreatedAt      uint64 `json:"created_at"`
 	UserID         uint64 `json:"user_id"`
+	Thumb          string `json:"thumb"`
 	Type           string `json:"type"`
 	Category       string `json:"category"`
 	CommentEnabled uint8  `json:"comment_enabled"`
@@ -63,22 +64,19 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) erro
 	}
 	var data []*hbase.TPut
 	valueData := F.makeHbaseValue(feedData)
-	if len(userIDs) > 0 { //普通广播及群广播私信
-		for _, u := range userIDs {
-			rowkey := function.MakeRowkey(int64(u))
-			if discussID != 0 {
-				rowkey += "_member"
-			}
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
-			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
-			}
-		}
-	} else { //群广播
+	if discussID > 0 { //群广播
 		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+		}
+	} else { //普通广播
+		for _, u := range userIDs {
+			rowkey := function.MakeRowkey(int64(u))
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+			}
 		}
 	}
 	return client.PutMultiple([]byte(F.HbaseTableName()), data)

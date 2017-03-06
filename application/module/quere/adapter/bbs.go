@@ -110,7 +110,7 @@ func (B *Bbs) CreateFeed() error {
 	data := model.FeedData{
 		Title:          B.bbsInfo.Title,
 		Description:    B.bbsInfo.Description,
-		CreatedAt:      B.bbsInfo.CreatedAt,
+		CreatedAt:      B.bbsInfo.PublishAt,
 		UserID:         B.bbsInfo.UsesID,
 		Type:           B.bbsInfo.Type,
 		Category:       B.category,
@@ -150,12 +150,8 @@ func (B *Bbs) CreateUnread() error {
 	//讨论组未读计数
 	if B.boardInfo.DiscussID != 0 {
 		switch B.category {
-		case "bbs":
+		case "bbs", "task", "form":
 			return new(model.Todo).Add(B.siteID, B.boardID, B.bbsID, B.feedID, B.category, B.userIDs)
-		case "task":
-
-		case "form":
-
 		}
 		return nil
 	}

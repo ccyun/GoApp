@@ -1,0 +1,6 @@
+2017/03/06 18:00:37 [I] [ums.go:55] GetCache value Assertion error nil reply U00000:00640df22a114d43c14ce5d79d65754f 
+2017/03/06 18:00:37 [I] [ums.go:79] GetCache value Assertion error nil reply U00000:a883cda9f5db20da3ff33842f48b86cd 
+2017/03/06 18:00:39 [D] [ums.go:82] _getAllUserByOrgIDs url: http://192.168.28.173:8081/umsapi/rs/organizations/query/orgs/users?pageNum=1&pageSize=500&productID=20 body: [93298,63669051] code: 200
+2017/03/06 18:00:44 [I] [ums.go:55] GetCache value Assertion error nil reply U00000:30da38feb45f0d7df1a82cd2d4374eb5 
+2017/03/06 18:00:44 [I] [ums.go:79] GetCache value Assertion error nil reply U00000:1a2e1b1404c61221dbd7e1e6bcebed22 
+2017/03/06 18:00:46 [D] [ums.go:82] _getAllUserByOrgIDs url: http://192.168.28.173:8081/umsapi/rs/organizations/query/orgs/users?pageNum=1&pageSize=500&productID=20 body: [54170,93298,63669051] code: 200

@@ -1,8 +1,9 @@
+//fdfsdfsd
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Start script",
+            "name": "Start script",            
             "type": "go",
             "request": "launch",
             "mode": "debug",
@@ -10,6 +11,19 @@
             "port": 2345,
             "host": "127.0.0.1",
             "program": "${workspaceRoot}/cmd/_script/",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Start Task",            
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/TaskScript/",
             "env": {},
             "args": [],
             "showLog": true

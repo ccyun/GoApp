@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"github.com/astaxie/beego/config"
+	"github.com/ccyun/GoApp/application/function"
 )
 
 var (
-	userID, boardID, feedID, bbsID string
-	feedIDInt, bbsIDInt            int64
+	userID, boardID, feedID, bbsID, feedType string
+	feedIDInt, bbsIDInt                      int64
 )
 
 //Conf 配置
@@ -43,13 +44,14 @@ func initHbase() {
 		if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
 			return err
 		}
-		return InitHbase(config.Host, config.Port, config.Pool)
+		return Init(config.Host, config.Port, config.Pool)
 	})
 
-	userID = "63669051"
-	boardID = "50000116"
-	feedID = "1921"
-	bbsID = "50001588"
+	userID = "63706854"
+	boardID = "50000124"
+	feedID = "1955"
+	feedType = "bbs"
+	bbsID = "50001544"
 	feedIDInt, _ = strconv.ParseInt(feedID, 10, 0)
 	bbsIDInt, _ = strconv.ParseInt(bbsID, 10, 0)
 
@@ -73,7 +75,7 @@ func TestHbasePut(t *testing.T) {
 			},
 		},
 		&TPut{
-			Row: []byte(userID + "_list"),
+			Row: []byte(userID + "_" + feedType),
 			ColumnValues: []*TColumnValue{
 				&TColumnValue{
 					Family:    []byte("cf"),
@@ -95,7 +97,7 @@ func TestHbaseDel(t *testing.T) {
 	client, _ := OpenClient()
 	defer CloseClient(client)
 	tdel := &TDelete{
-		Row: []byte(userID + "_list"),
+		Row: []byte(userID + "_" + feedType),
 		Columns: []*TColumn{
 			&TColumn{
 				Family:    []byte("cf"),
@@ -115,10 +117,13 @@ func TestHbaseGet(t *testing.T) {
 	initHbase()
 	client, _ := OpenClient()
 	defer CloseClient(client)
-	var maxV int32 = 5
+	var maxV int32 = 105
 	//minStamp := int64()
+	log.Println(function.MakeRowkey(int64(63706854)) + "_" + feedType)
 	tget := &TGet{
-		Row: []byte(userID + "_list"),
+		//	rowkey := function.MakeRowkey(int64(u))
+
+		Row: []byte(function.MakeRowkey(int64(63706854)) + "_" + feedType),
 		Columns: []*TColumn{
 			&TColumn{
 				Family:    []byte("cf"),
@@ -133,6 +138,7 @@ func TestHbaseGet(t *testing.T) {
 	}
 
 	result, _ := client.Get([]byte("bbs_feed"), tget)
+
 	for _, v := range result.GetColumnValues() {
 		log.Println(v.GetTimestamp())
 		log.Println(string(v.GetValue()))

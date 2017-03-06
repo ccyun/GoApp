@@ -15,6 +15,7 @@ type Bbs struct {
 	SiteID                 uint64              `orm:"column(site_id)"`
 	BoardID                uint64              `orm:"column(board_id)"`
 	Title                  string              `orm:"column(title)"`
+	DiscussID              uint64              `orm:"column(discuss_id)"`
 	Description            string              `orm:"column(description)"`
 	Content                string              `orm:"column(content)"`
 	PublishScopeString     string              `orm:"column(publish_scope)"`
@@ -38,8 +39,8 @@ type Bbs struct {
 
 //PublishScoper 广播发布范围
 type PublishScoper struct {
-	GroupIDs   []uint64 `json:"group_ids"`
-	UserIDs    []uint64 `json:"user_ids"`
+	GroupIDs []uint64 `json:"group_ids"`
+	UserIDs  []uint64 `json:"user_ids"`
 }
 
 //TableName 表名
@@ -109,6 +110,7 @@ func (B *Bbs) publishScopeHandle(publishScopeString, publishScopeUserIDs string)
 					data.GroupIDs = append(data.GroupIDs, uint64(id))
 				case "user_ids":
 					data.UserIDs = append(data.UserIDs, uint64(id))
+				}
 			}
 		}
 	}
