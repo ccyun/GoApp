@@ -14,7 +14,7 @@ type Unread struct {
 
 //TableName 表名
 func (U *Unread) TableName() string {
-	return "unread2"
+	return "unread"
 }
 
 //IncrCount 未读计数+1
