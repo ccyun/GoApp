@@ -24,6 +24,7 @@ func (T *Todo) Add(siteID, boardID, bbsID, feedID uint64, feedType string, userI
 	}
 	var data []Todo
 	for _, userID := range userIDs {
+
 		data = append(data, Todo{
 			SiteID:   siteID,
 			BoardID:  boardID,
@@ -32,6 +33,7 @@ func (T *Todo) Add(siteID, boardID, bbsID, feedID uint64, feedType string, userI
 			FeedType: feedType,
 			UserID:   userID,
 		})
+
 	}
 	_, err := o.InsertMulti(100000, data)
 	return err

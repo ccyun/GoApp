@@ -106,17 +106,6 @@ func (T *TaskAudit) CreateRelation() error {
 	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
 }
 
-//CreateUnread 创建未读计数
-// func (T *TaskReply) CreateUnread() error {
-// 	return T.base.CreateUnread()
-// }
-
-//UpdateStatus 更新状态及接收者用户列表
-//无
-// func (T *TaskAudit) UpdateStatus() error {
-// 	return nil
-// }
-
 //SendMsg 发送消息
 func (T *TaskAudit) SendMsg() error {
 	feedData, err := feed.NewTask("taskReply", feed.Customizer{

@@ -145,19 +145,6 @@ func (B *Bbs) CreateRelation() error {
 	return new(model.Feed).SaveHbase(B.userIDs, feedData, B.boardInfo.DiscussID)
 }
 
-//CreateUnread 创建未读计数
-func (B *Bbs) CreateUnread() error {
-	//讨论组未读计数
-	if B.boardInfo.DiscussID != 0 {
-		switch B.category {
-		case "bbs", "task", "form":
-			return new(model.Todo).Add(B.siteID, B.boardID, B.bbsID, B.feedID, B.category, B.userIDs)
-		}
-		return nil
-	}
-	return B.base.CreateUnread()
-}
-
 //UpdateStatus 更新状态及接收者用户列表
 //更新BBS状态及接收者总数及列表
 func (B *Bbs) UpdateStatus() error {

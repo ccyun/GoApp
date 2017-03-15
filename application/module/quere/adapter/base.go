@@ -64,9 +64,22 @@ func (B *base) CreateRelation() error {
 	return nil
 }
 
-//CreateUnread 创建未读计数
-func (B *base) CreateUnread() error {
-	return new(model.Unread).IncrCount(B.siteID, B.boardID, B.userIDs)
+//CreateTodo 创建未处理数
+func (B *base) CreateTodo() error {
+	userIDs := []uint64{}
+	if B.boardInfo.DiscussID != 0 {
+		if B.bbsInfo.Type == "preview" {
+			return nil
+		}
+		for _, u := range B.userIDs {
+			if u != B.bbsInfo.UsesID {
+				userIDs = append(userIDs, u)
+			}
+		}
+	} else {
+		userIDs = B.userIDs
+	}
+	return new(model.Todo).Add(B.siteID, B.boardID, B.bbsID, B.feedID, B.category, userIDs)
 }
 
 //UpdateStatus 更新状态
