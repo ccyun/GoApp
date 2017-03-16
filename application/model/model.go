@@ -40,7 +40,6 @@ func RegisterModels() {
 		new(PublishScope),
 		new(Feed),
 		new(BbsTask),
-		new(Unread),
 		new(Todo),
 		new(BbsTaskReply),
 	)
