@@ -19,7 +19,7 @@ import (
 	"github.com/ccyun/GoApp/application/module/feed"
 	"github.com/ccyun/GoApp/application/module/pic"
 	//syslog 驱动
-	_ "github.com/ccyun/GoApp/application/library/log2"
+	_ "github.com/ccyun/GoApp/application/library/syslog"
 	//redis 驱动
 	"github.com/ccyun/GoApp/application/library/redis"
 	//mysql driver
@@ -52,10 +52,11 @@ func InitConfig() error {
 
 //InitLog 初始化log
 func InitLog() error {
-	if runtime.GOOS == "linux" || Conf.String("log_type") == "syslog" {
-		return nil
+	if runtime.GOOS == "linux" && Conf.String("log_type") == "syslog" {
+		logs.SetLogger("syslog", `{"tag":"`+Conf.String("log_tag")+`"}`)
+	} else {
+		logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	}
-	logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(4)
 	logs.Async(1e3)
