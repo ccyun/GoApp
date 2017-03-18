@@ -19,7 +19,7 @@ import (
 	"github.com/ccyun/GoApp/application/module/feed"
 	"github.com/ccyun/GoApp/application/module/pic"
 	//syslog 驱动
-	_ "github.com/ccyun/GoApp/application/library/syslog"
+	_ "github.com/ccyun/GoApp/application/library/syslog2"
 	//redis 驱动
 	"github.com/ccyun/GoApp/application/library/redis"
 	//mysql driver

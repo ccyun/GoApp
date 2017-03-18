@@ -1,4 +1,4 @@
-package syslog
+package syslog2
 
 import (
 	"encoding/json"
