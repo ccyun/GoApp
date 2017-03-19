@@ -3,6 +3,7 @@ package syslog2
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"log/syslog"
@@ -44,15 +45,16 @@ func (s *SysLogWriter) WriteMsg(when time.Time, msg string, level int) error {
 		return nil
 	}
 	_, err := s.w.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
+	log.Println(err)
 	return err
 }
 
-//Destroy
+//Destroy 注销
 func (s *SysLogWriter) Destroy() {
 	s.w.Close()
 }
 
-//Flush d
+//Flush 刷新
 func (s *SysLogWriter) Flush() {}
 
 func init() {
