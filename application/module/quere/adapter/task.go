@@ -161,17 +161,17 @@ func (q *queue) runTask() bool {
 	}
 	//关闭任务
 	logs.Info(q.L("Start Delete task"))
-	// if q.model.Delete(q.model.ID) == false {
-	// 	logs.Error(q.L("runTask Delete error"))
-	// 	return false
-	// }
+
+	if q.model.Delete(q.task.ID) == false {
+		logs.Error(q.L("runTask Delete error"))
+		return false
+	}
 	//发送消息
 	logs.Info(q.L("Start SendMsg"))
 	if err := q.mode.SendMsg(); err != nil {
 		logs.Error(q.L("runTask SendMsg error"), err)
 		return false
 	}
-
 	return true
 }
 

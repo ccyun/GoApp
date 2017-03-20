@@ -90,9 +90,9 @@ func (T *TaskReply) CreateFeed() error {
 		return err
 	}
 	feedData.Data = string(dataByte)
-	feedID, err := new(model.Feed).CreateFeed(feedData)
+	feedID, err := T.o.Insert(&feedData)
 	if err == nil {
-		T.feedID = feedID
+		T.feedID = uint64(feedID)
 	}
 	return err
 }

@@ -1,9 +1,9 @@
 package adapter
 
 import (
-	"strconv"
-
 	"encoding/json"
+	"strconv"
+	"time"
 
 	"fmt"
 
@@ -47,20 +47,22 @@ func (B *base) getBbsTaskInfo() error {
 func (B *Bbs) NewTask(task model.Queue) error {
 	B.base.NewTask(task)
 
-	var action map[string]string
+	var action struct {
+		BbsID             string   `json:"bbs_id"`
+		AttachmentsBase64 string   `json:"attachments_base64"`
+		DiscussMemberList []uint64 `json:"discuss_member_list"`
+	}
 	if err := json.Unmarshal([]byte(B.action), &action); err != nil {
 		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", B.taskID, B.action)
 	}
-	bbsID, err := strconv.Atoi(action["bbs_id"])
+	bbsID, err := strconv.Atoi(action.BbsID)
 	if err != nil {
 		return fmt.Errorf("NewTask strconv.Atoi error,taskID:%d,action:%s", B.taskID, B.action)
 	}
 	B.bbsID = uint64(bbsID)
-	B.attachmentsBase64 = action["attachments_base64"]
-	if action["discuss_member_list"] != "" {
-		if err := json.Unmarshal([]byte(action["discuss_member_list"]), &B.userIDs); err != nil {
-			return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", B.taskID, B.action)
-		}
+	B.attachmentsBase64 = action.AttachmentsBase64
+	if len(action.DiscussMemberList) > 0 {
+		B.userIDs = action.DiscussMemberList
 	}
 
 	if err := B.getBbsInfo(); err != nil {
@@ -85,16 +87,21 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	if B.boardInfo.DiscussID != 0 {
 		return nil
 	}
-	ums := new(httpcurl.UMS)
-	userIDs, err := ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
-	if err != nil {
-		return err
+	var (
+		userIDs []uint64
+		err     error
+	)
+	if len(B.bbsInfo.PublishScope.GroupIDs) > 0 {
+		ums := new(httpcurl.UMS)
+		userIDs, err = ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
+		if err != nil {
+			return err
+		}
 	}
 	B.PublishScope = make(map[string][]uint64)
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
 	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs[0:]...)
-
 	return nil
 }
 
@@ -127,9 +134,9 @@ func (B *Bbs) CreateFeed() error {
 		return err
 	}
 	feedData.Data = string(dataByte)
-	feedID, err := new(model.Feed).CreateFeed(feedData)
+	feedID, err := B.o.Insert(&feedData)
 	if err == nil {
-		B.feedID = feedID
+		B.feedID = uint64(feedID)
 	}
 	return err
 }
@@ -148,19 +155,19 @@ func (B *Bbs) CreateRelation() error {
 //UpdateStatus 更新状态及接收者用户列表
 //更新BBS状态及接收者总数及列表
 func (B *Bbs) UpdateStatus() error {
-	db := new(model.Bbs)
-	data := model.Bbs{ID: B.bbsID}
-	data.Status = 1
-	data.MsgCount = uint64(len(B.userIDs))
+	data := model.Bbs{
+		ID:         B.bbsID,
+		Status:     1,
+		MsgCount:   uint64(len(B.userIDs)),
+		ModifiedAt: uint64(time.Now().UnixNano() / 1e6),
+	}
 	u, err := json.Marshal(B.userIDs)
 	if err != nil {
 		return nil
 	}
 	data.PublishScopeUserIDs = string(u)
-	if err := db.Update(data, "Status", "MsgCount", "PublishScopeUserIDs"); err != nil {
-		return err
-	}
-	return nil
+	_, err = B.o.Update(&data, "Status", "MsgCount", "PublishScopeUserIDs", "ModifiedAt")
+	return err
 }
 
 //SendMsg 发送消息

@@ -45,15 +45,6 @@ func (F *Feed) HbaseTableName() string {
 	return "bbs_feed"
 }
 
-//CreateFeed 创建feed
-func (F *Feed) CreateFeed(feedData Feed) (uint64, error) {
-	feedID, err := o.Insert(&feedData)
-	if err != nil {
-		return 0, err
-	}
-	return uint64(feedID), nil
-}
-
 //SaveHbase 保存数据到hbase
 //'taskReply','taskAudit','taskClose'
 func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) error {
@@ -67,15 +58,17 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) erro
 	if discussID > 0 { //群广播
 		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
 		}
 	} else { //普通广播
 		for _, u := range userIDs {
 			rowkey := function.MakeRowkey(int64(u))
 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
 			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
 			}
 		}
 	}

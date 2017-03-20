@@ -79,7 +79,22 @@ func (B *base) CreateTodo() error {
 	} else {
 		userIDs = B.userIDs
 	}
-	return new(model.Todo).Add(B.siteID, B.boardID, B.bbsID, B.feedID, B.category, userIDs)
+	if len(userIDs) == 0 {
+		return nil
+	}
+	var data []model.Todo
+	for _, userID := range userIDs {
+		data = append(data, model.Todo{
+			SiteID:   B.siteID,
+			BoardID:  B.boardID,
+			BbsID:    B.bbsID,
+			FeedID:   B.feedID,
+			FeedType: B.category,
+			UserID:   userID,
+		})
+	}
+	_, err := B.o.InsertMulti(100000, data)
+	return err
 }
 
 //UpdateStatus 更新状态

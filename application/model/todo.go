@@ -16,25 +16,3 @@ type Todo struct {
 func (T *Todo) TableName() string {
 	return "todo"
 }
-
-//Add 增加待办数据
-func (T *Todo) Add(siteID, boardID, bbsID, feedID uint64, feedType string, userIDs []uint64) error {
-	if len(userIDs) == 0 {
-		return nil
-	}
-	var data []Todo
-	for _, userID := range userIDs {
-
-		data = append(data, Todo{
-			SiteID:   siteID,
-			BoardID:  boardID,
-			BbsID:    bbsID,
-			FeedID:   feedID,
-			FeedType: feedType,
-			UserID:   userID,
-		})
-
-	}
-	_, err := o.InsertMulti(100000, data)
-	return err
-}
