@@ -127,6 +127,18 @@ func (F *Feed) DelHbase(userIDs []uint64, boardID uint64, feedIDs []uint64) erro
 			Row:        []byte(rowkey + "_list"),
 			Columns:    columns,
 			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
+		}, &hbase.TDelete{
+			Row:        []byte(rowkey + "_bbs"),
+			Columns:    columns,
+			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
+		}, &hbase.TDelete{
+			Row:        []byte(rowkey + "_task"),
+			Columns:    columns,
+			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
+		}, &hbase.TDelete{
+			Row:        []byte(rowkey + "_form"),
+			Columns:    columns,
+			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
 		})
 
 	}

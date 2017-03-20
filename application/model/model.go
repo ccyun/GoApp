@@ -61,3 +61,18 @@ func (b *base) AfterUpdate(tableName string, num int64, err error) bool {
 	go redis.NewCache(fmt.Sprintf("D%d%s", b.siteID, tableName)).Clear()
 	return true
 }
+
+//Begin 开启事务
+func Begin() error {
+	return o.Begin()
+}
+
+//Rollback 事务回滚
+func Rollback() error {
+	return o.Rollback()
+}
+
+//Commit 提交事务
+func Commit() error {
+	return o.Commit()
+}

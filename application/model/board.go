@@ -1,11 +1,5 @@
 package model
 
-import (
-	"fmt"
-
-	"github.com/ccyun/GoApp/application/library/redis"
-)
-
 //Board 任务表结构
 type Board struct {
 	base
@@ -31,10 +25,10 @@ func (B *Board) TableName() string {
 //GetOne 读取单条数据
 func (B *Board) GetOne(ID uint64) (Board, error) {
 	boardInfo := Board{ID: ID}
-	c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
-	if c.Get(&boardInfo) == true {
-		return boardInfo, nil
-	}
+	// c := redis.NewCache(fmt.Sprintf("D%d%s", B.siteID, B.TableName()), "GetOne", ID)
+	// if c.Get(&boardInfo) == true {
+	// 	return boardInfo, nil
+	// }
 	if err := o.Read(&boardInfo); err != nil {
 		return Board{}, err
 	}
@@ -42,7 +36,7 @@ func (B *Board) GetOne(ID uint64) (Board, error) {
 	if err != nil {
 		return Board{}, err
 	}
-	c.Set(data[0])
+	// c.Set(data[0])
 	return data[0], nil
 }
 
