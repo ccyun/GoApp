@@ -26,10 +26,10 @@ func (s *SysLogWriter) WriteMsg(when time.Time, msg string, level int) error {
 	return nil
 }
 
-//Destroy
+//Destroy 注销
 func (s *SysLogWriter) Destroy() {}
 
-//Flush d
+//Flush 刷新
 func (s *SysLogWriter) Flush() {}
 
 func init() {

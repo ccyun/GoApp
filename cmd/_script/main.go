@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
+	"sync"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/ccyun/GoApp/application"
@@ -13,9 +14,9 @@ import (
 )
 
 var (
-	o     orm.Ormer
-	bbsID uint64
-	ums   *httpcurl.UMS
+	o      orm.Ormer
+	ums    *httpcurl.UMS
+	bbsIDs [][]uint64
 )
 
 type task struct {
@@ -52,30 +53,67 @@ func init() {
 }
 
 func main() {
-	for true {
-		T := new(task)
-		if err := T.getInfo(); err != nil {
-			log.Println(err)
-			break
-		}
-		if err := T.handleBbs(); err != nil {
-			log.Println(err)
-			break
-		}
-		if err := T.handleFeed(); err != nil {
-			log.Println(err)
-			break
-		}
-		if err := T.handleRelation(); err != nil {
-			log.Println(err)
-			break
-		}
+	if err := getBbsIDs(); err != nil {
+		log.Println(err)
+		return
 	}
+	runTask()
 }
 
-func (T *task) getInfo() error {
+func runTask() {
+	var w sync.WaitGroup
+	w.Add(len(bbsIDs))
+	for _, ids := range bbsIDs {
+		go func(ids []uint64) {
+			for _, id := range ids {
+				T := new(task)
+				if err := T.getInfo(id); err != nil {
+					log.Println(err)
+					return
+				}
+				if err := T.handleBbs(); err != nil {
+					log.Println(err)
+					return
+				}
+				if err := T.handleFeed(); err != nil {
+					log.Println(err)
+					return
+				}
+				if err := T.handleRelation(); err != nil {
+					log.Println(err)
+					return
+				}
+			}
+			w.Done()
+		}(ids)
+
+	}
+	w.Wait()
+
+}
+
+func getBbsIDs() error {
+	var bbsData []model.Bbs
+	if _, err := o.Raw("select id from bbs_bbs order by id asc").QueryRows(&bbsData); err != nil {
+		return err
+	}
+	pageSize := (len(bbsData) / 5) + 1
+	var (
+		tempIDs []uint64
+	)
+	for j, v := range bbsData {
+		tempIDs = append(tempIDs, v.ID)
+		if (j+1)%pageSize == 0 {
+			bbsIDs = append(bbsIDs, tempIDs)
+			tempIDs = []uint64{}
+		}
+	}
+	bbsIDs = append(bbsIDs, tempIDs)
+	return nil
+}
+func (T *task) getInfo(id uint64) error {
 	var err error
-	if err = o.Raw("select id,board_id,title,description,discuss_id,category,comment_enabled,type,publish_at,publish_scope,attachments,user_id from bbs_bbs where id>? order by id asc limit 1", bbsID).QueryRow(&T.bbsInfo); err != nil {
+	if err = o.Raw("select id,board_id,title,description,discuss_id,category,comment_enabled,type,publish_at,publish_scope,attachments,user_id from bbs_bbs where id=? order by id asc limit 1", id).QueryRow(&T.bbsInfo); err != nil {
 		return err
 	}
 	if T.bbsInfo.AttachmentsString != "" {
@@ -95,16 +133,16 @@ func (T *task) getInfo() error {
 			T.bbsInfo.PublishScopeUserIDsArr = append(T.bbsInfo.PublishScopeUserIDsArr, uint64(uu))
 		}
 	}
-	bbsID = T.bbsInfo.ID
-	log.Println(bbsID)
+
+	log.Println(T.bbsInfo.ID)
 	T.category = T.bbsInfo.Category
 	msgData := []msger{}
-	if _, err = o.Raw("select send_type,send_to from bbs_msg where feed_type=? and bbs_id=?", T.category, bbsID).QueryRows(&msgData); err != nil {
+	if _, err = o.Raw("select send_type,send_to from bbs_msg where feed_type=? and bbs_id=?", T.category, T.bbsInfo.ID).QueryRows(&msgData); err != nil {
 		return err
 	}
 	T.getPublishScopeUserIDsArr(msgData)
 	if T.category == "task" {
-		if err = o.Raw("select end_time,allow_expired from bbs_bbs_task where bbs_id=?", bbsID).QueryRow(&T.taskInfo); err != nil {
+		if err = o.Raw("select end_time,allow_expired from bbs_bbs_task where bbs_id=?", T.bbsInfo.ID).QueryRow(&T.taskInfo); err != nil {
 			return err
 		}
 	}
@@ -142,7 +180,7 @@ func (T *task) handleBbs() error {
 	T.bbsInfo.PublishScopeUserIDs = string(userIDstr)
 	userCount := len(T.bbsInfo.PublishScopeUserIDsArr)
 	if userCount > 0 {
-		_, err := o.Raw("UPDATE bbs_bbs SET publish_scope_user_ids = ?,msg_count=? where id=?", T.bbsInfo.PublishScopeUserIDs, userCount, bbsID).Exec()
+		_, err := o.Raw("UPDATE bbs_bbs SET publish_scope_user_ids = ?,msg_count=? where id=?", T.bbsInfo.PublishScopeUserIDs, userCount, T.bbsInfo.ID).Exec()
 		return err
 	}
 	return nil
@@ -168,7 +206,7 @@ func (T *task) handleFeed() error {
 		feedData.AllowExpired = T.taskInfo.AllowExpired
 	}
 	feedList := []model.Feed{}
-	if _, err := o.Raw("select id,bbs_id,feed_type,data,created_at from bbs_feed where bbs_id=?", bbsID).QueryRows(&feedList); err != nil {
+	if _, err := o.Raw("select id,bbs_id,feed_type,data,created_at from bbs_feed where bbs_id=?", T.bbsInfo.ID).QueryRows(&feedList); err != nil {
 		return err
 	}
 
@@ -207,7 +245,7 @@ func (T *task) handleRelation() error {
 	}
 	msgList := []msger{}
 	data := map[uint64](map[string](map[string][]uint64)){}
-	if _, err := o.Raw("select feed_id,feed_type,send_type,send_to from bbs_msg where bbs_id=?", bbsID).QueryRows(&msgList); err != nil {
+	if _, err := o.Raw("select feed_id,feed_type,send_type,send_to from bbs_msg where bbs_id=?", T.bbsInfo.ID).QueryRows(&msgList); err != nil {
 		return err
 	}
 	for _, v := range msgList {
@@ -261,7 +299,7 @@ func (T *task) saveHbase(feedID uint64, feedType string, UserIDs []uint64) error
 	d := model.Feed{
 		ID:       feedID,
 		BoardID:  T.bbsInfo.BoardID,
-		BbsID:    bbsID,
+		BbsID:    T.bbsInfo.ID,
 		FeedType: feedType,
 	}
 	return feed.SaveHbase(UserIDs, d, T.bbsInfo.DiscussID)
