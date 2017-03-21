@@ -8,12 +8,12 @@ type BbsTask struct {
 	BoardID      uint64 `orm:"column(board_id)"`
 	BbsID        uint64 `orm:"column(bbs_id)"`
 	Restriction  string `orm:"column(restriction)"`
-	EndTime      uint64 `json:"end_time"`
-	AllowExpired uint8  `json:"allow_expired"`
-	IsCycle      uint8  `json:"is_cycle"`
-	CycleRule    string `json:"cycle_rule"`
-	IsClose      uint8  `json:"is_close"`
-	CloseAt      uint64 `json:"close_at"`
+	EndTime      uint64 `orm:"column(end_time)"`
+	AllowExpired uint8  `orm:"column(allow_expired)"`
+	IsCycle      uint8  `orm:"column(is_cycle)"`
+	CycleRule    string `orm:"column(cycle_rule)"`
+	IsClose      uint8  `orm:"column(is_close)"`
+	CloseAt      uint64 `orm:"column(close_at)"`
 }
 
 //TableName 表名

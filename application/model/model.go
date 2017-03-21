@@ -6,7 +6,6 @@ import (
 
 	"fmt"
 
-	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	"github.com/ccyun/GoApp/application/library/redis"
 )
@@ -25,7 +24,6 @@ var (
 )
 
 type base struct {
-	siteID uint64 `orm:"-",json:"-"`
 }
 
 //RegisterModels 注册Model
@@ -48,17 +46,9 @@ func RegisterModels() {
 }
 
 //AfterUpdate 错误处理,处理 增/删/改；以及更新缓存
-func (b *base) AfterUpdate(tableName string, num int64, err error) bool {
-	if num == 0 {
-		logs.Notice("Model info error:", tableName, num, orm.ErrNoRows)
-		return false
-	}
-	if err != nil {
-		logs.Error("Model error:", tableName, num, err)
-		return false
-	}
+func AfterUpdate(tableName string, siteID uint64) bool {
 	//异步 clearCache
-	go redis.NewCache(fmt.Sprintf("D%d%s", b.siteID, tableName)).Clear()
+	go redis.NewCache(fmt.Sprintf("D%d%s", siteID, tableName)).Clear()
 	return true
 }
 

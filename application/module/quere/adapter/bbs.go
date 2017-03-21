@@ -119,11 +119,14 @@ func (B *Bbs) CreateFeed() error {
 		Description:    B.bbsInfo.Description,
 		CreatedAt:      B.bbsInfo.PublishAt,
 		UserID:         B.bbsInfo.UsesID,
+		Thumb:          B.bbsInfo.Attachments[0]["url"],
 		Type:           B.bbsInfo.Type,
 		Category:       B.category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
 	}
 	switch B.category {
+	case "bbs":
+		data.Thumb = B.bbsInfo.Attachments[0]["url"]
 	case "task":
 		data.EndTime = B.bbsTaskInfo.EndTime
 		data.AllowExpired = B.bbsTaskInfo.AllowExpired
@@ -270,12 +273,20 @@ func (B *Bbs) discussMsg() error {
 	}
 	ucc := new(httpcurl.UCC)
 	postData := httpcurl.UCCMsgSender{
-		SiteID: B.siteID,
-		UserID: B.bbsInfo.UsesID,
+		SiteID:           B.siteID,
+		UserID:           B.bbsInfo.UsesID,
+		ConversationType: 2,
 	}
 	postData.Message.Content = ""
-	postData.Control.NoSendself = 1
+	postData.Control.NoSendself = 0
 	postData.To.ToID = B.boardInfo.DiscussID
+	postData.To.ToPrivateIDs = []uint64{}
+	if B.bbsInfo.Type == "preview" {
+		if B.bbsInfo.UsesID == B.bbsInfo.PublishScope.UserIDs[0] {
+			postData.Control.NoSendself = 1
+		}
+		postData.To.ToPrivateIDs = B.bbsInfo.PublishScope.UserIDs
+	}
 	content := struct {
 		Version        uint64 `json:"version"`
 		Title          string `json:"title"`

@@ -1,17 +1,16 @@
 package application
 
 import (
-	"encoding/json"
 	"errors"
 	"runtime"
 	"time"
 
 	"github.com/astaxie/beego/cache"
 
-	"github.com/astaxie/beego/config"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 
+	"github.com/ccyun/GoApp/application/library/conf"
 	"github.com/ccyun/GoApp/application/library/hbase"
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/library/neo4j"
@@ -26,9 +25,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-//Conf 配置
-var Conf config.Configer
-
 func init() {
 	func(funcs ...func() error) {
 		for _, f := range funcs {
@@ -41,21 +37,15 @@ func init() {
 
 //InitConfig 初始化配置
 func InitConfig() error {
-	conf, err := config.NewConfig("ini", "conf.ini")
-
-	if err != nil {
-		return err
-	}
-	Conf = conf
-	return nil
+	return conf.InitConfig()
 }
 
 //InitLog 初始化log
 func InitLog() error {
-	if runtime.GOOS == "linux" && Conf.String("log_type") == "syslog" {
-		logs.SetLogger("syslog", `{"tag":"`+Conf.String("log_tag")+`"}`)
+	if runtime.GOOS == "linux" && conf.String("log_type") == "syslog" {
+		logs.SetLogger("syslog", `{"tag":"`+conf.String("log_tag")+`"}`)
 	} else {
-		logs.SetLogger("file", `{"filename":"`+Conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
+		logs.SetLogger("file", `{"filename":"`+conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	}
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(4)
@@ -66,27 +56,15 @@ func InitLog() error {
 //InitDB 初始化数据库
 func InitDB() error {
 	var err error
-	debug, _ := Conf.Bool("debug")
+	debug, _ := conf.Bool("debug")
 	model.Debug = debug
-	model.DBType = Conf.String("db_type")
-	model.DBPrefix = Conf.String("db_prefix")
-	dsn := Conf.String("db_dsn")
-	pool, _ := Conf.Int("db_pool")
+	model.DBPrefix = conf.String("db_prefix")
+	dsn := conf.String("db_dsn_default")
+	pool, _ := conf.Int("db_pool")
 	if dsn == "" || pool <= 0 {
 		return errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]")
 	}
-	switch model.DBType {
-	case "mysql":
-		err = orm.RegisterDriver(model.DBType, orm.DRMySQL)
-	case "sqlite":
-		err = orm.RegisterDriver(model.DBType, orm.DRSqlite)
-	case "oracle":
-		err = orm.RegisterDriver(model.DBType, orm.DROracle)
-	case "pgsql":
-		err = orm.RegisterDriver(model.DBType, orm.DRPostgres)
-	case "TiDB":
-		err = orm.RegisterDriver(model.DBType, orm.DRTiDB)
-	}
+	err = orm.RegisterDriver(model.DBType, orm.DRMySQL)
 	if err != nil {
 		return err
 	}
@@ -102,23 +80,23 @@ func InitDB() error {
 func InitHTTPCurl() error {
 
 	//初始化ums配置
-	httpcurl.UMSLoginURL = Conf.String("ums_login_url")
-	httpcurl.UMSBusinessURL = Conf.String("ums_business_url")
+	httpcurl.UMSLoginURL = conf.String("ums_login_url")
+	httpcurl.UMSBusinessURL = conf.String("ums_business_url")
 
 	//初始化uc配置
-	httpcurl.UcOpenAPIURL = Conf.String("uc_open_api_url")
-	httpcurl.UcAPPID = Conf.String("uc_open_appid")
-	httpcurl.UcPaddword = Conf.String("uc_open_password")
+	httpcurl.UcOpenAPIURL = conf.String("uc_open_api_url")
+	httpcurl.UcAPPID = conf.String("uc_open_appid")
+	httpcurl.UcPaddword = conf.String("uc_open_password")
 
 	//初始化ucc配置
-	httpcurl.UccServerURL = Conf.String("uccserver_url")
+	httpcurl.UccServerURL = conf.String("uccserver_url")
 
 	return nil
 }
 
 //InitCache 初始化缓存
 func InitCache() error {
-	cache, err := cache.NewCache("redis", Conf.String("cache"))
+	cache, err := cache.NewCache("redis", conf.String("cache"))
 	if err != nil {
 		return err
 	}
@@ -136,7 +114,7 @@ func InitHbase() error {
 			Pool int    `json:"pool"`
 		}
 	)
-	if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
+	if err = conf.JSON("hbase", &config); err != nil {
 		return err
 	}
 	return hbase.Init(config.Host, config.Port, config.Pool)
@@ -154,7 +132,7 @@ func InitNeo4j() error {
 			Pool     int    `json:"pool"`
 		}
 	)
-	if err = json.Unmarshal([]byte(Conf.String("neo4j")), &config); err != nil {
+	if err = conf.JSON("neo4j", &config); err != nil {
 		return err
 	}
 	return neo4j.Init(config.Host, config.Port, config.UserName, config.Password, config.Pool)
@@ -163,10 +141,10 @@ func InitNeo4j() error {
 //InitPackage 初始化其他包
 func InitPackage() error {
 	config := map[string]string{
-		"server_name": Conf.String("server_name"),
-		"app_domain":  Conf.String("app_domain"),
-		"app_path":    Conf.String("app_path"),
-		"feed_icons":  Conf.String("feed_icons"),
+		"server_name": conf.String("server_name"),
+		"app_domain":  conf.String("app_domain"),
+		"app_path":    conf.String("app_path"),
+		"feed_icons":  conf.String("feed_icons"),
 	}
 	if err := feed.Init(config); err != nil {
 		return err

@@ -61,7 +61,6 @@ func (app *App) work() {
 				}
 				o := new(io)
 				requestID := string(utils.RandomCreateBytes(32))
-				o.requestID = requestID
 				orm.DebugLog = orm.NewLog(o)
 				option := make(map[string]string)
 				option["requestID"] = requestID
@@ -86,6 +85,6 @@ func (app *App) listenSignal() {
 
 //Write io.Writer 用于orm sql输出
 func (o *io) Write(b []byte) (n int, err error) {
-	logs.Info(o.requestID, string(b))
+	logs.Info(string(b))
 	return 0, nil
 }

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -36,6 +37,7 @@ func (Q *Queue) Pull() (Queue, error) {
 	if err := Q.lockTask(taskInfo); err != nil {
 		return Queue{}, err
 	}
+	log.Println(taskInfo.ID)
 	return taskInfo, nil
 }
 
@@ -54,26 +56,31 @@ func (Q *Queue) lockTask(taskInfo Queue) error {
 }
 
 //TimeOut 处理超时任务
-func (Q *Queue) TimeOut() bool {
+func (Q *Queue) TimeOut() error {
 	nowTime := uint64(time.Now().UnixNano() / 1e6)
 	data := orm.Params{
 		"Status":     3,
 		"ModifiedAt": nowTime,
 	}
-	num, err := o.QueryTable(Q).Filter("Status", 1).Filter("ModifiedAt__lt", (nowTime - 7200000)).Update(data)
-
-	return Q.AfterUpdate(Q.TableName(), num, err)
+	if _, err := o.QueryTable(Q).Filter("Status", 1).Filter("ModifiedAt__lt", (nowTime - 7200000)).Update(data); err != nil {
+		return err
+	}
+	return nil
 }
 
 //Fail 修改数据
 func (Q *Queue) Fail(ID uint64) bool {
-	num, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt")
-	return Q.AfterUpdate(Q.TableName(), num, err)
+	if _, err := o.Update(&Queue{ID: ID, Status: 3, ModifiedAt: uint64(time.Now().UnixNano() / 1e6)}, "Status", "ModifiedAt"); err != nil {
+		return false
+	}
+	return true
 
 }
 
 //Delete 删除数据
 func (Q *Queue) Delete(ID uint64) bool {
-	num, err := o.Delete(&Queue{ID: ID})
-	return Q.AfterUpdate(Q.TableName(), num, err)
+	if _, err := o.Delete(&Queue{ID: ID}); err != nil {
+		return false
+	}
+	return true
 }

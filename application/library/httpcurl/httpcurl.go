@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 //Request curl请求
@@ -22,6 +23,7 @@ func Request(method string, url string, body io.Reader, contentType string) (int
 		}
 	}
 	client := &http.Client{}
+	client.Timeout = 30 * time.Second
 	response, err := client.Do(request)
 	if response != nil {
 		defer response.Body.Close()

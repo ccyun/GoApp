@@ -62,8 +62,7 @@ func (q *queue) run() {
 		return
 	}
 	logs.Info(q.L("Start runTask"))
-	if q.runTask() == false {
-		//任务失败
+	if q.runTask() == false { //任务失败
 		return
 	}
 	logs.Info(q.L("Successful"))
@@ -71,15 +70,14 @@ func (q *queue) run() {
 
 //getTask 读取任务
 func (q *queue) getTask() bool {
-	var (
-		err error
-	)
-	if q.model.TimeOut() {
-		return false
+	var err error
+	if err = q.model.TimeOut(); err != nil {
+		logs.Notice(q.L("getTask TimeOut error:."), err)
 	}
 	if q.task, err = q.model.Pull(); err == nil {
 		return true
 	}
+
 	if err == orm.ErrNoRows {
 		logs.Notice(q.L("Not found task info."))
 	} else {
@@ -108,21 +106,18 @@ func (q *queue) runTask() bool {
 	logs.Info(q.L("Start NewTask"))
 	if err := q.mode.NewTask(q.task); err != nil {
 		logs.Error(q.L("runTask NewTask error"), err)
-		q.mode.Rollback()
 		return false
 	}
 	//分析发布范围
 	logs.Info(q.L("Start GetPublishScopeUsers"))
 	if err := q.mode.GetPublishScopeUsers(); err != nil {
 		logs.Error(q.L("runTask GetPublishScopeUsers error"), err)
-		q.mode.Rollback()
 		return false
 	}
 	//开启事务
 	logs.Info(q.L("Start Begin"))
 	if err := q.mode.Begin(); err != nil {
 		logs.Error(q.L("runTask Begin error"), err)
-		q.mode.Rollback()
 		return false
 	}
 	//创建feed
@@ -161,11 +156,13 @@ func (q *queue) runTask() bool {
 	}
 	//关闭任务
 	logs.Info(q.L("Start Delete task"))
-
 	if q.model.Delete(q.task.ID) == false {
 		logs.Error(q.L("runTask Delete error"))
 		return false
 	}
+	//tableName string, num int64, err error
+	model.AfterUpdate("bbs", q.task.SiteID)
+	model.AfterUpdate("feed", q.task.SiteID)
 	//发送消息
 	logs.Info(q.L("Start SendMsg"))
 	if err := q.mode.SendMsg(); err != nil {
