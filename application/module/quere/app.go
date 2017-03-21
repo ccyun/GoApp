@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -8,8 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/astaxie/beego/logs"
-	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/utils"
 	"github.com/ccyun/GoApp/application/library/hook"
 	"github.com/ccyun/GoApp/application/model"
@@ -21,11 +20,6 @@ type App struct {
 	done   chan bool
 	close  bool
 	DoFunc func(map[string]string)
-}
-
-//io 重要参数
-type io struct {
-	requestID string
 }
 
 //initRegister 初始化注册
@@ -44,7 +38,6 @@ func (app *App) Run() {
 		app.thread = runtime.NumCPU()
 	}
 	runtime.GOMAXPROCS(app.thread)
-
 	app.done = make(chan bool, app.thread)
 	go app.listenSignal()
 	app.work()
@@ -59,13 +52,11 @@ func (app *App) work() {
 					app.done <- true
 					break
 				}
-				o := new(io)
-				requestID := string(utils.RandomCreateBytes(32))
-				orm.DebugLog = orm.NewLog(o)
 				option := make(map[string]string)
-				option["requestID"] = requestID
+				option["requestID"] = string(utils.RandomCreateBytes(32))
+				log.Println(option)
 				app.DoFunc(option)
-				time.Sleep(2 * time.Second)
+				time.Sleep(1 * time.Second)
 			}
 		}(i)
 		time.Sleep(1 * time.Second)
@@ -81,10 +72,4 @@ func (app *App) listenSignal() {
 	signal.Notify(sig, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 	app.close = true
-}
-
-//Write io.Writer 用于orm sql输出
-func (o *io) Write(b []byte) (n int, err error) {
-	logs.Info(string(b))
-	return 0, nil
 }

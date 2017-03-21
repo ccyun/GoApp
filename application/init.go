@@ -24,6 +24,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//io 重要参数
+type io struct {
+	requestID string
+}
+
 func init() {
 	func(funcs ...func() error) {
 		for _, f := range funcs {
@@ -72,7 +77,15 @@ func InitDB() error {
 	if err != nil {
 		return err
 	}
+	o := new(io)
+	orm.DebugLog = orm.NewLog(o)
 	return nil
+}
+
+//Write io.Writer 用于orm sql输出
+func (o *io) Write(b []byte) (n int, err error) {
+	logs.Info(string(b))
+	return 0, nil
 }
 
 //InitHTTPCurl 初始化数据库
@@ -130,8 +143,5 @@ func InitPackage() error {
 	if err := feed.Init(config); err != nil {
 		return err
 	}
-	if err := pic.Init(config); err != nil {
-		return err
-	}
-	return nil
+	return pic.Init(config)
 }
