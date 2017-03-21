@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/utils"
 )
 
 var (
@@ -35,7 +36,7 @@ type OASender struct {
 	DetailAuth     uint8                   `json:"detailAuth"`
 	CustomizedType string                  `json:"customizedType"`
 	CustomizedData string                  `json:"customizedData"`
-	ToUsers        []uint64                `json:"toUsers,omitempty"`
+	ToUsers        []string                `json:"toUsers,omitempty"`
 	ToPartyIds     []uint64                `json:"toPartyIds,omitempty"`
 	Elements       []OASendElementser      `json:"elements"`
 }
@@ -61,7 +62,7 @@ type CustomizedSender struct {
 	SiteID      uint64   `json:"siteId"`
 	AppID       string   `json:"appId"`
 	WebPushData string   `json:"webPushData,omitempty"`
-	ToUsers     []uint64 `json:"toUsers,omitempty"`
+	ToUsers     []string `json:"toUsers,omitempty"`
 	ToPartyIds  []uint64 `json:"toPartyIds,omitempty"`
 	Data1       string   `json:"data1,omitempty"`
 	Data2       string   `json:"data2,omitempty"`
@@ -84,10 +85,12 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 		err        error
 	)
 	body, _ := json.Marshal(postData)
+	reqID := string(utils.RandomCreateBytes(8))
+	logs.Debug("%s->uc httpCurl url:%s body:%s", reqID, url, string(body))
 	statusCode, res, err = Request(method, url, strings.NewReader(string(body)), "json")
-	logs.Debug("uc httpCurl url:", url, "body:", string(body), "code:", statusCode)
+	logs.Debug("%s->uc httpCurl url:%s body:%s code:%d", reqID, url, string(body), statusCode)
 	if statusCode != 200 {
-		err = fmt.Errorf("uc httpcurl status code: %d", statusCode)
+		err = fmt.Errorf("%s->uc httpcurl status code: %d", reqID, statusCode)
 	}
 	if err = json.Unmarshal(res, resData); err != nil {
 		return err
@@ -96,15 +99,12 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	requestID := rv.FieldByName("RequestID").String()
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
-	logs.Debug("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
+	logs.Debug("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
+	logs.Debug("%s->uc httpcurl response:%s", reqID, string(res))
 	if errorCode != 0 {
-		err = fmt.Errorf("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
+		err = fmt.Errorf("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
 	}
-	if err != nil {
-		logs.Error("uc httpcurl error:", err, "response:", string(res))
-		return err
-	}
-	return nil
+	return err
 }
 
 //GetToken 获取token

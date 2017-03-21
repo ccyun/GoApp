@@ -61,7 +61,8 @@ func (T *TaskReply) GetPublishScopeUsers() error {
 			T.userIDs = append(T.userIDs, v)
 		}
 	}
-	return nil
+	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	return err
 }
 
 //CreateFeed 创建Feed
@@ -136,7 +137,7 @@ func (T *TaskReply) SendMsg() error {
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
 		SiteID:      T.siteID,
-		ToUsers:     T.bbsInfo.PublishScope.UserIDs,
+		ToUsers:     T.userLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}

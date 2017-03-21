@@ -34,6 +34,10 @@ type UMSUser struct {
 	IconURL          string `json:"iconUrl"`
 	OrganizationID   uint64 `json:"organizationId"`
 	OrganizationName string `json:"organizationName"`
+	UserProductList  []struct {
+		ProductID  int64 `json:"productId"`
+		UserStatus int64 `json:"userStatus"`
+	} `json:"userProductList"`
 }
 
 //UMSOrg 组织
@@ -108,11 +112,15 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([]UMSUser, uint64, error) {
 	url := fmt.Sprintf("%s/rs/organizations/query/orgs/users?pageNum=%d&pageSize=%d&productID=%d", UMSBusinessURL, page, pageSize, 20)
 	body, _ := json.Marshal(orgIDs)
+	logs.Debug("UMS _getAllUserByOrgIDs url:", url, "body:", string(body))
 	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)), "json")
 	if err != nil {
 		return nil, 0, err
 	}
-	logs.Debug("_getAllUserByOrgIDs url:", url, "body:", string(body), "code:", statusCode)
+	logs.Debug("UMS _getAllUserByOrgIDs response:", string(res))
+	if statusCode != 0 {
+		logs.Debug("UMS _getAllUserByOrgIDs url:", url, "code:", statusCode, "res:", string(res))
+	}
 	var data struct {
 		RetCode uint64 `json:"retCode"`
 		RetMsg  string `json:"retMsg"`
@@ -125,4 +133,61 @@ func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([
 		return nil, 0, err
 	}
 	return data.RetObj.UserList, data.RetObj.TotalCount, nil
+}
+
+//GetUsersDetail 批量查询用户详情
+func (U *UMS) GetUsersDetail(customerCode string, userIDs []uint64, isValid bool) ([]UMSUser, error) {
+	var data, tempData []UMSUser
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersDetail", userIDs, isValid)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	url := fmt.Sprintf("%s/rs/users/id/in?requestType=0", UMSBusinessURL)
+	body, _ := json.Marshal(userIDs)
+	logs.Debug("UMS GetUsersDetail url:", url, "body:", string(body))
+	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)), "json")
+	if err != nil {
+		return nil, err
+	}
+	logs.Debug("UMS GetUsersDetail response:", string(res))
+	if statusCode != 0 {
+		logs.Debug("UMS GetUsersDetail url:", url, "code:", statusCode, "res:", string(res))
+	}
+	if string(res) == "" {
+		return nil, nil
+	}
+	if err := json.Unmarshal(res, &tempData); err != nil {
+		return nil, err
+	}
+	if isValid == false {
+		data = tempData
+	} else {
+		for _, user := range tempData {
+			for _, v := range user.UserProductList {
+				if v.ProductID == 20 && (v.UserStatus == 82 || v.UserStatus == 9) {
+					data = append(data, user)
+				}
+			}
+		}
+	}
+	cache.Set(data)
+	return data, nil
+}
+
+//GetUsersLoginName 批量查询用户登录名（账号）
+func (U *UMS) GetUsersLoginName(customerCode string, userIDs []uint64, isValid bool) ([]string, error) {
+	var data []string
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersLoginName", userIDs, isValid)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	usersDetail, err := U.GetUsersDetail(customerCode, userIDs, isValid)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range usersDetail {
+		data = append(data, v.LoginName)
+	}
+	cache.Set(data)
+	return data, nil
 }

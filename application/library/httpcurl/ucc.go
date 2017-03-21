@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/utils"
 )
 
 //UccServerURL ucc server服务器
@@ -52,10 +53,11 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 		res        []byte
 		err        error
 	)
+	reqID := string(utils.RandomCreateBytes(8))
+	logs.Debug("%s->ucc httpCurl url:%s body:%s", reqID, url, string(body))
 	statusCode, res, err = Request(method, url, strings.NewReader(body), "form")
-	logs.Debug("ucc httpCurl url:", url, "body:", string(body), "code:", statusCode)
 	if statusCode != 200 {
-		err = fmt.Errorf("uc httpcurl status code: %d", statusCode)
+		err = fmt.Errorf("%s->ucc httpcurl status code: %d", reqID, statusCode)
 	}
 	if err = json.Unmarshal(res, resData); err != nil {
 		return err
@@ -64,15 +66,12 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 	requestID := rv.FieldByName("RequestID").String()
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
-	logs.Debug("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
+	logs.Debug("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
+	logs.Debug("%s->ucc httpcurl response:%s", reqID, string(res))
 	if errorCode != 0 {
-		err = fmt.Errorf("uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", errorCode, requestID, errorMessage)
+		err = fmt.Errorf("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
 	}
-	if err != nil {
-		logs.Error("uc httpcurl error:", err, "response:", string(res))
-		return err
-	}
-	return nil
+	return err
 }
 
 //MsgSend OA消息 return msg_id

@@ -1,0 +1,10 @@
+/cmd/_script/logs/
+/cmd/_script/debug
+
+
+/cmd/TaskScript/logs/
+/cmd/TaskScript/debug
+
+
+/cmd/WebService/logs/
+/cmd/WebService/debug

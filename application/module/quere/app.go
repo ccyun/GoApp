@@ -1,7 +1,6 @@
 package queue
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -52,7 +51,6 @@ func (app *App) work() {
 				}
 				option := make(map[string]string)
 				option["requestID"] = string(utils.RandomCreateBytes(32))
-				log.Println(option)
 				app.DoFunc(option)
 				time.Sleep(1 * time.Second)
 			}

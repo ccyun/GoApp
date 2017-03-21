@@ -3,6 +3,7 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"testing"
 
@@ -75,4 +76,26 @@ func TestGetToken(t *testing.T) {
 	initHTTPCurl()
 	a := new(UC)
 	a.GetToken()
+}
+
+func TestGetUsersDetail(t *testing.T) {
+	initHTTPCurl()
+	ums := new(UMS)
+	data, err := ums.GetUsersDetail("000092", []uint64{63706854}, true)
+	if err != nil {
+		t.Error(err)
+	}
+	log.Println(data)
+	t.Log(len(data))
+}
+
+func TestGetUsersLoginName(t *testing.T) {
+	initHTTPCurl()
+	ums := new(UMS)
+	data, err := ums.GetUsersLoginName("000092", []uint64{63706854}, true)
+	if err != nil {
+		t.Error(err)
+	}
+	log.Println(data)
+	t.Log(len(data))
 }

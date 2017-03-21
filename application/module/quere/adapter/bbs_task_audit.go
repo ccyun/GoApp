@@ -56,10 +56,15 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 	return nil
 }
 
-// //GetPublishScopeUsers 分析发布范围
-// func (T *TaskAudit) GetPublishScopeUsers() error {
-// 	return nil
-// }
+//GetPublishScopeUsers 分析发布范围
+func (T *TaskAudit) GetPublishScopeUsers() error {
+	var err error
+	T.PublishScope = make(map[string][]uint64)
+	T.PublishScope["user_ids"] = T.userIDs
+	T.userIDs = append(T.userIDs, T.boardInfo.EditorIDs...)
+	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	return err
+}
 
 //CreateFeed 创建Feed
 func (T *TaskAudit) CreateFeed() error {
@@ -134,7 +139,7 @@ func (T *TaskAudit) SendMsg() error {
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
 		SiteID:      T.siteID,
-		ToUsers:     T.bbsInfo.PublishScope.UserIDs,
+		ToUsers:     T.userLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}

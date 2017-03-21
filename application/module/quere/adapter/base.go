@@ -21,6 +21,7 @@ type base struct {
 	boardInfo         model.Board
 	feedID            uint64
 	userIDs           []uint64
+	userLoginNames    []string
 	attachmentsBase64 string
 }
 

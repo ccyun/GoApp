@@ -41,13 +41,11 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskClose) GetPublishScopeUsers() error {
-	model := new(model.BbsTaskReply)
-	userIDs, err := model.GetReplyUserIDs(T.bbsID)
-	if err != nil {
-		return err
-	}
-	T.userIDs = userIDs
-	return nil
+	var err error
+	T.userIDs = T.bbsInfo.PublishScopeUserIDsArr
+	T.userIDs = append(T.userIDs, T.boardInfo.EditorIDs...)
+	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	return err
 }
 
 //CreateFeed 创建Feed
@@ -122,7 +120,7 @@ func (T *TaskClose) SendMsg() error {
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
 		SiteID:      T.siteID,
-		ToUsers:     T.bbsInfo.PublishScope.UserIDs,
+		ToUsers:     T.userLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}

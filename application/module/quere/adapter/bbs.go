@@ -102,7 +102,8 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
 	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs[0:]...)
-	return nil
+	B.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.userIDs, true)
+	return err
 }
 
 //CreateFeed 创建Feed
@@ -222,6 +223,7 @@ func (B *Bbs) oaMsg() error {
 		description = B.boardInfo.BoardName
 	}
 	uc := new(httpcurl.UC)
+
 	data := httpcurl.OASender{
 		SiteID: B.siteID,
 		Title:  B.bbsInfo.Title,
@@ -233,7 +235,7 @@ func (B *Bbs) oaMsg() error {
 			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
 			httpcurl.OASendElementser{Content: description},
 		},
-		ToUsers:    B.bbsInfo.PublishScope.UserIDs,
+		ToUsers:    B.userLoginNames,
 		ToPartyIds: B.bbsInfo.PublishScope.GroupIDs,
 	}
 	data.CustomizedData = feedData.CustomizedData
@@ -253,7 +255,7 @@ func (B *Bbs) customizedMsg() error {
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
 		SiteID:      B.siteID,
-		ToUsers:     B.bbsInfo.PublishScope.UserIDs,
+		ToUsers:     B.userLoginNames,
 		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
