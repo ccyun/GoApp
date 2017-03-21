@@ -13,7 +13,6 @@ import (
 	"github.com/ccyun/GoApp/application/library/conf"
 	"github.com/ccyun/GoApp/application/library/hbase"
 	"github.com/ccyun/GoApp/application/library/httpcurl"
-	"github.com/ccyun/GoApp/application/library/neo4j"
 	"github.com/ccyun/GoApp/application/model"
 	"github.com/ccyun/GoApp/application/module/feed"
 	"github.com/ccyun/GoApp/application/module/pic"
@@ -118,24 +117,6 @@ func InitHbase() error {
 		return err
 	}
 	return hbase.Init(config.Host, config.Port, config.Pool)
-}
-
-//InitNeo4j 初始化Neo4j
-func InitNeo4j() error {
-	var (
-		err    error
-		config struct {
-			Host     string `json:"host"`
-			Port     string `json:"port"`
-			UserName string `json:"username"`
-			Password string `json:"password"`
-			Pool     int    `json:"pool"`
-		}
-	)
-	if err = conf.JSON("neo4j", &config); err != nil {
-		return err
-	}
-	return neo4j.Init(config.Host, config.Port, config.UserName, config.Password, config.Pool)
 }
 
 //InitPackage 初始化其他包
