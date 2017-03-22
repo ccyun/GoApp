@@ -115,8 +115,10 @@ func (B *Bbs) publishScopeHandle(publishScopeString, publishScopeUserIDs string)
 		}
 	}
 	publishUser := []uint64{}
-	if err = json.Unmarshal([]byte(publishScopeUserIDs), &publishUser); err != nil {
-		return data, nil, err
+	if publishScopeUserIDs != "" {
+		if err = json.Unmarshal([]byte(publishScopeUserIDs), &publishUser); err != nil {
+			return data, nil, err
+		}
 	}
 	return data, publishUser, err
 }

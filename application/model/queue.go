@@ -2,6 +2,7 @@ package model
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -28,6 +29,10 @@ func (Q *Queue) TableName() string {
 
 //Pull 读取单条数据
 func (Q *Queue) Pull() (Queue, error) {
+	var mutex sync.Mutex
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	taskInfo := Queue{}
 	cond := orm.NewCondition()
 	condition := cond.And("SetTimer__lt", uint64(time.Now().UnixNano()/1e6)).AndCond(cond.And("Status", 0).OrCond(cond.And("Status", 3).And("TryCount__lt", 3)))

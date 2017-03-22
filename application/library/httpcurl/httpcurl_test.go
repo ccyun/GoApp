@@ -99,3 +99,7 @@ func TestGetUsersLoginName(t *testing.T) {
 	log.Println(data)
 	t.Log(len(data))
 }
+
+func TestGetPublishScope(t *testing.T) {
+	log.Println(new(UC).getPublishScope([]string{"1", "2", "3", "4", "5", "6", "7", "8"}, []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9}, 0))
+}

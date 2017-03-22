@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"time"
+
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
 	"github.com/ccyun/GoApp/application/module/feed"
@@ -61,7 +63,7 @@ func (T *TaskReply) GetPublishScopeUsers() error {
 			T.userIDs = append(T.userIDs, v)
 		}
 	}
-	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 	return err
 }
 
@@ -72,7 +74,7 @@ func (T *TaskReply) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  "taskReply",
-		CreatedAt: T.bbsInfo.CreatedAt,
+		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
@@ -136,11 +138,12 @@ func (T *TaskReply) SendMsg() error {
 	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
-		SiteID:      T.siteID,
-		ToUsers:     T.userLoginNames,
+		SiteID:      strconv.FormatUint(T.siteID, 10),
+		ToUsers:     T.PublishScopeuserLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
+	data.Data1 = "{\"action\":null}"
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err

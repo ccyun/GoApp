@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
@@ -16,7 +17,7 @@ type TaskClose struct {
 }
 
 func init() {
-	Register("TaskClose", new(TaskClose))
+	Register("taskClose", new(TaskClose))
 }
 
 //NewTask 新任务对象
@@ -43,8 +44,7 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 func (T *TaskClose) GetPublishScopeUsers() error {
 	var err error
 	T.userIDs = T.bbsInfo.PublishScopeUserIDsArr
-	T.userIDs = append(T.userIDs, T.boardInfo.EditorIDs...)
-	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 	return err
 }
 
@@ -55,7 +55,7 @@ func (T *TaskClose) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  "taskClose",
-		CreatedAt: T.bbsInfo.CreatedAt,
+		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
@@ -119,11 +119,12 @@ func (T *TaskClose) SendMsg() error {
 	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
-		SiteID:      T.siteID,
-		ToUsers:     T.userLoginNames,
+		SiteID:      strconv.FormatUint(T.siteID, 10),
+		ToUsers:     T.PublishScopeuserLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
+	data.Data1 = "{\"action\":null}"
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err

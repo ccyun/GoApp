@@ -101,8 +101,10 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	B.PublishScope = make(map[string][]uint64)
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
-	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs[0:]...)
-	B.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.userIDs, true)
+	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs...)
+	if len(B.bbsInfo.PublishScope.UserIDs) > 0 {
+		B.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.bbsInfo.PublishScope.UserIDs, true)
+	}
 	return err
 }
 
@@ -120,7 +122,6 @@ func (B *Bbs) CreateFeed() error {
 		Description:    B.bbsInfo.Description,
 		CreatedAt:      B.bbsInfo.PublishAt,
 		UserID:         B.bbsInfo.UsesID,
-		Thumb:          B.bbsInfo.Attachments[0]["url"],
 		Type:           B.bbsInfo.Type,
 		Category:       B.category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
@@ -193,6 +194,9 @@ func (B *Bbs) getFeedCustomizer() feed.Customizer {
 	thumb := ""
 	if B.category == "bbs" {
 		thumb = B.bbsInfo.Attachments[0]["url"]
+		if B.boardInfo.DiscussID > 0 && B.attachmentsBase64 != "" {
+			thumb = B.attachmentsBase64
+		}
 	}
 	return feed.Customizer{
 		BoardID:        B.boardID,
@@ -235,7 +239,7 @@ func (B *Bbs) oaMsg() error {
 			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
 			httpcurl.OASendElementser{Content: description},
 		},
-		ToUsers:    B.userLoginNames,
+		ToUsers:    B.PublishScopeuserLoginNames,
 		ToPartyIds: B.bbsInfo.PublishScope.GroupIDs,
 	}
 	data.CustomizedData = feedData.CustomizedData
@@ -254,11 +258,12 @@ func (B *Bbs) customizedMsg() error {
 	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
-		SiteID:      B.siteID,
-		ToUsers:     B.userLoginNames,
+		SiteID:      strconv.FormatUint(B.siteID, 10),
+		ToUsers:     B.PublishScopeuserLoginNames,
 		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
+	data.Data1 = "{\"action\":null}"
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err

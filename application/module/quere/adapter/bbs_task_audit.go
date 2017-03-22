@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/ccyun/GoApp/application/library/httpcurl"
 	"github.com/ccyun/GoApp/application/model"
@@ -23,27 +24,13 @@ func init() {
 //NewTask 新任务对象
 func (T *TaskAudit) NewTask(task model.Queue) error {
 	T.base.NewTask(task)
-	var action map[string]string
+	var action map[string]uint64
 	if err := json.Unmarshal([]byte(T.action), &action); err != nil {
 		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", T.taskID, T.action)
 	}
-	bbsID, err := strconv.Atoi(action["bbs_id"])
-	if err != nil {
-		return fmt.Errorf("NewTask strconv.Atoi bbs_id error,taskID:%d,action:%s", T.taskID, T.action)
-	}
-	T.bbsID = uint64(bbsID)
-	status, err := strconv.Atoi(action["status"])
-	if err != nil {
-		return fmt.Errorf("NewTask strconv.Atoi status error,taskID:%d,action:%s", T.taskID, T.action)
-	}
-	T.status = int8(status)
-
-	userID, err := strconv.Atoi(action["user_id"])
-	if err != nil {
-		return fmt.Errorf("NewTask strconv.Atoi user_id error,taskID:%d,action:%s", T.taskID, T.action)
-	}
-	T.userIDs = []uint64{uint64(userID)}
-
+	T.bbsID = action["bbs_id"]
+	T.status = int8(action["status"])
+	T.userIDs = []uint64{uint64(action["user_id"])}
 	if err := T.getBbsInfo(); err != nil {
 		return err
 	}
@@ -61,8 +48,7 @@ func (T *TaskAudit) GetPublishScopeUsers() error {
 	var err error
 	T.PublishScope = make(map[string][]uint64)
 	T.PublishScope["user_ids"] = T.userIDs
-	T.userIDs = append(T.userIDs, T.boardInfo.EditorIDs...)
-	T.userLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 	return err
 }
 
@@ -73,7 +59,7 @@ func (T *TaskAudit) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  "taskAudit",
-		CreatedAt: T.bbsInfo.CreatedAt,
+		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
@@ -138,11 +124,12 @@ func (T *TaskAudit) SendMsg() error {
 	}
 	uc := new(httpcurl.UC)
 	data := httpcurl.CustomizedSender{
-		SiteID:      T.siteID,
-		ToUsers:     T.userLoginNames,
+		SiteID:      strconv.FormatUint(T.siteID, 10),
+		ToUsers:     T.PublishScopeuserLoginNames,
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
+	data.Data1 = "{\"action\":null}"
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err

@@ -7,22 +7,22 @@ import (
 
 //base 任务处理适配器（基类）
 type base struct {
-	o                 orm.Ormer
-	taskID            uint64
-	siteID            uint64
-	customerCode      string
-	action            string
-	bbsID             uint64
-	bbsInfo           model.Bbs
-	category          string
-	bbsTaskInfo       model.BbsTask
-	PublishScope      map[string][]uint64
-	boardID           uint64
-	boardInfo         model.Board
-	feedID            uint64
-	userIDs           []uint64
-	userLoginNames    []string
-	attachmentsBase64 string
+	o                          orm.Ormer
+	taskID                     uint64
+	siteID                     uint64
+	customerCode               string
+	action                     string
+	bbsID                      uint64
+	bbsInfo                    model.Bbs
+	category                   string
+	bbsTaskInfo                model.BbsTask
+	PublishScope               map[string][]uint64
+	PublishScopeuserLoginNames []string
+	boardID                    uint64
+	boardInfo                  model.Board
+	feedID                     uint64
+	userIDs                    []uint64
+	attachmentsBase64          string
 }
 
 //Begin 开启事务

@@ -59,12 +59,12 @@ type OASendElementser struct {
 
 //CustomizedSender 定制消息
 type CustomizedSender struct {
-	SiteID      uint64   `json:"siteId"`
+	SiteID      string   `json:"siteId"`
 	AppID       string   `json:"appId"`
 	WebPushData string   `json:"webPushData,omitempty"`
 	ToUsers     []string `json:"toUsers,omitempty"`
 	ToPartyIds  []uint64 `json:"toPartyIds,omitempty"`
-	Data1       string   `json:"data1,omitempty"`
+	Data1       string   `json:"data1"`
 	Data2       string   `json:"data2,omitempty"`
 	Data3       string   `json:"data3,omitempty"`
 	Data4       string   `json:"data4,omitempty"`
@@ -92,6 +92,7 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	if statusCode != 200 {
 		err = fmt.Errorf("%s->uc httpcurl status code: %d", reqID, statusCode)
 	}
+	logs.Debug("%s->uc httpcurl response:%s", reqID, string(res))
 	if err = json.Unmarshal(res, resData); err != nil {
 		return err
 	}
@@ -100,7 +101,7 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
 	logs.Debug("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-	logs.Debug("%s->uc httpcurl response:%s", reqID, string(res))
+
 	if errorCode != 0 {
 		err = fmt.Errorf("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
 	}
@@ -131,6 +132,7 @@ func (U *UC) OASend(postData OASender) error {
 			Token string   `json:"token"`
 			Data  OASender `json:"data"`
 		}
+		err error
 	)
 	postData.AppID = UcAPPID
 	postData.Color = "yellow"
@@ -148,11 +150,22 @@ func (U *UC) OASend(postData OASender) error {
 	data.Data = postData
 	data.Token = U.GetToken()
 	url := fmt.Sprintf("%s/appmsg/oa/send", UcOpenAPIURL)
-	err := U.httpCurl("POST", url, data, &resData)
-	if err != nil {
-		logs.Error("OASend error:", err)
+	i := 0
+	for true {
+		tempData := data
+		tempData.Data.ToUsers, tempData.Data.ToPartyIds = U.getPublishScope(data.Data.ToUsers, data.Data.ToPartyIds, i)
+		if len(tempData.Data.ToUsers) == 0 && len(tempData.Data.ToPartyIds) == 0 {
+			break
+		} else {
+			err = U.httpCurl("POST", url, tempData, &resData)
+			if err != nil {
+				logs.Error("OASend error:", err)
+				return err
+			}
+		}
+		i++
 	}
-	return err
+	return nil
 }
 
 //CustomizedSend 定制消息
@@ -163,14 +176,52 @@ func (U *UC) CustomizedSend(postData CustomizedSender) error {
 			Token string           `json:"token"`
 			Data  CustomizedSender `json:"data"`
 		}
+		err error
 	)
 	postData.AppID = UcAPPID
 	data.Data = postData
 	data.Token = U.GetToken()
 	url := fmt.Sprintf("%s/appmsg/customized/send", UcOpenAPIURL)
-	err := U.httpCurl("POST", url, data, &resData)
-	if err != nil {
-		logs.Error("CustomizedSend error:", err)
+	i := 0
+	for true {
+		tempData := data
+		tempData.Data.ToUsers, tempData.Data.ToPartyIds = U.getPublishScope(data.Data.ToUsers, data.Data.ToPartyIds, i)
+		if len(tempData.Data.ToUsers) == 0 && len(tempData.Data.ToPartyIds) == 0 {
+			break
+		} else {
+			err = U.httpCurl("POST", url, tempData, &resData)
+			if err != nil {
+				logs.Error("CustomizedSend error:", err)
+				return err
+			}
+		}
+		i++
 	}
 	return nil
+}
+
+//getPublishScope 分批发送消息
+func (U *UC) getPublishScope(users []string, partyIds []uint64, page int) ([]string, []uint64) {
+	var (
+		u []string
+		p []uint64
+	)
+	um := len(users)
+	pm := len(partyIds)
+	start := page * 20
+	end := start + 20
+	if start < um {
+		if end > um {
+			end = um
+		}
+		u = users[start:end]
+	}
+	end = start + 20
+	if start < pm {
+		if end > pm {
+			end = pm
+		}
+		p = partyIds[start:end]
+	}
+	return u, p
 }

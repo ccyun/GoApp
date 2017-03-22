@@ -59,6 +59,7 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 	if statusCode != 200 {
 		err = fmt.Errorf("%s->ucc httpcurl status code: %d", reqID, statusCode)
 	}
+	logs.Debug("%s->ucc httpcurl response:%s", reqID, string(res))
 	if err = json.Unmarshal(res, resData); err != nil {
 		return err
 	}
@@ -67,7 +68,6 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
 	logs.Debug("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-	logs.Debug("%s->ucc httpcurl response:%s", reqID, string(res))
 	if errorCode != 0 {
 		err = fmt.Errorf("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
 	}
@@ -79,7 +79,7 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 	var msgData struct {
 		UCCResponseData
 		Data struct {
-			Seq string `json:"seq"`
+			Seq uint64 `json:"seq"`
 		} `json:"data"`
 	}
 	postData.Control.NotSave = 0
@@ -88,19 +88,16 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 	value.Set("site_id", strconv.FormatUint(postData.SiteID, 10))
 	value.Set("user_id", strconv.FormatUint(postData.UserID, 10))
 	value.Set("conversation_type", strconv.FormatInt(postData.ConversationType, 10))
-
 	message, err := json.Marshal(postData.Message)
 	if err != nil {
 		return "", err
 	}
 	value.Set("message", string(message))
-
 	control, err := json.Marshal(postData.Control)
 	if err != nil {
 		return "", err
 	}
 	value.Set("control", string(control))
-
 	to, err := json.Marshal(postData.To)
 	if err != nil {
 		return "", err
@@ -109,5 +106,5 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 	if err := U.httpCurl("POST", fmt.Sprintf("%s/message/msgsend", UccServerURL), value.Encode(), &msgData); err != nil {
 		logs.Error("MsgSend error:", err)
 	}
-	return msgData.Data.Seq, nil
+	return strconv.FormatUint(msgData.Data.Seq, 10), nil
 }
