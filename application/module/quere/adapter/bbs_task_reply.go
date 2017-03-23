@@ -49,22 +49,17 @@ func (T *TaskReply) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskReply) GetPublishScopeUsers() error {
-	model := new(model.BbsTaskReply)
-	userIDs, err := model.GetReplyUserIDs(T.bbsID)
+	model := new(model.Todo)
+	userIDs, err := model.GetUNReplyUserIDs(T.bbsID)
 	if err != nil {
 		return err
 	}
-	var replyUser map[uint64]bool
-	for _, v := range userIDs {
-		replyUser[v] = true
+	if len(userIDs) > 0 {
+		T.userIDs = userIDs
+		T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
+		return err
 	}
-	for _, v := range T.bbsInfo.PublishScopeUserIDsArr {
-		if _, ok := replyUser[v]; !ok {
-			T.userIDs = append(T.userIDs, v)
-		}
-	}
-	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
-	return err
+	return fmt.Errorf("GetPublishScopeUsers error not found UNReplyUser")
 }
 
 //CreateFeed 创建Feed

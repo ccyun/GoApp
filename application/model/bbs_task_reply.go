@@ -18,19 +18,3 @@ type BbsTaskReply struct {
 func (B *BbsTaskReply) TableName() string {
 	return "bbs_task_reply"
 }
-
-//GetReplyUserIDs 读取任务已反馈用户列表数据
-func (B *BbsTaskReply) GetReplyUserIDs(BbsID uint64) ([]uint64, error) {
-	var (
-		replyData []BbsTaskReply
-		data      []uint64
-	)
-	_, err := o.QueryTable(B).Filter("BbsID", BbsID).Exclude("Status", -1).Limit(-1).OrderBy("ID").All(&replyData, "ID", "UserID")
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range replyData {
-		data = append(data, v.UserID)
-	}
-	return data, nil
-}

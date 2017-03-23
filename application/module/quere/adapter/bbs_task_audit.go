@@ -91,7 +91,7 @@ func (T *TaskAudit) CreateRelation() error {
 		ID:       T.feedID,
 		BoardID:  T.boardID,
 		BbsID:    T.bbsID,
-		FeedType: "taskReply",
+		FeedType: "taskAudit",
 	}
 
 	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
@@ -99,7 +99,7 @@ func (T *TaskAudit) CreateRelation() error {
 
 //SendMsg 发送消息
 func (T *TaskAudit) SendMsg() error {
-	feedData, err := feed.NewTask("taskReply", feed.Customizer{
+	feedData, err := feed.NewTask("taskAudit", feed.Customizer{
 		BoardID:        T.boardID,
 		BoardName:      T.boardInfo.BoardName,
 		Avatar:         T.boardInfo.BoardName,

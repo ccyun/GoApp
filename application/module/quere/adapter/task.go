@@ -160,7 +160,7 @@ func (q *queue) runTask() bool {
 		logs.Error(q.L("runTask Delete error"))
 		return false
 	}
-	//tableName string, num int64, err error
+
 	model.AfterUpdate("bbs", q.task.SiteID)
 	model.AfterUpdate("feed", q.task.SiteID)
 	//发送消息
