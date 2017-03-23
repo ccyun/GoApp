@@ -157,6 +157,51 @@ func (B *Bbs) CreateRelation() error {
 	return new(model.Feed).SaveHbase(B.userIDs, feedData, B.boardInfo.DiscussID)
 }
 
+//CreateTodo 创建未处理数
+func (B *Bbs) CreateTodo() error {
+	userIDs := []uint64{}
+	if B.boardInfo.DiscussID != 0 {
+		if B.bbsInfo.Type == "preview" {
+			return nil
+		}
+		for _, u := range B.userIDs {
+			if u != B.bbsInfo.UsesID {
+				userIDs = append(userIDs, u)
+			}
+		}
+	} else {
+		userIDs = B.userIDs
+	}
+	if len(userIDs) == 0 {
+		return nil
+	}
+	var data []model.Todo
+	for _, userID := range userIDs {
+		data = append(data, model.Todo{
+			SiteID:   B.siteID,
+			Type:     "unread",
+			BoardID:  B.boardID,
+			BbsID:    B.bbsID,
+			FeedID:   B.feedID,
+			FeedType: B.category,
+			UserID:   userID,
+		})
+		if B.category == "task" {
+			data = append(data, model.Todo{
+				SiteID:   B.siteID,
+				Type:     "unreply",
+				BoardID:  B.boardID,
+				BbsID:    B.bbsID,
+				FeedID:   B.feedID,
+				FeedType: B.category,
+				UserID:   userID,
+			})
+		}
+	}
+	_, err := B.o.InsertMulti(100000, data)
+	return err
+}
+
 //UpdateStatus 更新状态及接收者用户列表
 //更新BBS状态及接收者总数及列表
 func (B *Bbs) UpdateStatus() error {

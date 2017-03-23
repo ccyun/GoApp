@@ -67,26 +67,11 @@ func (B *base) CreateRelation() error {
 
 //CreateTodo 创建未处理数
 func (B *base) CreateTodo() error {
-	userIDs := []uint64{}
-	if B.boardInfo.DiscussID != 0 {
-		if B.bbsInfo.Type == "preview" {
-			return nil
-		}
-		for _, u := range B.userIDs {
-			if u != B.bbsInfo.UsesID {
-				userIDs = append(userIDs, u)
-			}
-		}
-	} else {
-		userIDs = B.userIDs
-	}
-	if len(userIDs) == 0 {
-		return nil
-	}
 	var data []model.Todo
-	for _, userID := range userIDs {
+	for _, userID := range B.userIDs {
 		data = append(data, model.Todo{
 			SiteID:   B.siteID,
+			Type:     "unread",
 			BoardID:  B.boardID,
 			BbsID:    B.bbsID,
 			FeedID:   B.feedID,
