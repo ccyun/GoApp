@@ -52,7 +52,7 @@ func (app *App) work() {
 				option := make(map[string]string)
 				option["requestID"] = string(utils.RandomCreateBytes(32))
 				app.DoFunc(option)
-				time.Sleep(5 * time.Second)
+				time.Sleep(1 * time.Second)
 			}
 		}(i)
 		time.Sleep(1 * time.Second)
