@@ -60,7 +60,7 @@ func (T *TaskClose) CreateFeed() error {
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
-		CreatedAt:      T.bbsInfo.CreatedAt,
+		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
 		UserID:         T.bbsInfo.UsesID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
@@ -108,7 +108,7 @@ func (T *TaskClose) SendMsg() error {
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
-		CreatedAt:      T.bbsInfo.CreatedAt,
+		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
 	}, feed.CustomizeTasker{
 		EndTime:      T.bbsTaskInfo.EndTime,
 		AllowExpired: T.bbsTaskInfo.AllowExpired,

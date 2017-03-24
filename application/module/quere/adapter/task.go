@@ -75,9 +75,9 @@ func (q *queue) getTask() bool {
 		logs.Notice(q.L("getTask TimeOut error:."), err)
 	}
 	if q.task, err = q.model.Pull(); err == nil {
+		logs.Debug(q.L("task info :"), q.task)
 		return true
 	}
-
 	if err == orm.ErrNoRows {
 		logs.Notice(q.L("Not found task info."))
 	} else {

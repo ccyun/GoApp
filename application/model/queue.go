@@ -1,7 +1,6 @@
 package model
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -42,7 +41,6 @@ func (Q *Queue) Pull() (Queue, error) {
 	if err := Q.lockTask(taskInfo); err != nil {
 		return Queue{}, err
 	}
-	log.Println(taskInfo.ID)
 	return taskInfo, nil
 }
 

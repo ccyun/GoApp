@@ -115,7 +115,7 @@ func (B *Bbs) CreateFeed() error {
 		BoardID:   B.boardID,
 		BbsID:     B.bbsID,
 		FeedType:  B.category,
-		CreatedAt: B.bbsInfo.CreatedAt,
+		CreatedAt: B.bbsInfo.PublishAt,
 	}
 	data := model.FeedData{
 		Title:          B.bbsInfo.Title,
@@ -186,7 +186,7 @@ func (B *Bbs) CreateTodo() error {
 			FeedType: B.category,
 			UserID:   userID,
 		})
-		if B.category == "task" {
+		if B.category == "task" && B.bbsInfo.Type == "default" {
 			data = append(data, model.Todo{
 				SiteID:   B.siteID,
 				Type:     "unreply",
