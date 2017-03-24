@@ -55,23 +55,18 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) erro
 	}
 	var data []*hbase.TPut
 	valueData := F.makeHbaseValue(feedData)
-	if discussID > 0 { //群广播
-		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
+	for _, u := range userIDs {
+		rowkey := function.MakeRowkey(int64(u))
+		if discussID > 0 {
+			rowkey += "_discuss"
+		}
 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
 		}
-	} else { //普通广播
-		for _, u := range userIDs {
-			rowkey := function.MakeRowkey(int64(u))
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
-			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
-			}
-		}
 	}
+	// }
 	return client.PutMultiple([]byte(F.HbaseTableName()), data)
 }
 
@@ -93,55 +88,4 @@ func (F *Feed) makeHbaseValue(feedData Feed) []*hbase.TColumnValue {
 			Timestamp: &timeStamp,
 		},
 	}
-}
-
-//DelHbase 删除数据
-func (F *Feed) DelHbase(userIDs []uint64, boardID uint64, feedIDs []uint64) error {
-	client, err := hbase.OpenClient()
-	defer hbase.CloseClient(client)
-	if err != nil {
-		return err
-	}
-	var (
-		qualifier, family []byte
-		data              []*hbase.TDelete
-		columns           []*hbase.TColumn
-	)
-	qualifier = []byte(strconv.FormatUint(boardID, 10))
-	family = []byte("cf")
-	for _, feedID := range feedIDs {
-		feedIDi := int64(feedID)
-		columns = append(columns, &hbase.TColumn{
-			Family:    family,
-			Qualifier: qualifier,
-			Timestamp: &feedIDi,
-		})
-	}
-	for _, u := range userIDs {
-		rowkey := function.MakeRowkey(int64(u))
-		data = append(data, &hbase.TDelete{
-			Row:        []byte(rowkey + "_home"),
-			Columns:    columns,
-			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
-		}, &hbase.TDelete{
-			Row:        []byte(rowkey + "_list"),
-			Columns:    columns,
-			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
-		}, &hbase.TDelete{
-			Row:        []byte(rowkey + "_bbs"),
-			Columns:    columns,
-			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
-		}, &hbase.TDelete{
-			Row:        []byte(rowkey + "_task"),
-			Columns:    columns,
-			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
-		}, &hbase.TDelete{
-			Row:        []byte(rowkey + "_form"),
-			Columns:    columns,
-			DeleteType: hbase.TDeleteType_DELETE_COLUMN,
-		})
-
-	}
-	_, err = client.DeleteMultiple([]byte(F.HbaseTableName()), data)
-	return err
 }

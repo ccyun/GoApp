@@ -110,6 +110,9 @@ func (B *Bbs) GetPublishScopeUsers() error {
 
 //CreateFeed 创建Feed
 func (B *Bbs) CreateFeed() error {
+	if B.boardInfo.DiscussID > 0 && B.bbsInfo.Type == "preview" {
+		return nil
+	}
 	feedData := model.Feed{
 		SiteID:    B.siteID,
 		BoardID:   B.boardID,
@@ -148,6 +151,9 @@ func (B *Bbs) CreateFeed() error {
 
 //CreateRelation 创建接收者关系
 func (B *Bbs) CreateRelation() error {
+	if B.boardInfo.DiscussID > 0 && B.bbsInfo.Type == "preview" {
+		return nil
+	}
 	feedData := model.Feed{
 		ID:       B.feedID,
 		BoardID:  B.boardID,
@@ -155,12 +161,13 @@ func (B *Bbs) CreateRelation() error {
 		FeedType: B.category,
 	}
 	return new(model.Feed).SaveHbase(B.userIDs, feedData, B.boardInfo.DiscussID)
+
 }
 
 //CreateTodo 创建未处理数
 func (B *Bbs) CreateTodo() error {
 	userIDs := []uint64{}
-	if B.boardInfo.DiscussID != 0 {
+	if B.boardInfo.DiscussID > 0 {
 		if B.bbsInfo.Type == "preview" {
 			return nil
 		}
