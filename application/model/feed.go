@@ -55,18 +55,23 @@ func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) erro
 	}
 	var data []*hbase.TPut
 	valueData := F.makeHbaseValue(feedData)
-	for _, u := range userIDs {
-		rowkey := function.MakeRowkey(int64(u))
-		if discussID > 0 {
-			rowkey += "_discuss"
-		}
+	if discussID > 0 {
+		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
-		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
 		}
+	} else {
+		for _, u := range userIDs {
+			rowkey := function.MakeRowkey(int64(u))
+			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+			}
+		}
 	}
-	// }
 	return client.PutMultiple([]byte(F.HbaseTableName()), data)
 }
 

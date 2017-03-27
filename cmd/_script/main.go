@@ -150,6 +150,10 @@ func (T *task) getInfo(id uint64) error {
 }
 
 func (T *task) getPublishScopeUserIDsArr(data []msger) error {
+	if T.bbsInfo.DiscussID > 0 {
+		//读取数据库
+		return nil
+	}
 	orgIDs := []uint64{}
 	for _, v := range data {
 		if v.SendType == "user" {
@@ -173,7 +177,7 @@ func (T *task) getPublishScopeUserIDsArr(data []msger) error {
 
 //handleFeed 处理关系
 func (T *task) handleBbs() error {
-	if T.bbsInfo.DiscussID != 0 && T.bbsInfo.Type == "default" {
+	if T.bbsInfo.DiscussID > 0 && T.bbsInfo.Type == "default" {
 		return nil
 	}
 	userIDstr, _ := json.Marshal(T.bbsInfo.PublishScopeUserIDsArr)
@@ -188,6 +192,9 @@ func (T *task) handleBbs() error {
 
 //handleFeed 处理关系
 func (T *task) handleFeed() error {
+	if T.bbsInfo.DiscussID > 0 && T.bbsInfo.Type == "preview" {
+		return nil
+	}
 	feedData := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,

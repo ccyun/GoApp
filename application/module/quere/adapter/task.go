@@ -151,7 +151,6 @@ func (q *queue) runTask() bool {
 	logs.Info(q.L("Start CreateRelation"))
 	if err := q.mode.CreateRelation(); err != nil {
 		logs.Error(q.L("runTask CreateRelation error"), err)
-		q.mode.Rollback()
 		return false
 	}
 	//关闭任务
