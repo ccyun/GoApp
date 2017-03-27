@@ -1,14 +1,23 @@
 package conf
 
-import "github.com/astaxie/beego/config"
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"os"
+
+	"github.com/astaxie/beego/config"
+)
 
 //Conf 配置
 var Conf config.Configer
 
 //InitConfig 初始化配置
 func InitConfig() error {
-	conf, err := config.NewConfig("ini", "conf.ini")
+	confile := "conf.ini"
+	if len(os.Args) > 2 && os.Args[1] == "-c" {
+		confile = os.Args[2]
+	}
+	conf, err := config.NewConfig("ini", confile)
 	if err != nil {
 		return err
 	}

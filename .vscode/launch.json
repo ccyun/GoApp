@@ -25,7 +25,7 @@
             "host": "127.0.0.1",
             "program": "${workspaceRoot}/cmd/TaskScript/",
             "env": {},
-            "args": [],
+            "args": ["-c","D:/Go/WorkSpace/src/github.com/ccyun/GoApp/cmd/TaskScript/conf.ini"],
             "showLog": true
         }
     ]

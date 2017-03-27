@@ -3,7 +3,6 @@ package syslog2
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"log/syslog"
@@ -14,6 +13,7 @@ import (
 //SysLogWriter syslog结构体
 type SysLogWriter struct {
 	w     *syslog.Writer
+	wc    *syslog.Writer
 	Level int    `json:"level"`
 	Tag   string `json:"tag"`
 }
@@ -27,25 +27,30 @@ func newSysLogWriter() logs.Logger {
 
 //Init 初始化配置
 func (s *SysLogWriter) Init(config string) error {
-	err := json.Unmarshal([]byte(config), s)
-	if err != nil {
+	var err error
+	if err = json.Unmarshal([]byte(config), s); err != nil {
 		return err
 	}
-	w, err := syslog.New(syslog.LOG_LOCAL0, s.Tag)
-	if err != nil {
+	if s.w, err = syslog.New(syslog.LOG_LOCAL0, s.Tag); err != nil {
 		return err
 	}
-	s.w = w
+	if s.wc, err = syslog.New(syslog.LOG_LOCAL5, s.Tag); err != nil {
+		return err
+	}
 	return nil
 }
 
 //WriteMsg 写log
 func (s *SysLogWriter) WriteMsg(when time.Time, msg string, level int) error {
+	var err error
 	if level > s.Level {
 		return nil
 	}
-	_, err := s.w.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
-	log.Println(err)
+	if level == 2 {
+		_, err = s.wc.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
+	} else {
+		_, err = s.w.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
+	}
 	return err
 }
 

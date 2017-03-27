@@ -4,11 +4,11 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/astaxie/beego/utils"
+	"github.com/ccyun/GoApp/application/library/conf"
 	"github.com/ccyun/GoApp/application/model"
 )
 
@@ -28,11 +28,9 @@ func initRegister() {
 //Run 启动
 func (app *App) Run() {
 	initRegister()
-	if len(os.Args) > 1 {
-		app.thread, _ = strconv.Atoi(os.Args[1])
-	}
-	if app.thread < 1 { //使用CPU多核处理
-		app.thread = runtime.NumCPU()
+	app.thread, _ = conf.Int("app_threads")
+	if app.thread < 1 {
+		app.thread = runtime.NumCPU() //使用CPU多核处理
 	}
 	runtime.GOMAXPROCS(app.thread)
 	app.done = make(chan bool, app.thread)
