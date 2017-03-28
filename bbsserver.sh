@@ -2,9 +2,9 @@
 #
 # chkconfig: 2345 64 36
 # description: bbsapp quere script  startup scripts
-bbstaskscript_root="/home/ubuntu/cmd/TaskScript"
-configs="/home/ubuntu/cmd/TaskScript/config.ini"
-nohupfile="/home/ubuntu/cmd/TaskScript/nohup.out"
+root="/home/ubuntu/cmd/TaskScript"
+configs=$root"/conf.ini"
+nohupfile=$root"/nohup.out"
 
 ulimit -c unlimited
 echo 1 > /proc/sys/fs/suid_dumpable
@@ -13,8 +13,14 @@ echo  "/uc/share/%e-%p-%s-%t.core" >/proc/sys/kernel/core_pattern
 ulimit -n 1024000 
  
 start() {
-	nohup $bbstaskscript_root/TaskScript -c $configs >> $nohupfile &
-	sleep 1
+    if test $(pgrep -f TaskScript|wc -l) -eq 0
+    then
+        echo "taskscript is running..."
+    else
+        $root/TaskScript -c $configs >> $nohupfile &
+        return
+    fi
+	sleep 2
 	test -f|pgrep TaskScript>/dev/null && echo "Start bbsapp taskscript success"
 }
  
