@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/astaxie/beego/logs"
 )
 
 //Request curl请求
@@ -37,6 +39,7 @@ func Request(method string, url string, body io.Reader, contentType string) (int
 			respBody, _ = ioutil.ReadAll(response.Body)
 		}
 		if response.StatusCode > 300 {
+			logs.Critical("http request fail, url: %s", url)
 			return response.StatusCode, respBody, fmt.Errorf("http request fail, url: %s", url)
 		}
 		return response.StatusCode, respBody, nil

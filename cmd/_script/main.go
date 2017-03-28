@@ -7,10 +7,10 @@ import (
 	"sync"
 
 	"github.com/astaxie/beego/orm"
-	_ "github.com/ccyun/GoApp/application"
-	"github.com/ccyun/GoApp/application/library/httpcurl"
-	"github.com/ccyun/GoApp/application/model"
-	"github.com/ccyun/GoApp/application/module/feed"
+	_ "bbs_server/application"
+	"bbs_server/application/library/httpcurl"
+	"bbs_server/application/model"
+	"bbs_server/application/module/feed"
 )
 
 var (

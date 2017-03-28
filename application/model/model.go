@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/ccyun/GoApp/application/library/redis"
+	"bbs_server/application/library/redis"
 )
 
 var (

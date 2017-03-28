@@ -10,7 +10,7 @@ import (
 	"math"
 
 	"github.com/astaxie/beego/logs"
-	"github.com/ccyun/GoApp/application/library/redis"
+	"bbs_server/application/library/redis"
 )
 
 var (

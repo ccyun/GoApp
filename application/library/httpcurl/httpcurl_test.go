@@ -9,7 +9,7 @@ import (
 
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/config"
-	"github.com/ccyun/GoApp/application/library/redis"
+	"bbs_server/application/library/redis"
 )
 
 //Conf 配置

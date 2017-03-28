@@ -7,9 +7,9 @@ import (
 
 	"fmt"
 
-	"github.com/ccyun/GoApp/application/library/httpcurl"
-	"github.com/ccyun/GoApp/application/model"
-	"github.com/ccyun/GoApp/application/module/feed"
+	"bbs_server/application/library/httpcurl"
+	"bbs_server/application/model"
+	"bbs_server/application/module/feed"
 )
 
 //Bbs 图文广播

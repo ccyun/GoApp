@@ -6,7 +6,7 @@ import (
 
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/logs"
-	"github.com/ccyun/GoApp/application/function"
+	"bbs_server/application/function"
 	"github.com/chasex/redis-go-cluster"
 )
 
@@ -62,7 +62,7 @@ func (c *C) Get(data interface{}) bool {
 	)
 
 	if val, err = redis.String(Cache.Get(c.key), nil); err != nil {
-		logs.Info("GetCache value Assertion error", err, c.key, val)
+		logs.Error("GetCache value Assertion error", err, c.key, val)
 		return false
 	}
 	if err = json.Unmarshal([]byte(val), data); err != nil {

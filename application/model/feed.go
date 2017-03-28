@@ -3,8 +3,8 @@ package model
 import (
 	"strconv"
 
-	"github.com/ccyun/GoApp/application/function"
-	"github.com/ccyun/GoApp/application/library/hbase"
+	"bbs_server/application/function"
+	"bbs_server/application/library/hbase"
 )
 
 //Feed 任务表结构

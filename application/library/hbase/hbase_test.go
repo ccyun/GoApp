@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/astaxie/beego/config"
-	"github.com/ccyun/GoApp/application/function"
+	"bbs_server/application/function"
 )
 
 var (

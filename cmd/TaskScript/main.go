@@ -1,9 +1,9 @@
 package main
 
 import (
-	_ "github.com/ccyun/GoApp/application"
-	"github.com/ccyun/GoApp/application/module/quere"
-	"github.com/ccyun/GoApp/application/module/quere/adapter"
+	_ "bbs_server/application"
+	"bbs_server/application/module/quere"
+	"bbs_server/application/module/quere/adapter"
 )
 
 func main() {

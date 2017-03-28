@@ -12,7 +12,7 @@ import (
 
 	//redis 驱动
 
-	"github.com/ccyun/GoApp/application/library/redis"
+	"bbs_server/application/library/redis"
 
 	//mysql driver
 	_ "github.com/go-sql-driver/mysql"

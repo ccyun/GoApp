@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ccyun/GoApp/application/module/pic"
+	"bbs_server/application/module/pic"
 )
 
 //GetBbsView 图文广播模板

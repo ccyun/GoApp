@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/astaxie/beego/config"
-	"github.com/ccyun/GoApp/application/module/pic"
+	"bbs_server/application/module/pic"
 )
 
 //Conf 配置

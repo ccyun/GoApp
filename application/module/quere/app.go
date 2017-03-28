@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/utils"
-	"github.com/ccyun/GoApp/application/library/conf"
-	"github.com/ccyun/GoApp/application/model"
+	"bbs_server/application/library/conf"
+	"bbs_server/application/model"
 )
 
 //App 流程控制

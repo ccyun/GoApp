@@ -1,9 +1,10 @@
 package adapter
 
 import (
+	"bbs_server/application/model"
+
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
-	"github.com/ccyun/GoApp/application/model"
 )
 
 //Tasker 任务接口
@@ -63,6 +64,8 @@ func (q *queue) run() {
 	}
 	logs.Info(q.L("Start runTask"))
 	if q.runTask() == false { //任务失败
+		logs.Critical(q.L("runTask error"))
+		q.model.Fail(q.task.ID)
 		return
 	}
 	logs.Info(q.L("Successful"))
@@ -72,16 +75,16 @@ func (q *queue) run() {
 func (q *queue) getTask() bool {
 	var err error
 	if err = q.model.TimeOut(); err != nil {
-		logs.Notice(q.L("getTask TimeOut error:."), err)
+		logs.Critical(q.L("getTask TimeOut error:"), err)
 	}
 	if q.task, err = q.model.Pull(); err == nil {
-		logs.Debug(q.L("task info :"), q.task)
+		logs.Info(q.L("task info :"), q.task)
 		return true
 	}
 	if err == orm.ErrNoRows {
 		logs.Notice(q.L("Not found task info."))
 	} else {
-		logs.Error(q.L("getTaskInfo Pull"), err)
+		logs.Critical(q.L("getTaskInfo Pull"), err)
 	}
 	return false
 }

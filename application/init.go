@@ -10,16 +10,16 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 
-	"github.com/ccyun/GoApp/application/library/conf"
-	"github.com/ccyun/GoApp/application/library/hbase"
-	"github.com/ccyun/GoApp/application/library/httpcurl"
-	"github.com/ccyun/GoApp/application/model"
-	"github.com/ccyun/GoApp/application/module/feed"
-	"github.com/ccyun/GoApp/application/module/pic"
+	"bbs_server/application/library/conf"
+	"bbs_server/application/library/hbase"
+	"bbs_server/application/library/httpcurl"
+	"bbs_server/application/model"
+	"bbs_server/application/module/feed"
+	"bbs_server/application/module/pic"
 	//syslog 驱动
-	_ "github.com/ccyun/GoApp/application/library/syslog2"
+	_ "bbs_server/application/library/syslog2"
 	//redis 驱动
-	"github.com/ccyun/GoApp/application/library/redis"
+	"bbs_server/application/library/redis"
 	//mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
