@@ -1,8 +1,9 @@
 package adapter
 
 import (
-	"github.com/astaxie/beego/orm"
 	"bbs_server/application/model"
+
+	"github.com/astaxie/beego/orm"
 )
 
 //base 任务处理适配器（基类）

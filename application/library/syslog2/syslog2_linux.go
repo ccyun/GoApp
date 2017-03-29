@@ -46,10 +46,27 @@ func (s *SysLogWriter) WriteMsg(when time.Time, msg string, level int) error {
 	if level > s.Level {
 		return nil
 	}
-	if level == 2 {
-		_, err = s.wc.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
-	} else {
-		_, err = s.w.Write([]byte(fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)))
+	logMsg := fmt.Sprintf("%s %s", when.Format("2006-01-02 15:04:05"), msg)
+	if level == logs.LevelCritical {
+		err = s.wc.Crit(logMsg)
+	}
+	switch level {
+	case logs.LevelEmergency:
+		err = s.w.Emerg(logMsg)
+	case logs.LevelAlert:
+		err = s.w.Alert(logMsg)
+	case logs.LevelCritical:
+		err = s.w.Crit(logMsg)
+	case logs.LevelError:
+		err = s.w.Err(logMsg)
+	case logs.LevelWarning:
+		err = s.w.Warning(logMsg)
+	case logs.LevelNotice:
+		err = s.w.Notice(logMsg)
+	case logs.LevelInfo:
+		err = s.w.Info(logMsg)
+	case logs.LevelDebug:
+		err = s.w.Debug(logMsg)
 	}
 	return err
 }
