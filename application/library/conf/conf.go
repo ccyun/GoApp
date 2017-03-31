@@ -5,6 +5,7 @@ import (
 
 	"os"
 
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
 )
 
@@ -18,6 +19,7 @@ func InitConfig() error {
 		confile = os.Args[2]
 	}
 	conf, err := config.NewConfig("ini", confile)
+	beego.LoadAppConfig("ini", confile)
 	if err != nil {
 		return err
 	}

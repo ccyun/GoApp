@@ -2,6 +2,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Start script",            
             "type": "go",
@@ -26,6 +27,19 @@
             "program": "${workspaceRoot}/cmd/TaskScript/",
             "env": {},
             "args": ["-c","D:/Go/WorkSpace/src/bbs_server/cmd/TaskScript/conf.ini"],
+            "showLog": true
+        },
+        {
+            "name": "Start Web",            
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/WebService/",
+            "env": {},
+            "args": [],
             "showLog": true
         }
     ]

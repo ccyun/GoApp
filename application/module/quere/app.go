@@ -7,9 +7,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/astaxie/beego/utils"
 	"bbs_server/application/library/conf"
-	"bbs_server/application/model"
+
+	"github.com/astaxie/beego/utils"
 )
 
 //App 流程控制
@@ -20,14 +20,8 @@ type App struct {
 	DoFunc func(map[string]string)
 }
 
-//initRegister 初始化注册
-func initRegister() {
-	model.RegisterModels()
-}
-
 //Run 启动
 func (app *App) Run() {
-	initRegister()
 	app.thread, _ = conf.Int("app_threads")
 	if app.thread < 1 {
 		app.thread = runtime.NumCPU() //使用CPU多核处理

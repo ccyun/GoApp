@@ -36,7 +36,7 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase, InitPackage)
+	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase, InitPackage, InitRouter)
 }
 
 //InitConfig 初始化配置
@@ -49,7 +49,7 @@ func InitLog() error {
 	if runtime.GOOS == "linux" && conf.String("log_type") == "syslog" {
 		logs.SetLogger("syslog", `{"tag":"`+conf.String("log_tag")+`"}`)
 	} else {
-		logs.SetLogger("file", `{"filename":"`+conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
+		logs.SetLogger(logs.AdapterFile, `{"filename":"`+conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
 	}
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(4)
@@ -79,6 +79,8 @@ func InitDB() error {
 	}
 	o := new(io)
 	orm.DebugLog = orm.NewLog(o)
+	//注册model
+	model.RegisterModels()
 	return nil
 }
 
