@@ -44,8 +44,5 @@ func Request(method string, url string, body io.Reader, contentType string) (int
 		}
 		return response.StatusCode, respBody, nil
 	}
-	if err != nil {
-		return -1, nil, fmt.Errorf("http request fail, url: %s, error:%s", url, err.Error())
-	}
-	return -1, nil, fmt.Errorf("http request fail, url: %s, error:%s", url, err.Error())
+	return -1, nil, err
 }
