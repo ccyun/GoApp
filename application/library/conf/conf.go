@@ -7,6 +7,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/config"
+	"github.com/astaxie/beego/logs"
 )
 
 //Conf 配置
@@ -20,6 +21,7 @@ func InitConfig() error {
 	}
 	conf, err := config.NewConfig("ini", confile)
 	beego.LoadAppConfig("ini", confile)
+	beego.BeeLogger.DelLogger(logs.AdapterConsole)
 	if err != nil {
 		return err
 	}
