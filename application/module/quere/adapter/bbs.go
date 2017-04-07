@@ -32,7 +32,9 @@ type OACustomizedDataer struct {
 }
 
 func init() {
-	Register("bbs", new(Bbs))
+	Register("bbs", func() Tasker {
+		return new(Bbs)
+	})
 }
 
 //getBbsTaskInfo 读取广播任务信息

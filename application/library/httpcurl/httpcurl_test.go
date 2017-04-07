@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"bbs_server/application/library/redis"
+
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/config"
-	"bbs_server/application/library/redis"
 )
 
 //Conf 配置
@@ -23,7 +24,7 @@ func initHTTPCurl() {
 			}
 		}
 	}(func() error {
-		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
+		conf, err := config.NewConfig("ini", "../../../cmd/WebService/conf.ini")
 		if err != nil {
 			return err
 		}
@@ -102,4 +103,9 @@ func TestGetUsersLoginName(t *testing.T) {
 
 func TestGetPublishScope(t *testing.T) {
 	log.Println(new(UC).getPublishScope([]string{"1", "2", "3", "4", "5", "6", "7", "8"}, []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9}, 0))
+}
+
+func TestCheckSession(t *testing.T) {
+
+	new(UCC).CheckSession(1111, "fdsfsdf")
 }

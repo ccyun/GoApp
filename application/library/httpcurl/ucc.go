@@ -3,6 +3,7 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"reflect"
 	"strings"
@@ -107,4 +108,27 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 		logs.Error("MsgSend error:", err)
 	}
 	return strconv.FormatUint(msgData.Data.Seq, 10), nil
+}
+
+//CheckSession 检测session
+func (U *UCC) CheckSession(userID uint64, sessionID string) {
+	var msgData struct {
+		UCCResponseData
+		Data struct {
+			UserID       uint64 `json:"user_id"`
+			UserAccount  string `json:"user_account"`
+			SiteID       uint64 `json:"site_id"`
+			DisplayName  string `json:"display_name"`
+			CustomerCode string `json:"customer_code"`
+			DepartmentID uint64 `json:"department_id"`
+			OrgNodeCode  string `json:"org_node_code"`
+		} `json:"data"`
+	}
+	value := url.Values{}
+	value.Set("session_id", sessionID)
+	value.Set("user_id", strconv.FormatUint(userID, 10))
+	if err := U.httpCurl("POST", fmt.Sprintf("%s/user/check", UccServerURL), value.Encode(), &msgData); err != nil {
+		logs.Error("CheckSession error:", err)
+	}
+	log.Println(msgData)
 }

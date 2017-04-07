@@ -21,6 +21,9 @@ type Tasker interface {
 	SendMsg() error
 }
 
+//newTaskFunc
+type newTasker func() Tasker
+
 //queue 队列
 type queue struct {
 	task      model.Queue
@@ -30,10 +33,10 @@ type queue struct {
 }
 
 //适配器
-var modes = make(map[string]Tasker)
+var modes = make(map[string]newTasker)
 
 //Register 初测适配器
-func Register(name string, mode Tasker) {
+func Register(name string, mode newTasker) {
 	if mode == nil {
 		panic("task: Register mode is nil")
 	}
@@ -99,7 +102,7 @@ func (q *queue) checkTask() bool {
 		}
 		return false
 	}
-	q.mode = mode
+	q.mode = mode()
 	return true
 }
 

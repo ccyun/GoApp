@@ -18,7 +18,9 @@ type TaskAudit struct {
 }
 
 func init() {
-	Register("taskAudit", new(TaskAudit))
+	Register("taskAudit", func() Tasker {
+		return new(TaskAudit)
+	})
 }
 
 //NewTask 新任务对象

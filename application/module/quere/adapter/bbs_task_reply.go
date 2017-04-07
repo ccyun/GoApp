@@ -18,7 +18,9 @@ type TaskReply struct {
 }
 
 func init() {
-	Register("taskReply", new(TaskReply))
+	Register("taskReply", func() Tasker {
+		return new(TaskReply)
+	})
 }
 
 //NewTask 新任务对象

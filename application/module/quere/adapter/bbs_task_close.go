@@ -17,7 +17,9 @@ type TaskClose struct {
 }
 
 func init() {
-	Register("taskClose", new(TaskClose))
+	Register("taskClose", func() Tasker {
+		return new(TaskClose)
+	})
 }
 
 //NewTask 新任务对象
