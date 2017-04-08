@@ -14,10 +14,13 @@ import (
 var Conf config.Configer
 
 //InitConfig 初始化配置
-func InitConfig() error {
+func InitConfig(file string) error {
 	confile := "conf.ini"
 	if len(os.Args) > 2 && os.Args[1] == "-c" {
 		confile = os.Args[2]
+	}
+	if file != "" {
+		confile = file
 	}
 	conf, err := config.NewConfig("ini", confile)
 	beego.LoadAppConfig("ini", confile)

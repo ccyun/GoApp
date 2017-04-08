@@ -41,7 +41,7 @@ func init() {
 
 //InitConfig 初始化配置
 func InitConfig() error {
-	return conf.InitConfig()
+	return conf.InitConfig("")
 }
 
 //InitLog 初始化log

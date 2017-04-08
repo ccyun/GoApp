@@ -1,41 +1,31 @@
 package redis
 
 import (
+	"bbs_server/application/library/conf"
+	"log"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/config"
 	"github.com/chasex/redis-go-cluster"
 )
 
-//Conf 配置
-var Conf config.Configer
+var isInit = false
 
+//initCache 初始化缓存
 func initCache() {
-	func(funcs ...func() error) {
-		for _, f := range funcs {
-			if err := f(); err != nil {
-				panic(err)
-			}
-		}
-	}(func() error {
-		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
+	if isInit == false {
+		conf.InitConfig("../../../cmd/TaskScript/conf.ini")
+		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
-			return err
-		}
-		Conf = conf
-		return nil
-	}, func() error {
-		cache, err := cache.NewCache("redis", Conf.String("cache"))
-		if err != nil {
-			return err
+			log.Println(err)
+			return
 		}
 		Cache = cache
-		return nil
-	})
+		isInit = true
+	}
 }
 
 //TestLock 测试锁机制

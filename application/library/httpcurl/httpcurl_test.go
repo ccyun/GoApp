@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"bbs_server/application/library/conf"
+	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/library/redis"
 
 	"github.com/astaxie/beego/cache"
@@ -15,6 +17,32 @@ import (
 
 //Conf 配置
 var Conf config.Configer
+
+var isInit = false
+
+//initHTTPCurl 初始化httpcurl
+func initHTTPCurl() {
+	if isInit == false {
+		conf.InitConfig("../../../cmd/TaskScript/conf.ini")
+
+		cache, err := cache.NewCache("redis", conf.String("cache"))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		redis.Cache = cache
+
+		httpcurl.UMSLoginURL = conf.String("ums_login_url")
+		httpcurl.UMSBusinessURL = conf.String("ums_business_url")
+		//初始化uc配置
+		httpcurl.UcOpenAPIURL = conf.String("uc_open_api_url")
+		httpcurl.UcAPPID = conf.String("uc_open_appid")
+		httpcurl.UcPaddword = conf.String("uc_open_password")
+		//初始化ucc配置
+		httpcurl.UccServerURL = conf.String("uccserver_url")
+		isInit = true
+	}
+}
 
 func initHTTPCurl() {
 	func(funcs ...func() error) {
