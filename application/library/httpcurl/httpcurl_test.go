@@ -2,80 +2,40 @@ package httpcurl
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"testing"
 
 	"bbs_server/application/library/conf"
-	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/library/redis"
 
 	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/config"
 )
-
-//Conf 配置
-var Conf config.Configer
 
 var isInit = false
 
 //initHTTPCurl 初始化httpcurl
 func initHTTPCurl() {
 	if isInit == false {
-		conf.InitConfig("../../../cmd/TaskScript/conf.ini")
-
+		conf.InitConfig("../../../cmd/base.ini")
 		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
 			log.Println(err)
 			return
 		}
 		redis.Cache = cache
-
-		httpcurl.UMSLoginURL = conf.String("ums_login_url")
-		httpcurl.UMSBusinessURL = conf.String("ums_business_url")
+		UMSLoginURL = conf.String("ums_login_url")
+		UMSBusinessURL = conf.String("ums_business_url")
 		//初始化uc配置
-		httpcurl.UcOpenAPIURL = conf.String("uc_open_api_url")
-		httpcurl.UcAPPID = conf.String("uc_open_appid")
-		httpcurl.UcPaddword = conf.String("uc_open_password")
+		UcOpenAPIURL = conf.String("uc_open_api_url")
+		UcAPPID = conf.String("uc_open_appid")
+		UcPaddword = conf.String("uc_open_password")
 		//初始化ucc配置
-		httpcurl.UccServerURL = conf.String("uccserver_url")
+		UccServerURL = conf.String("uccserver_url")
 		isInit = true
 	}
-}
-
-func initHTTPCurl() {
-	func(funcs ...func() error) {
-		for _, f := range funcs {
-			if err := f(); err != nil {
-				panic(err)
-			}
-		}
-	}(func() error {
-		conf, err := config.NewConfig("ini", "../../../cmd/WebService/conf.ini")
-		if err != nil {
-			return err
-		}
-		Conf = conf
-		return nil
-	}, func() error {
-		cache, err := cache.NewCache("redis", Conf.String("cache"))
-		if err != nil {
-			return err
-		}
-		redis.Cache = cache
-		return nil
-	}, func() error {
-		//初始化ums配置
-		UMSLoginURL = Conf.String("ums_login_url")
-		UMSBusinessURL = Conf.String("ums_business_url")
-		//初始化uc配置
-		UcOpenAPIURL = Conf.String("uc_open_api_url")
-		UcAPPID = Conf.String("uc_open_appid")
-		UcPaddword = Conf.String("uc_open_password")
-		return nil
-
-	})
 }
 
 func TestRequest(t *testing.T) {
@@ -104,7 +64,7 @@ func TestGetAllUserByOrgIDs(t *testing.T) {
 func TestGetToken(t *testing.T) {
 	initHTTPCurl()
 	a := new(UC)
-	a.GetToken()
+	log.Println(a.GetToken())
 }
 
 func TestGetUsersDetail(t *testing.T) {
@@ -134,6 +94,10 @@ func TestGetPublishScope(t *testing.T) {
 }
 
 func TestCheckSession(t *testing.T) {
-
-	new(UCC).CheckSession(1111, "fdsfsdf")
+	initHTTPCurl()
+	data := new(UCC).CheckSession(63706854, "b4857f2dbfeeaf36f339510655e577e2e439e8c2")
+	if data.UserID == 0 {
+		t.Error(errors.New("check session error"))
+	}
+	log.Println(data)
 }

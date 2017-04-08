@@ -8,10 +8,9 @@ import (
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/orm"
 
-	"github.com/astaxie/beego/config"
-
 	//redis 驱动
 
+	"bbs_server/application/library/conf"
 	"bbs_server/application/library/redis"
 
 	//mysql driver
@@ -19,69 +18,36 @@ import (
 )
 
 //Conf 配置
-var Conf config.Configer
+
 var isInit = false
 
 //InitDB 初始化数据库
 func InitDB() {
-	if isInit == true {
-		return
-	}
-	func(funcs ...func() error) {
-		for _, f := range funcs {
-			if err := f(); err != nil {
-				panic(err)
-			}
-		}
-	}(func() error {
-		conf, err := config.NewConfig("ini", "../../cmd/TaskScript/conf.ini")
+	if isInit == false {
+		conf.InitConfig("../../cmd/base.ini")
+		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
-			return err
-		}
-		Conf = conf
-		return nil
-	}, func() error {
-		cache, err := cache.NewCache("redis", Conf.String("cache"))
-		if err != nil {
-			return err
+			log.Println(err)
+			return
 		}
 		redis.Cache = cache
-		return nil
-	}, func() error {
-		var err error
-		debug, _ := Conf.Bool("debug")
-		Debug = debug
-		DBType = Conf.String("db_type")
-		DBPrefix = Conf.String("db_prefix")
-		dsn := Conf.String("db_dsn")
-		pool, _ := Conf.Int("db_pool")
+		Debug, _ = conf.Bool("debug")
+		DBPrefix = conf.String("db_prefix")
+		dsn := conf.String("db_dsn_default")
+		pool, _ := conf.Int("db_pool")
 		if dsn == "" || pool <= 0 {
-			return errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]")
-		}
-		switch DBType {
-		case "mysql":
-			err = orm.RegisterDriver(DBType, orm.DRMySQL)
-		case "sqlite":
-			err = orm.RegisterDriver(DBType, orm.DRSqlite)
-		case "oracle":
-			err = orm.RegisterDriver(DBType, orm.DROracle)
-		case "pgsql":
-			err = orm.RegisterDriver(DBType, orm.DRPostgres)
-		case "TiDB":
-			err = orm.RegisterDriver(DBType, orm.DRTiDB)
-		}
-		if err != nil {
-			return err
+			log.Println(errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]"))
+			return
 		}
 		//最大数据库连接//最大空闲连接
-		err = orm.RegisterDataBase("default", "mysql", dsn, pool, pool)
-		if err != nil {
-			return err
+		if err := orm.RegisterDataBase("default", "mysql", dsn, pool, pool); err != nil {
+			log.Println(err)
+			return
 		}
-		return nil
-	})
-	RegisterModels()
-	isInit = true
+		//注册model
+		RegisterModels()
+		isInit = true
+	}
 }
 
 ///////////////////////////////////////////////board case //////////////////////////////////////////////
@@ -173,17 +139,4 @@ func TestBbsTaskGetOne(t *testing.T) {
 		t.Error("model->bbsTask.GetOne err bbsinfo = nil")
 	}
 	log.Println(bbsTaskinfo)
-}
-
-///////////////////////////////////////////////BbsTaskReply case //////////////////////////////////////////////
-func TestGetReplyUserIDs(t *testing.T) {
-	InitDB()
-	a := new(BbsTaskReply)
-	userids, err := a.GetReplyUserIDs(50001129)
-	if err != nil {
-		t.Error("model->GetReplyUserIDs error:", err)
-	}
-	if userids[0] != 62051317 {
-		t.Error("model->GetReplyUserIDs error:!=62051317")
-	}
 }

@@ -1,13 +1,12 @@
 package hbase
 
 import (
-	"encoding/json"
 	"log"
 	"strconv"
 	"testing"
 
-	"github.com/astaxie/beego/config"
 	"bbs_server/application/function"
+	"bbs_server/application/library/conf"
 )
 
 var (
@@ -15,24 +14,12 @@ var (
 	feedIDInt, bbsIDInt                      int64
 )
 
-//Conf 配置
-var Conf config.Configer
+var isInit = false
 
+//initHbase 初始化hbase
 func initHbase() {
-	func(funcs ...func() error) {
-		for _, f := range funcs {
-			if err := f(); err != nil {
-				panic(err)
-			}
-		}
-	}(func() error {
-		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
-		if err != nil {
-			return err
-		}
-		Conf = conf
-		return nil
-	}, func() error {
+	if isInit == false {
+		conf.InitConfig("../../../cmd/base.ini")
 		var (
 			err    error
 			config struct {
@@ -41,11 +28,16 @@ func initHbase() {
 				Pool int    `json:"pool"`
 			}
 		)
-		if err = json.Unmarshal([]byte(Conf.String("hbase")), &config); err != nil {
-			return err
+		if err = conf.JSON("hbase", &config); err != nil {
+			log.Println(err)
+			return
 		}
-		return Init(config.Host, config.Port, config.Pool)
-	})
+		if err = Init(config.Host, config.Port, config.Pool); err != nil {
+			log.Println(err)
+			return
+		}
+		isInit = true
+	}
 
 	userID = "63706854"
 	boardID = "50000124"
@@ -54,7 +46,6 @@ func initHbase() {
 	bbsID = "50001544"
 	feedIDInt, _ = strconv.ParseInt(feedID, 10, 0)
 	bbsIDInt, _ = strconv.ParseInt(bbsID, 10, 0)
-
 }
 
 func TestHbasePut(t *testing.T) {

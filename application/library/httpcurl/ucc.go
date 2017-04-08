@@ -3,7 +3,6 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"reflect"
 	"strings"
@@ -38,6 +37,17 @@ type UCCMsgSender struct {
 		ToID         uint64   `json:"to_id"`
 		ToPrivateIDs []uint64 `json:"toprivate_ids"`
 	} `json:"to"`
+}
+
+//UCCSessionData session数据对象
+type UCCSessionData struct {
+	UserID       uint64 `json:"user_id"`
+	UserAccount  string `json:"user_account"`
+	SiteID       uint64 `json:"site_id"`
+	DisplayName  string `json:"display_name"`
+	CustomerCode string `json:"customer_code"`
+	DepartmentID uint64 `json:"department_id"`
+	OrgNodeCode  string `json:"org_node_code"`
 }
 
 //UCCResponseData response 结构体
@@ -77,7 +87,7 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 
 //MsgSend OA消息 return msg_id
 func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
-	var msgData struct {
+	var data struct {
 		UCCResponseData
 		Data struct {
 			Seq uint64 `json:"seq"`
@@ -104,31 +114,23 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 		return "", err
 	}
 	value.Set("to", string(to))
-	if err := U.httpCurl("POST", fmt.Sprintf("%s/message/msgsend", UccServerURL), value.Encode(), &msgData); err != nil {
+	if err := U.httpCurl("POST", fmt.Sprintf("%s/message/msgsend", UccServerURL), value.Encode(), &data); err != nil {
 		logs.Error("MsgSend error:", err)
 	}
-	return strconv.FormatUint(msgData.Data.Seq, 10), nil
+	return strconv.FormatUint(data.Data.Seq, 10), nil
 }
 
 //CheckSession 检测session
-func (U *UCC) CheckSession(userID uint64, sessionID string) {
-	var msgData struct {
+func (U *UCC) CheckSession(userID uint64, sessionID string) UCCSessionData {
+	var data struct {
 		UCCResponseData
-		Data struct {
-			UserID       uint64 `json:"user_id"`
-			UserAccount  string `json:"user_account"`
-			SiteID       uint64 `json:"site_id"`
-			DisplayName  string `json:"display_name"`
-			CustomerCode string `json:"customer_code"`
-			DepartmentID uint64 `json:"department_id"`
-			OrgNodeCode  string `json:"org_node_code"`
-		} `json:"data"`
+		Data UCCSessionData `json:"data"`
 	}
 	value := url.Values{}
 	value.Set("session_id", sessionID)
 	value.Set("user_id", strconv.FormatUint(userID, 10))
-	if err := U.httpCurl("POST", fmt.Sprintf("%s/user/check", UccServerURL), value.Encode(), &msgData); err != nil {
+	if err := U.httpCurl("POST", fmt.Sprintf("%s/user/check", UccServerURL), value.Encode(), &data); err != nil {
 		logs.Error("CheckSession error:", err)
 	}
-	log.Println(msgData)
+	return data.Data
 }

@@ -6,48 +6,32 @@ import (
 
 	"encoding/json"
 
-	"github.com/astaxie/beego/config"
+	"bbs_server/application/library/conf"
 	"bbs_server/application/module/pic"
 )
 
-//Conf 配置
-var Conf config.Configer
 var isInit = false
 
 //InitDB 初始化数据库
 func InitModule() {
-	if isInit == true {
-		return
-	}
-	func(funcs ...func() error) {
-		for _, f := range funcs {
-			if err := f(); err != nil {
-				panic(err)
-			}
-		}
-	}(func() error {
-		conf, err := config.NewConfig("ini", "../../../cmd/TaskScript/conf.ini")
-		if err != nil {
-			return err
-		}
-		Conf = conf
-		return nil
-	}, func() error {
+	if isInit == false {
+		conf.InitConfig("../../../cmd/base.ini")
 		config := map[string]string{
-			"server_name": Conf.String("server_name"),
-			"app_domain":  Conf.String("app_domain"),
-			"app_path":    Conf.String("app_path"),
-			"feed_icons":  Conf.String("feed_icons"),
+			"server_name": conf.String("server_name"),
+			"app_domain":  conf.String("app_domain"),
+			"app_path":    conf.String("app_path"),
+			"feed_icons":  conf.String("feed_icons"),
 		}
 		if err := Init(config); err != nil {
-			return err
+			log.Println(err)
+			return
 		}
 		if err := pic.Init(config); err != nil {
-			return err
+			log.Println(err)
+			return
 		}
-		return nil
-	})
-	isInit = true
+		isInit = true
+	}
 }
 
 //TestNewBbs

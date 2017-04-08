@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"bbs_server/application/function"
+
 	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/logs"
-	"bbs_server/application/function"
 	"github.com/chasex/redis-go-cluster"
 )
 
@@ -47,7 +48,7 @@ func (c *C) Set(data interface{}) bool {
 		logs.Error("SetCache data Marshal error", err, data)
 		return false
 	}
-	if err := Cache.Put(c.key, val, 48*time.Hour); err != nil {
+	if err := Cache.Put(c.key, val, 4*time.Hour); err != nil {
 		logs.Error("SetCache Put error", err, c.key, val)
 		return false
 	}

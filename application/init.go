@@ -36,7 +36,16 @@ func init() {
 				panic(err)
 			}
 		}
-	}(InitConfig, InitLog, InitDB, InitHTTPCurl, InitCache, InitHbase, InitPackage, InitRouter)
+	}(
+		InitConfig,
+		InitLog,
+		InitDB,
+		InitHTTPCurl,
+		InitCache,
+		InitHbase,
+		InitPackage,
+		InitRouter,
+	)
 }
 
 //InitConfig 初始化配置
@@ -67,10 +76,6 @@ func InitDB() error {
 	pool, _ := conf.Int("db_pool")
 	if dsn == "" || pool <= 0 {
 		return errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]")
-	}
-	err = orm.RegisterDriver(model.DBType, orm.DRMySQL)
-	if err != nil {
-		return err
 	}
 	//最大数据库连接//最大空闲连接
 	err = orm.RegisterDataBase("default", "mysql", dsn, pool, pool)

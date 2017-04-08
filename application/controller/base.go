@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bbs_server/application/library/httpcurl"
+	"log"
 	"regexp"
 
 	"github.com/astaxie/beego/context"
@@ -118,7 +120,8 @@ func (B *Base) Success(data interface{}) {
 
 //CheckSession 检测用户session是否有效
 func (B *Base) CheckSession() bool {
-
+	data := new(httpcurl.UCC).CheckSession(B.UserID, B.SessionID)
+	log.Println(data)
 	B.Error(CODE_SESSION_IS_NOT_VALID, "session not valid", nil)
 	return true
 }

@@ -17,7 +17,7 @@ var isInit = false
 //initCache 初始化缓存
 func initCache() {
 	if isInit == false {
-		conf.InitConfig("../../../cmd/TaskScript/conf.ini")
+		conf.InitConfig("../../../cmd/base.ini")
 		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
 			log.Println(err)
