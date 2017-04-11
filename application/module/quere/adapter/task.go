@@ -15,7 +15,7 @@ type Tasker interface {
 	NewTask(model.Queue) error
 	CreateFeed() error
 	CreateRelation() error
-	CreateTodo() error
+	CreateUnread() error
 	GetPublishScopeUsers() error
 	UpdateStatus() error
 	SendMsg() error
@@ -135,7 +135,7 @@ func (q *queue) runTask() bool {
 	}
 	//写入未读计数
 	logs.Info(q.L("Start CreateTodo"))
-	if err := q.mode.CreateTodo(); err != nil {
+	if err := q.mode.CreateUnread(); err != nil {
 		logs.Error(q.L("runTask CreateTodo error"), err)
 		q.mode.Rollback()
 		return false

@@ -66,8 +66,9 @@ func (B *base) CreateRelation() error {
 	return nil
 }
 
-//CreateTodo 创建未处理数
-func (B *base) CreateTodo() error {
+//CreateUnread 创建未处理数
+func (B *base) CreateUnread() error {
+
 	var data []model.Todo
 	for _, userID := range B.userIDs {
 		data = append(data, model.Todo{

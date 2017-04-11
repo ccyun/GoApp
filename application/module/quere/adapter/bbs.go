@@ -166,8 +166,8 @@ func (B *Bbs) CreateRelation() error {
 
 }
 
-//CreateTodo 创建未处理数
-func (B *Bbs) CreateTodo() error {
+//CreateUnread 创建未处理数
+func (B *Bbs) CreateUnread() error {
 	userIDs := []uint64{}
 	if B.boardInfo.DiscussID > 0 {
 		if B.bbsInfo.Type == "preview" {
