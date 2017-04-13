@@ -17,19 +17,3 @@ type Todo struct {
 func (T *Todo) TableName() string {
 	return "todo"
 }
-
-//GetUNReplyUserIDs 读取未反馈用户列表
-func (T *Todo) GetUNReplyUserIDs(BbsID uint64) ([]uint64, error) {
-	var (
-		TodoList []Todo
-		data     []uint64
-	)
-	_, err := o.QueryTable(T).Filter("BbsID", BbsID).Filter("Type", "unreply").Limit(-1).All(&TodoList, "UserID")
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range TodoList {
-		data = append(data, v.UserID)
-	}
-	return data, nil
-}

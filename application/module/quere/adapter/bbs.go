@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 
+	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
@@ -73,6 +74,7 @@ func (B *Bbs) NewTask(task model.Queue) error {
 	if err := B.getBoardInfo(); err != nil {
 		return err
 	}
+	B.feedType = B.category
 	///////判断广播类型
 	switch B.category {
 	case "task":
@@ -103,7 +105,7 @@ func (B *Bbs) GetPublishScopeUsers() error {
 	B.PublishScope = make(map[string][]uint64)
 	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
 	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
-	B.userIDs = append(B.bbsInfo.PublishScope.UserIDs, userIDs...)
+	B.userIDs = function.SliceUnique(append(B.bbsInfo.PublishScope.UserIDs, userIDs...)).Uint64()
 	if len(B.bbsInfo.PublishScope.UserIDs) > 0 {
 		B.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.bbsInfo.PublishScope.UserIDs, true)
 	}
@@ -126,7 +128,7 @@ func (B *Bbs) CreateFeed() error {
 		Title:          B.bbsInfo.Title,
 		Description:    B.bbsInfo.Description,
 		CreatedAt:      B.bbsInfo.PublishAt,
-		UserID:         B.bbsInfo.UsesID,
+		UserID:         B.bbsInfo.UserID,
 		Type:           B.bbsInfo.Type,
 		Category:       B.category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
@@ -168,24 +170,15 @@ func (B *Bbs) CreateRelation() error {
 
 //CreateUnread 创建未处理数
 func (B *Bbs) CreateUnread() error {
-	userIDs := []uint64{}
-	if B.boardInfo.DiscussID > 0 {
-		if B.bbsInfo.Type == "preview" {
-			return nil
-		}
-		for _, u := range B.userIDs {
-			if u != B.bbsInfo.UsesID {
-				userIDs = append(userIDs, u)
-			}
-		}
-	} else {
-		userIDs = B.userIDs
+	if B.boardInfo.DiscussID == 0 {
+		return B.base.CreateUnread()
 	}
-	if len(userIDs) == 0 {
+	if B.bbsInfo.Type == "preview" {
 		return nil
 	}
+
 	var data []model.Todo
-	for _, userID := range userIDs {
+	for _, userID := range function.SliceDiff(B.userIDs, []uint64{B.bbsInfo.UserID}).Uint64() {
 		data = append(data, model.Todo{
 			SiteID:   B.siteID,
 			Type:     "unread",
@@ -195,20 +188,13 @@ func (B *Bbs) CreateUnread() error {
 			FeedType: B.category,
 			UserID:   userID,
 		})
-		if B.category == "task" && B.bbsInfo.Type == "default" {
-			data = append(data, model.Todo{
-				SiteID:   B.siteID,
-				Type:     "unreply",
-				BoardID:  B.boardID,
-				BbsID:    B.bbsID,
-				FeedID:   B.feedID,
-				FeedType: B.category,
-				UserID:   userID,
-			})
+	}
+	if len(data) > 0 {
+		if _, err := B.o.InsertMulti(100000, data); err != nil {
+			return err
 		}
 	}
-	_, err := B.o.InsertMulti(100000, data)
-	return err
+	return nil
 }
 
 //UpdateStatus 更新状态及接收者用户列表
@@ -262,7 +248,7 @@ func (B *Bbs) getFeedCustomizer() feed.Customizer {
 		Title:          B.bbsInfo.Title,
 		Description:    B.bbsInfo.Description,
 		Thumb:          thumb,
-		UserID:         B.bbsInfo.UsesID,
+		UserID:         B.bbsInfo.UserID,
 		Type:           B.bbsInfo.Type,
 		Category:       B.bbsInfo.Category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
@@ -335,7 +321,7 @@ func (B *Bbs) discussMsg() error {
 	ucc := new(httpcurl.UCC)
 	postData := httpcurl.UCCMsgSender{
 		SiteID:           B.siteID,
-		UserID:           B.bbsInfo.UsesID,
+		UserID:           B.bbsInfo.UserID,
 		ConversationType: 2,
 	}
 	postData.Message.Content = ""
@@ -343,7 +329,7 @@ func (B *Bbs) discussMsg() error {
 	postData.To.ToID = B.boardInfo.DiscussID
 	postData.To.ToPrivateIDs = []uint64{}
 	if B.bbsInfo.Type == "preview" {
-		if B.bbsInfo.UsesID == B.bbsInfo.PublishScope.UserIDs[0] {
+		if B.bbsInfo.UserID == B.bbsInfo.PublishScope.UserIDs[0] {
 			postData.Control.NoSendself = 1
 		}
 		postData.To.ToPrivateIDs = B.bbsInfo.PublishScope.UserIDs

@@ -7,6 +7,7 @@ import (
 
 	"time"
 
+	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
@@ -45,23 +46,22 @@ func (T *TaskReply) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
-
+	T.feedType = feed.FeedTypeTaskReply
 	return nil
 }
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskReply) GetPublishScopeUsers() error {
-	model := new(model.Todo)
-	userIDs, err := model.GetUNReplyUserIDs(T.bbsID)
+	userIDs, err := new(model.BbsTaskReply).GetReplyUserIDs(T.bbsID)
 	if err != nil {
 		return err
 	}
-	if len(userIDs) > 0 {
-		T.userIDs = userIDs
+	T.userIDs = function.SliceDiff(T.bbsInfo.PublishScopeUserIDsArr, userIDs).Uint64()
+	if len(T.userIDs) > 0 {
 		T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 		return err
 	}
-	return fmt.Errorf("GetPublishScopeUsers error not found UNReplyUser")
+	return fmt.Errorf("GetPublishScopeUsers error not found UNReply Users")
 }
 
 //CreateFeed 创建Feed
@@ -70,14 +70,14 @@ func (T *TaskReply) CreateFeed() error {
 		SiteID:    T.siteID,
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
-		FeedType:  "taskReply",
+		FeedType:  feed.FeedTypeTaskReply,
 		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
@@ -103,14 +103,14 @@ func (T *TaskReply) CreateRelation() error {
 		ID:       T.feedID,
 		BoardID:  T.boardID,
 		BbsID:    T.bbsID,
-		FeedType: "taskReply",
+		FeedType: feed.FeedTypeTaskReply,
 	}
 	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
 }
 
 //SendMsg 发送消息
 func (T *TaskReply) SendMsg() error {
-	feedData, err := feed.NewTask("taskReply", feed.Customizer{
+	feedData, err := feed.NewTask(feed.FeedTypeTaskReply, feed.Customizer{
 		BoardID:        T.boardID,
 		BoardName:      T.boardInfo.BoardName,
 		Avatar:         T.boardInfo.BoardName,
@@ -120,7 +120,7 @@ func (T *TaskReply) SendMsg() error {
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		Thumb:          "",
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,

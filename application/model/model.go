@@ -40,6 +40,7 @@ func RegisterModels() {
 		new(Feed),
 		new(BbsTask),
 		new(Todo),
+		new(Unread),
 		new(BbsTaskReply),
 	)
 	o = orm.NewOrm()

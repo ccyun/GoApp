@@ -134,9 +134,9 @@ func (q *queue) runTask() bool {
 		return false
 	}
 	//写入未读计数
-	logs.Info(q.L("Start CreateTodo"))
+	logs.Info(q.L("Start CreateUnread"))
 	if err := q.mode.CreateUnread(); err != nil {
-		logs.Error(q.L("runTask CreateTodo error"), err)
+		logs.Error(q.L("runTask CreateUnread error"), err)
 		q.mode.Rollback()
 		return false
 	}

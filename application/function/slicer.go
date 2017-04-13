@@ -9,16 +9,18 @@ type Slice struct {
 	data []interface{}
 }
 
-//Unique 切片去重复
-func (S *Slice) Unique(sliceData interface{}) *Slice {
+//SliceUnique 切片去重复
+func SliceUnique(sliceData interface{}) *Slice {
+	S := new(Slice)
 	for k := range toMap(sliceData) {
 		S.data = append(S.data, k)
 	}
 	return S
 }
 
-//Diff 返回切片差集
-func (S *Slice) Diff(slices ...interface{}) *Slice {
+//SliceDiff 返回切片差集
+func SliceDiff(slices ...interface{}) *Slice {
+	S := new(Slice)
 	snum := len(slices)
 	if snum < 1 {
 		return S
@@ -38,8 +40,9 @@ func (S *Slice) Diff(slices ...interface{}) *Slice {
 	return S
 }
 
-//Merge 多个切片的并集
-func (S *Slice) Merge(slices ...interface{}) *Slice {
+//SliceMerge 多个切片的并集
+func SliceMerge(slices ...interface{}) *Slice {
+	S := new(Slice)
 	snum := len(slices)
 	if snum < 1 {
 		return S
@@ -56,8 +59,9 @@ func (S *Slice) Merge(slices ...interface{}) *Slice {
 	return S
 }
 
-//Intersect 返回切片交集
-func (S *Slice) Intersect(slices ...interface{}) *Slice {
+//SliceIntersect 返回切片交集
+func SliceIntersect(slices ...interface{}) *Slice {
+	S := new(Slice)
 	snum := len(slices)
 	if snum < 1 {
 		return S
@@ -77,7 +81,7 @@ func (S *Slice) Intersect(slices ...interface{}) *Slice {
 }
 
 //InSlice 判断切片是否存在某个元素
-func (S *Slice) InSlice(value interface{}, sliceData interface{}) bool {
+func InSlice(value interface{}, sliceData interface{}) bool {
 	temp := toMap(sliceData)
 	if ok := temp[value]; ok {
 		return true

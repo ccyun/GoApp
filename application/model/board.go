@@ -10,7 +10,7 @@ type Board struct {
 	Avatar       string   `orm:"column(avatar)"`
 	CreatedAt    uint64   `orm:"column(created_at)"`
 	ModifiedAt   uint64   `orm:"column(modified_at)"`
-	UsesID       uint64   `orm:"column(user_id)"`
+	UserID       uint64   `orm:"column(user_id)"`
 	Status       uint8    `orm:"column(status)"`
 	IsDeleted    uint8    `orm:"column(is_deleted)"`
 	EditorIDs    []uint64 `orm:"-"`

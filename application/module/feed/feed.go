@@ -12,11 +12,12 @@ var (
 	Path string
 )
 
-//VERSION feed版本
-const VERSION uint64 = 1
+//Version feed版本
+const Version uint64 = 1
 
-//DETAILAUTH url请求需带上验证信息
-const DETAILAUTH uint8 = 1
+//DetailAuth url请求需带上验证信息
+const DetailAuth uint8 = 1
+
 const (
 	//BbsTaskStatus 任务发布
 	BbsTaskStatus int8 = -1
@@ -30,6 +31,20 @@ const (
 	BbsTaskAuditNotPassed int8 = 2
 	//BbsTaskTimeout 审核不通过
 	BbsTaskTimeout int8 = 3
+)
+const (
+	//FeedTypeBbs feed type bbs 图文广播
+	FeedTypeBbs = "bbs"
+	//FeedTypeForm feed type form 表单
+	FeedTypeForm = "form"
+	//FeedTypeTask feed type task 广播任务
+	FeedTypeTask = "task"
+	//FeedTypeTaskReply feed type taskReply 广播任务提醒反馈
+	FeedTypeTaskReply = "taskReply"
+	//FeedTypeTaskAudit feed type taskAudit 广播任务审核
+	FeedTypeTaskAudit = "taskAudit"
+	//FeedTypeTaskClose feed type taskClose 广播任务关闭任务
+	FeedTypeTaskClose = "taskClose"
 )
 
 //Feeder 结构体
@@ -125,12 +140,12 @@ func Init(option map[string]string) error {
 //newFeed 创建新的Feed
 func newFeed(feedType string, data Customizer) Feeder {
 	feedData := Feeder{
-		Version:    VERSION,
+		Version:    Version,
 		BoardID:    data.BoardID,
 		BbsID:      data.BbsID,
 		FeedType:   feedType,
 		FeedID:     data.FeedID,
-		DetailAuth: DETAILAUTH,
+		DetailAuth: DetailAuth,
 	}
 	feedData.DisplayType = "WebView"
 	if feedType != "bbs" && feedType != "task" {

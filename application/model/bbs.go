@@ -25,7 +25,7 @@ type Bbs struct {
 	MsgCount               uint64              `orm:"column(msg_count)"`
 	AttachmentsString      string              `orm:"column(attachments)"`
 	Attachments            []map[string]string `orm:"-"`
-	UsesID                 uint64              `orm:"column(user_id)"`
+	UserID                 uint64              `orm:"column(user_id)"`
 	CreatedAt              uint64              `orm:"column(created_at)"`
 	PublishAt              uint64              `orm:"column(publish_at)"`
 	ModifiedAt             uint64              `orm:"column(modified_at)"`

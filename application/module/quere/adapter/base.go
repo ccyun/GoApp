@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"bbs_server/application/function"
 	"bbs_server/application/model"
 
 	"github.com/astaxie/beego/orm"
@@ -16,6 +17,7 @@ type base struct {
 	bbsID                      uint64
 	bbsInfo                    model.Bbs
 	category                   string
+	feedType                   string
 	bbsTaskInfo                model.BbsTask
 	PublishScope               map[string][]uint64
 	PublishScopeuserLoginNames []string
@@ -68,21 +70,36 @@ func (B *base) CreateRelation() error {
 
 //CreateUnread 创建未处理数
 func (B *base) CreateUnread() error {
-
-	var data []model.Todo
-	for _, userID := range B.userIDs {
-		data = append(data, model.Todo{
-			SiteID:   B.siteID,
-			Type:     "unread",
-			BoardID:  B.boardID,
-			BbsID:    B.bbsID,
-			FeedID:   B.feedID,
-			FeedType: B.category,
-			UserID:   userID,
+	var (
+		err        error
+		InsertData []model.Unread
+		userIDs    []uint64
+	)
+	db := new(model.Unread)
+	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID, B.feedType); err != nil {
+		return err
+	}
+	if len(userIDs) > 0 {
+		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("FeedType", B.feedType).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
+			"UnreadCount": orm.ColValue(orm.ColAdd, 1),
+		}); err != nil {
+			return err
+		}
+	}
+	for _, userID := range function.SliceDiff(B.userIDs, userIDs).Uint64() {
+		InsertData = append(InsertData, model.Unread{
+			SiteID:      B.siteID,
+			BoardID:     B.boardID,
+			FeedType:    B.feedType,
+			UnreadCount: 1,
+			UserID:      userID,
 		})
 	}
-	_, err := B.o.InsertMulti(100000, data)
+	if len(InsertData) > 0 {
+		_, err = B.o.InsertMulti(100000, InsertData)
+	}
 	return err
+
 }
 
 //UpdateStatus 更新状态
@@ -113,17 +130,4 @@ func (B *base) getBoardInfo() error {
 	model := new(model.Board)
 	B.boardInfo, err = model.GetOne(B.boardID)
 	return err
-}
-
-//UserIDsUnique UserIDs去重复
-func (B *base) UserIDsUnique(data []uint64) []uint64 {
-	_data := make(map[uint64]bool)
-	for _, v := range data {
-		_data[v] = true
-	}
-	data = []uint64{}
-	for v := range _data {
-		data = append(data, v)
-	}
-	return data
 }

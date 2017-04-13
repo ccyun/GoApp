@@ -42,6 +42,7 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
+	T.feedType = feed.FeedTypeTaskAudit
 	return nil
 }
 
@@ -60,14 +61,14 @@ func (T *TaskAudit) CreateFeed() error {
 		SiteID:    T.siteID,
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
-		FeedType:  "taskAudit",
+		FeedType:  feed.FeedTypeTaskAudit,
 		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
@@ -93,7 +94,7 @@ func (T *TaskAudit) CreateRelation() error {
 		ID:       T.feedID,
 		BoardID:  T.boardID,
 		BbsID:    T.bbsID,
-		FeedType: "taskAudit",
+		FeedType: feed.FeedTypeTaskAudit,
 	}
 
 	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
@@ -101,7 +102,7 @@ func (T *TaskAudit) CreateRelation() error {
 
 //SendMsg 发送消息
 func (T *TaskAudit) SendMsg() error {
-	feedData, err := feed.NewTask("taskAudit", feed.Customizer{
+	feedData, err := feed.NewTask(feed.FeedTypeTaskAudit, feed.Customizer{
 		BoardID:        T.boardID,
 		BoardName:      T.boardInfo.BoardName,
 		Avatar:         T.boardInfo.BoardName,
@@ -111,7 +112,7 @@ func (T *TaskAudit) SendMsg() error {
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		Thumb:          "",
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,

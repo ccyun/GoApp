@@ -39,6 +39,7 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
+	T.feedType = feed.FeedTypeTaskClose
 	return nil
 }
 
@@ -56,14 +57,14 @@ func (T *TaskClose) CreateFeed() error {
 		SiteID:    T.siteID,
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
-		FeedType:  "taskClose",
+		FeedType:  feed.FeedTypeTaskClose,
 		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
@@ -89,14 +90,14 @@ func (T *TaskClose) CreateRelation() error {
 		ID:       T.feedID,
 		BoardID:  T.boardID,
 		BbsID:    T.bbsID,
-		FeedType: "taskClose",
+		FeedType: feed.FeedTypeTaskClose,
 	}
 	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
 }
 
 //SendMsg 发送消息
 func (T *TaskClose) SendMsg() error {
-	feedData, err := feed.NewTask("taskClose", feed.Customizer{
+	feedData, err := feed.NewTask(feed.FeedTypeTaskClose, feed.Customizer{
 		BoardID:        T.boardID,
 		BoardName:      T.boardInfo.BoardName,
 		Avatar:         T.boardInfo.BoardName,
@@ -106,7 +107,7 @@ func (T *TaskClose) SendMsg() error {
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
 		Thumb:          "",
-		UserID:         T.bbsInfo.UsesID,
+		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
