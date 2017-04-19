@@ -9,8 +9,10 @@ import (
 
 	"math"
 
-	"github.com/astaxie/beego/logs"
 	"bbs_server/application/library/redis"
+
+	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/utils"
 )
 
 var (
@@ -31,9 +33,9 @@ type UMSUser struct {
 	UserStatus       uint   `json:"userstatus"`
 	ProductStatus    uint   `json:"productStatus"`
 	DisplayName      string `json:"displayName"`
-	IconURL          string `json:"iconUrl"`
 	OrganizationID   uint64 `json:"organizationId"`
 	OrganizationName string `json:"organizationName"`
+	Avatar           string `json:"iconUrl"`
 	UserProductList  []struct {
 		ProductID  int64 `json:"productId"`
 		UserStatus int64 `json:"userStatus"`
@@ -45,10 +47,30 @@ type UMSOrg struct {
 	OrgID        uint64 `json:"id"`
 	OrgName      string `json:"name"`
 	ParentID     uint64 `json:"parentId"`
-	Type         string `json:"type"`
+	Type         uint   `json:"type"`
 	NodeCode     string `json:"nodeCode"`
 	NodeCodeArr  []uint64
 	CustomerCode string `json:"customercode"`
+}
+
+func (U *UMS) httpCurl(method string, url string, postData interface{}, resData interface{}) error {
+	var (
+		statusCode int
+		res        []byte
+		err        error
+	)
+	reqID := string(utils.RandomCreateBytes(8))
+	body, _ := json.Marshal(postData)
+	logs.Debug("%s->ums httpCurl url:%s body:%s", reqID, url, string(body))
+	statusCode, res, err = Request(method, url, strings.NewReader(string(body)), "json")
+	if statusCode != 200 {
+		err = fmt.Errorf("%s->ums httpcurl status code: %d", reqID, statusCode)
+	}
+	logs.Debug("%s->ums httpcurl response:%s", reqID, string(res))
+	if err = json.Unmarshal(res, resData); err != nil {
+		return err
+	}
+	return err
 }
 
 //GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
@@ -111,17 +133,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 //_getAllUserByOrgIDs 批量获取组织下所有用户
 func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([]UMSUser, uint64, error) {
 	url := fmt.Sprintf("%s/rs/organizations/query/orgs/users?pageNum=%d&pageSize=%d&productID=%d", UMSBusinessURL, page, pageSize, 20)
-	body, _ := json.Marshal(orgIDs)
-	logs.Debug("UMS _getAllUserByOrgIDs url:", url, "body:", string(body))
-	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)), "json")
-	if err != nil {
-		return nil, 0, err
-	}
-	logs.Debug("UMS _getAllUserByOrgIDs response:", string(res))
-	if statusCode != 0 {
-		logs.Debug("UMS _getAllUserByOrgIDs url:", url, "code:", statusCode, "res:", string(res))
-	}
-	var data struct {
+	var resData struct {
 		RetCode uint64 `json:"retCode"`
 		RetMsg  string `json:"retMsg"`
 		RetObj  struct {
@@ -129,40 +141,27 @@ func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([
 			UserList   []UMSUser `json:"dataSet"`
 		} `json:"retObj"`
 	}
-	if err := json.Unmarshal(res, &data); err != nil {
+	if err := U.httpCurl("POST", url, orgIDs, &resData); err != nil {
 		return nil, 0, err
 	}
-	return data.RetObj.UserList, data.RetObj.TotalCount, nil
+	return resData.RetObj.UserList, resData.RetObj.TotalCount, nil
 }
 
 //GetUsersDetail 批量查询用户详情
 func (U *UMS) GetUsersDetail(customerCode string, userIDs []uint64, isValid bool) ([]UMSUser, error) {
-	var data, tempData []UMSUser
+	var data, resData []UMSUser
 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersDetail", userIDs, isValid)
 	if cache.Get(&data) == true {
 		return data, nil
 	}
 	url := fmt.Sprintf("%s/rs/users/id/in?requestType=0", UMSBusinessURL)
-	body, _ := json.Marshal(userIDs)
-	logs.Debug("UMS GetUsersDetail url:", url, "body:", string(body))
-	statusCode, res, err := Request("POST", url, strings.NewReader(string(body)), "json")
-	if err != nil {
-		return nil, err
-	}
-	logs.Debug("UMS GetUsersDetail response:", string(res))
-	if statusCode != 0 {
-		logs.Debug("UMS GetUsersDetail url:", url, "code:", statusCode, "res:", string(res))
-	}
-	if string(res) == "" {
-		return nil, nil
-	}
-	if err := json.Unmarshal(res, &tempData); err != nil {
+	if err := U.httpCurl("POST", url, userIDs, &resData); err != nil {
 		return nil, err
 	}
 	if isValid == false {
-		data = tempData
+		data = resData
 	} else {
-		for _, user := range tempData {
+		for _, user := range resData {
 			for _, v := range user.UserProductList {
 				if v.ProductID == 20 && (v.UserStatus == 82 || v.UserStatus == 9) {
 					data = append(data, user)
@@ -190,4 +189,62 @@ func (U *UMS) GetUsersLoginName(customerCode string, userIDs []uint64, isValid b
 	}
 	cache.Set(data)
 	return data, nil
+}
+
+//BatchQueryOrg 批量查询组织信息
+func (U *UMS) BatchQueryOrg(customerCode string, orgIDs []uint64) ([]UMSOrg, error) {
+	var data []UMSOrg
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "BatchQueryOrg", orgIDs)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	url := fmt.Sprintf("%s/rs/organizations/batchquery?productID=20&child=0", UMSBusinessURL)
+	if err := U.httpCurl("POST", url, orgIDs, &data); err != nil {
+		return nil, err
+	}
+	cache.Set(data)
+	return data, nil
+}
+
+//GetOrgChilds 查询子组织
+func (U *UMS) GetOrgChilds(customerCode string, orgID uint64) ([]UMSOrg, error) {
+	var data []UMSOrg
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetOrgChilds", orgID)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	url := fmt.Sprintf("%s/rs/organizations/%d?scope=nextlevel&types=1,2,3,4,5", UMSBusinessURL, orgID)
+	if err := U.httpCurl("GET", url, "", &data); err != nil {
+		return nil, err
+	}
+	cache.Set(data)
+	return data, nil
+}
+
+//GetOrgMembers 查询组织成员
+func (U *UMS) GetOrgMembers(customerCode string, orgID uint64) ([]UMSUser, error) {
+	var data []UMSUser
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetOrgMembers", orgID)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	url := fmt.Sprintf("%s/rs/organizations/%d/users?productID=20", UMSBusinessURL, orgID)
+	if err := U.httpCurl("GET", url, "", &data); err != nil {
+		return nil, err
+	}
+	cache.Set(data)
+	return data, nil
+}
+
+//GetOrgByCustomerCode 根据customerCode查询组织信息
+func (U *UMS) GetOrgByCustomerCode(customerCode string) (data UMSOrg, err error) {
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetOrgByCustomerCode")
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	url := fmt.Sprintf("%s/rs/organizations?customer_code=%s", UMSBusinessURL, customerCode)
+	if err = U.httpCurl("GET", url, "", &data); err == nil {
+		cache.Set(data)
+	}
+	return data, err
 }

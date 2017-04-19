@@ -41,13 +41,14 @@ type UCCMsgSender struct {
 
 //UCCSessionData session数据对象
 type UCCSessionData struct {
-	UserID       uint64 `json:"user_id"`
-	UserAccount  string `json:"user_account"`
-	SiteID       uint64 `json:"site_id"`
-	DisplayName  string `json:"display_name"`
-	CustomerCode string `json:"customer_code"`
-	DepartmentID uint64 `json:"department_id"`
-	OrgNodeCode  string `json:"org_node_code"`
+	UserID         uint64   `json:"user_id"`
+	UserAccount    string   `json:"user_account"`
+	SiteID         uint64   `json:"site_id"`
+	DisplayName    string   `json:"display_name"`
+	CustomerCode   string   `json:"customer_code"`
+	DepartmentID   uint64   `json:"department_id"`
+	OrgNodeCode    string   `json:"org_node_code"`
+	OrgNodeCodeArr []uint64 `json:"-"`
 }
 
 //UCCResponseData response 结构体
@@ -65,7 +66,7 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 		err        error
 	)
 	reqID := string(utils.RandomCreateBytes(8))
-	logs.Debug("%s->ucc httpCurl url:%s body:%s", reqID, url, string(body))
+	logs.Debug("%s->ucc httpCurl url:%s body:%s", reqID, url, body)
 	statusCode, res, err = Request(method, url, strings.NewReader(body), "form")
 	if statusCode != 200 {
 		err = fmt.Errorf("%s->ucc httpcurl status code: %d", reqID, statusCode)
@@ -115,13 +116,13 @@ func (U *UCC) MsgSend(postData UCCMsgSender) (string, error) {
 	}
 	value.Set("to", string(to))
 	if err := U.httpCurl("POST", fmt.Sprintf("%s/message/msgsend", UccServerURL), value.Encode(), &data); err != nil {
-		logs.Error("MsgSend error:", err)
+		return "", err
 	}
 	return strconv.FormatUint(data.Data.Seq, 10), nil
 }
 
 //CheckSession 检测session
-func (U *UCC) CheckSession(userID uint64, sessionID string) UCCSessionData {
+func (U *UCC) CheckSession(userID uint64, sessionID string) (UCCSessionData, error) {
 	var data struct {
 		UCCResponseData
 		Data UCCSessionData `json:"data"`
@@ -130,7 +131,15 @@ func (U *UCC) CheckSession(userID uint64, sessionID string) UCCSessionData {
 	value.Set("session_id", sessionID)
 	value.Set("user_id", strconv.FormatUint(userID, 10))
 	if err := U.httpCurl("POST", fmt.Sprintf("%s/user/check", UccServerURL), value.Encode(), &data); err != nil {
-		logs.Error("CheckSession error:", err)
+		return data.Data, err
 	}
-	return data.Data
+	for _, v := range strings.Split("-", data.Data.OrgNodeCode) {
+		n, err := strconv.ParseUint(v, 10, 0)
+		if err != nil {
+			return data.Data, err
+		}
+		data.Data.OrgNodeCodeArr = append(data.Data.OrgNodeCodeArr, n)
+	}
+
+	return data.Data, nil
 }

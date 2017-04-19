@@ -42,6 +42,7 @@ func RegisterModels() {
 		new(Todo),
 		new(Unread),
 		new(BbsTaskReply),
+		new(BbsTaskUnreplyCount),
 	)
 	o = orm.NewOrm()
 	DB, _ = orm.NewQueryBuilder(DBType)

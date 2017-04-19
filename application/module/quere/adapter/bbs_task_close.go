@@ -39,7 +39,6 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
-	T.feedType = feed.FeedTypeTaskClose
 	return nil
 }
 

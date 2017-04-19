@@ -8,7 +8,7 @@ type Unread struct {
 	ID            uint64 `orm:"column(id)"`
 	SiteID        uint64 `orm:"column(site_id)"`
 	BoardID       uint64 `orm:"column(board_id)"`
-	FeedType      string `orm:"column(feed_type)"`
+	Category      string `orm:"column(category)"`
 	UserID        uint64 `orm:"column(user_id)"`
 	UnreadCount   uint64 `orm:"column(unread_count)"`
 	AckreadFeedID uint64 `orm:"column(ackread_feed_id)"`
@@ -20,12 +20,12 @@ func (U *Unread) TableName() string {
 }
 
 //GetUserIDs 查询未读计数用户列表
-func (U *Unread) GetUserIDs(siteID, boardID uint64, feedType string) ([]uint64, error) {
+func (U *Unread) GetUserIDs(siteID, boardID uint64, category string) ([]uint64, error) {
 	var (
 		data    []*Unread
 		userIDs []uint64
 	)
-	if _, err := o.QueryTable(U).Filter("SiteID", siteID).Filter("BoardID", boardID).Filter("FeedType", feedType).Limit(-1).All(&data, "UserID"); err != nil {
+	if _, err := o.QueryTable(U).Filter("SiteID", siteID).Filter("BoardID", boardID).Filter("Category", category).Limit(-1).All(&data, "UserID"); err != nil {
 		if err == orm.ErrNoRows {
 			return nil, nil
 		}

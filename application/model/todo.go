@@ -9,7 +9,7 @@ type Todo struct {
 	BoardID  uint64 `orm:"column(board_id)"`
 	BbsID    uint64 `orm:"column(bbs_id)"`
 	FeedID   uint64 `orm:"column(feed_id)"`
-	FeedType string `orm:"column(feed_type)"`
+	Category string `orm:"column(category)"`
 	UserID   uint64 `orm:"column(user_id)"`
 }
 

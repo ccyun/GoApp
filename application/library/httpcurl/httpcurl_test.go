@@ -95,9 +95,29 @@ func TestGetPublishScope(t *testing.T) {
 
 func TestCheckSession(t *testing.T) {
 	initHTTPCurl()
-	data := new(UCC).CheckSession(63706854, "b4857f2dbfeeaf36f339510655e577e2e439e8c2")
+	data, _ := new(UCC).CheckSession(63706854, "b4857f2dbfeeaf36f339510655e577e2e439e8c2")
 	if data.UserID == 0 {
 		t.Error(errors.New("check session error"))
 	}
 	log.Println(data)
+}
+
+func TestBill(t *testing.T) {
+	userIDs := []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+	startIndex := 0
+	userCount := len(userIDs)
+
+	for true {
+		if startIndex >= userCount {
+			break
+		}
+		endIndex := startIndex + 2
+		if endIndex > userCount {
+			endIndex = userCount
+		}
+		tempUserIDs := userIDs[startIndex:endIndex]
+		log.Println(tempUserIDs)
+		startIndex += 2
+	}
+
 }

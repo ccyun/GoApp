@@ -17,7 +17,6 @@ type base struct {
 	bbsID                      uint64
 	bbsInfo                    model.Bbs
 	category                   string
-	feedType                   string
 	bbsTaskInfo                model.BbsTask
 	PublishScope               map[string][]uint64
 	PublishScopeuserLoginNames []string
@@ -76,11 +75,12 @@ func (B *base) CreateUnread() error {
 		userIDs    []uint64
 	)
 	db := new(model.Unread)
-	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID, B.feedType); err != nil {
+	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID, B.category); err != nil {
 		return err
 	}
+
 	if len(userIDs) > 0 {
-		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("FeedType", B.feedType).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
+		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("Category", B.category).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
 			"UnreadCount": orm.ColValue(orm.ColAdd, 1),
 		}); err != nil {
 			return err
@@ -90,7 +90,7 @@ func (B *base) CreateUnread() error {
 		InsertData = append(InsertData, model.Unread{
 			SiteID:      B.siteID,
 			BoardID:     B.boardID,
-			FeedType:    B.feedType,
+			Category:    B.category,
 			UnreadCount: 1,
 			UserID:      userID,
 		})
@@ -99,7 +99,6 @@ func (B *base) CreateUnread() error {
 		_, err = B.o.InsertMulti(100000, InsertData)
 	}
 	return err
-
 }
 
 //UpdateStatus 更新状态

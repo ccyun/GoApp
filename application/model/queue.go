@@ -14,6 +14,7 @@ type Queue struct {
 	SiteID       uint64 `orm:"column(site_id)"`
 	CustomerCode string `orm:"column(customer_code)"`
 	TaskType     string `orm:"column(task_type)"`
+	BbsID        uint64 `orm:"column(bbs_id)"`
 	Action       string `orm:"column(action)"`
 	Status       uint8  `orm:"column(status)"`
 	TryCount     uint8  `orm:"column(try_count)"`

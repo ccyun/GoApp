@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/astaxie/beego/orm"
+
 	"fmt"
 
 	"bbs_server/application/function"
@@ -74,7 +76,6 @@ func (B *Bbs) NewTask(task model.Queue) error {
 	if err := B.getBoardInfo(); err != nil {
 		return err
 	}
-	B.feedType = B.category
 	///////判断广播类型
 	switch B.category {
 	case "task":
@@ -171,12 +172,22 @@ func (B *Bbs) CreateRelation() error {
 //CreateUnread 创建未处理数
 func (B *Bbs) CreateUnread() error {
 	if B.boardInfo.DiscussID == 0 {
+		//写入未反馈数
+		if B.category == "task" {
+			if err := B.CreateBbsTaskUnreplyCount(); err != nil {
+				return err
+			}
+		}
 		return B.base.CreateUnread()
 	}
 	if B.bbsInfo.Type == "preview" {
 		return nil
 	}
+	return B.CreateDiscussUnread()
+}
 
+//CreateDiscussUnread 创建讨论组未读计数
+func (B *Bbs) CreateDiscussUnread() error {
 	var data []model.Todo
 	for _, userID := range function.SliceDiff(B.userIDs, []uint64{B.bbsInfo.UserID}).Uint64() {
 		data = append(data, model.Todo{
@@ -185,7 +196,7 @@ func (B *Bbs) CreateUnread() error {
 			BoardID:  B.boardID,
 			BbsID:    B.bbsID,
 			FeedID:   B.feedID,
-			FeedType: B.category,
+			Category: B.category,
 			UserID:   userID,
 		})
 	}
@@ -195,6 +206,38 @@ func (B *Bbs) CreateUnread() error {
 		}
 	}
 	return nil
+}
+
+//CreateBbsTaskUnreplyCount 创建未处理计数
+func (B *Bbs) CreateBbsTaskUnreplyCount() error {
+	var (
+		err        error
+		InsertData []model.BbsTaskUnreplyCount
+		userIDs    []uint64
+	)
+	db := new(model.BbsTaskUnreplyCount)
+	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID); err != nil {
+		return err
+	}
+	if len(userIDs) > 0 {
+		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
+			"UnreplyCount": orm.ColValue(orm.ColAdd, 1),
+		}); err != nil {
+			return err
+		}
+	}
+	for _, userID := range function.SliceDiff(B.userIDs, userIDs).Uint64() {
+		InsertData = append(InsertData, model.BbsTaskUnreplyCount{
+			SiteID:       B.siteID,
+			BoardID:      B.boardID,
+			UnreplyCount: 1,
+			UserID:       userID,
+		})
+	}
+	if len(InsertData) > 0 {
+		_, err = B.o.InsertMulti(100000, InsertData)
+	}
+	return err
 }
 
 //UpdateStatus 更新状态及接收者用户列表
@@ -211,7 +254,33 @@ func (B *Bbs) UpdateStatus() error {
 		return nil
 	}
 	data.PublishScopeUserIDs = string(u)
-	_, err = B.o.Update(&data, "Status", "MsgCount", "PublishScopeUserIDs", "ModifiedAt")
+	if _, err = B.o.Update(&data, "Status", "MsgCount", "PublishScopeUserIDs", "ModifiedAt"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//CreateQueue 创建其他队列任务
+func (B *Bbs) CreateQueue() error {
+	var (
+		err        error
+		InsertData []model.Queue
+	)
+	//如果是任务，判断任务是否过期可反馈，并创建新的过期处理任务
+	if B.bbsTaskInfo.AllowExpired == 0 && B.bbsTaskInfo.EndTime > 0 {
+		InsertData = append(InsertData, model.Queue{
+			SiteID:       B.siteID,
+			CustomerCode: B.customerCode,
+			TaskType:     "",
+			SetTimer:     B.bbsTaskInfo.EndTime,
+			BbsID:        B.bbsID,
+			Action:       fmt.Sprintf("%d", B.bbsID),
+		})
+	}
+	if len(InsertData) > 0 {
+		_, err = B.o.InsertMulti(100000, InsertData)
+	}
 	return err
 }
 
@@ -223,7 +292,12 @@ func (B *Bbs) SendMsg() error {
 	switch B.category {
 	case "bbs":
 		return B.oaMsg()
-	case "task", "form":
+	case "task":
+		if err := new(httpcurl.BILL).Accepter(B.siteID, B.userIDs); err != nil { //计费
+			return err
+		}
+		return B.customizedMsg()
+	case "form":
 		return B.customizedMsg()
 	}
 	return nil

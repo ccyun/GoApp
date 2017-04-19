@@ -110,6 +110,11 @@ func InitHTTPCurl() error {
 	//初始化ucc配置
 	httpcurl.UccServerURL = conf.String("uccserver_url")
 
+	//初始化solr配置
+	httpcurl.SolrServerURL = conf.String("solr_url")
+
+	//初始化solr配置
+	httpcurl.BillServerURL = conf.String("bill_url")
 	return nil
 }
 

@@ -46,7 +46,6 @@ func (T *TaskReply) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
-	T.feedType = feed.FeedTypeTaskReply
 	return nil
 }
 

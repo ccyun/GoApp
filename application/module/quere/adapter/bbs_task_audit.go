@@ -42,7 +42,6 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
-	T.feedType = feed.FeedTypeTaskAudit
 	return nil
 }
 
