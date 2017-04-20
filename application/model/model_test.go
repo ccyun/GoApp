@@ -2,7 +2,9 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/astaxie/beego/cache"
@@ -14,6 +16,7 @@ import (
 	"bbs_server/application/library/redis"
 
 	//mysql driver
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -139,4 +142,23 @@ func TestBbsTaskGetOne(t *testing.T) {
 		t.Error("model->bbsTask.GetOne err bbsinfo = nil")
 	}
 	log.Println(bbsTaskinfo)
+}
+
+func TestKingShard(t *testing.T) {
+	orm.Debug = true
+	if err := orm.RegisterDataBase("default", "mysql", "kingshard:kingshard@tcp(192.168.197.131:9696)/kingshard?charset=utf8mb4", 10, 10); err != nil {
+		t.Error("orm error", err)
+	}
+	o = orm.NewOrm()
+	sql := ""
+	values := []string{}
+	for i := 13220001; i <= 1000000000; i++ {
+		values = append(values, fmt.Sprintf("('%d','%d','%d','%d','%s')", (i%100), i, (i%1000), i, "bbs"))
+		if i%10000 == 0 {
+			sql = "insert into `bbs_unread`(`board_id`,`bbs_id`,`user_id`,`feed_id`,`feed_type`) values" + strings.Join(values, ",")
+			o.Raw(sql).Exec()
+			sql = ""
+			values = []string{}
+		}
+	}
 }
