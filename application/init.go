@@ -42,7 +42,7 @@ func init() {
 		InitDB,
 		InitHTTPCurl,
 		InitCache,
-		InitHbase,
+		//InitHbase,
 		InitPackage,
 		InitRouter,
 	)
@@ -72,14 +72,17 @@ func InitDB() error {
 	debug, _ := conf.Bool("debug")
 	model.Debug = debug
 	model.DBPrefix = conf.String("db_prefix")
-	dsn := conf.String("db_dsn_default")
+	defaultDSN := conf.String("db_dsn_default")
+	msgDSN := conf.String("db_dsn_msg")
 	pool, _ := conf.Int("db_pool")
-	if dsn == "" || pool <= 0 {
+	if defaultDSN == "" || pool <= 0 {
 		return errors.New("InitDB error, Configuration error.[mysql_dsn,mysql_pool]")
 	}
 	//最大数据库连接//最大空闲连接
-	err = orm.RegisterDataBase("default", "mysql", dsn, pool, pool)
-	if err != nil {
+	if err = orm.RegisterDataBase("default", "mysql", defaultDSN, pool, pool); err != nil {
+		return err
+	}
+	if err = orm.RegisterDataBase("msg", "mysql", msgDSN, pool, pool); err != nil {
 		return err
 	}
 	o := new(io)

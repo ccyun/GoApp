@@ -17,6 +17,8 @@ import (
 
 	//mysql driver
 
+	"encoding/json"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -73,22 +75,26 @@ func TestBoardGetOne(t *testing.T) {
 
 ///////////////////////////////////////////////bbs case //////////////////////////////////////////////
 func TestBbsPublishScopeHandle(t *testing.T) {
-	a := new(Bbs)
-	s := `{"discuss_ids":["50032726"],"group_ids":["54299","54342"],"user_ids":["62073932"]}`
-	ss := `[11,22,33,44,55]`
-	v, vv, err := a.publishScopeHandle(s, ss)
-	if err != nil {
-		t.Error("model->bbs.publishScopeHandle error1", err)
-	}
-	if v.GroupIDs[1] != 54342 {
-		t.Error("model->bbs.publishScopeHandle error2", err)
-	}
-	if v.UserIDs[0] != 62073932 {
-		t.Error("model->bbs.publishScopeHandle error3", err)
-	}
-	if vv[3] != 44 {
-		t.Error("model->bbs.publishScopeHandle error4", err)
-	}
+
+	s := `{
+	"discuss_ids": [50032726],
+	"group_ids": [54299, 54342],
+	"user_ids": [62073932],
+	"tag_ids": [{
+			"tag_id": 111,
+			"tag_value": [111, 222, 333]
+		}, {
+			"tag_id": 222,
+			"tag_value": [111, 222, 333]
+		}
+	]
+}`
+
+	var v PublishScoper
+
+	json.Unmarshal([]byte(s), &v)
+
+	log.Println(v)
 }
 
 func TestBbsGetOne(t *testing.T) {

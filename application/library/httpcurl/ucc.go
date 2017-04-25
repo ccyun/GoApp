@@ -51,6 +51,18 @@ type UCCSessionData struct {
 	OrgNodeCodeArr []uint64 `json:"-"`
 }
 
+//UCCDiscussData 讨论组数据
+type UCCDiscussData struct {
+	DiscussType    int      `json:"group_type"`
+	DiscussStatus  int      `json:"group_status"`
+	DiscussID      uint64   `json:"group_id"`
+	DiscussName    string   `json:"group_name"`
+	AdminID        uint64   `json:"admin_id"`
+	AdminList      []uint64 `json:"admin_list"`
+	Conversation   uint64   `json:"conversation"`
+	ValidMemberIDs []uint64 `json:"valid_member_ids"`
+}
+
 //UCCResponseData response 结构体
 type UCCResponseData struct {
 	ErrorCode    uint64 `json:"code"`
@@ -142,4 +154,19 @@ func (U *UCC) CheckSession(userID uint64, sessionID string) (UCCSessionData, err
 	}
 
 	return data.Data, nil
+}
+
+//GetDiscussInfo 获取讨论组信息
+func (U *UCC) GetDiscussInfo(userID uint64, discussID uint64) (UCCDiscussData, error) {
+	var data struct {
+		UCCResponseData
+		Data []UCCDiscussData `json:"data"`
+	}
+	if err := U.httpCurl("GET", fmt.Sprintf("%s/group/info?user_id=%d&group_id=%d", UccServerURL, userID, discussID), "", &data); err != nil {
+		return UCCDiscussData{}, err
+	}
+	if len(data.Data) > 0 && data.Data[0].DiscussType == 2 && data.Data[0].DiscussStatus == 0 {
+		return data.Data[0], nil
+	}
+	return UCCDiscussData{}, nil
 }

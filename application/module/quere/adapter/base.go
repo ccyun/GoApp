@@ -1,8 +1,8 @@
 package adapter
 
 import (
-	"bbs_server/application/function"
 	"bbs_server/application/model"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
@@ -10,6 +10,7 @@ import (
 //base 任务处理适配器（基类）
 type base struct {
 	o                          orm.Ormer
+	nowTime                    uint64
 	taskID                     uint64
 	siteID                     uint64
 	customerCode               string
@@ -17,8 +18,8 @@ type base struct {
 	bbsID                      uint64
 	bbsInfo                    model.Bbs
 	category                   string
+	feedType                   string
 	bbsTaskInfo                model.BbsTask
-	PublishScope               map[string][]uint64
 	PublishScopeuserLoginNames []string
 	boardID                    uint64
 	boardInfo                  model.Board
@@ -49,6 +50,7 @@ func (B *base) NewTask(task model.Queue) error {
 	B.siteID = task.SiteID
 	B.customerCode = task.CustomerCode
 	B.action = task.Action
+	B.nowTime = uint64(time.Now().UnixNano() / 1e6)
 	return nil
 }
 
@@ -64,41 +66,31 @@ func (B *base) CreateFeed() error {
 
 //CreateRelation 创建接收者关系
 func (B *base) CreateRelation() error {
-	return nil
+	var (
+		ackReadUserID     uint64
+		defaultReadStatus uint8
+	)
+	if B.boardInfo.DiscussID > 0 {
+		if B.bbsInfo.Type == "preview" {
+			return nil
+		}
+		ackReadUserID = B.bbsInfo.UserID
+	}
+	msgData := model.Msg{
+		SiteID:    B.siteID,
+		BoardID:   B.boardID,
+		DiscussID: B.boardInfo.DiscussID,
+		BbsID:     B.bbsID,
+		FeedType:  B.feedType,
+		FeedID:    B.feedID,
+		CreatedAt: B.nowTime,
+	}
+	return new(model.Msg).Create(msgData, B.userIDs, defaultReadStatus, ackReadUserID)
 }
 
 //CreateUnread 创建未处理数
 func (B *base) CreateUnread() error {
-	var (
-		err        error
-		InsertData []model.Unread
-		userIDs    []uint64
-	)
-	db := new(model.Unread)
-	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID, B.category); err != nil {
-		return err
-	}
-
-	if len(userIDs) > 0 {
-		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("Category", B.category).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
-			"UnreadCount": orm.ColValue(orm.ColAdd, 1),
-		}); err != nil {
-			return err
-		}
-	}
-	for _, userID := range function.SliceDiff(B.userIDs, userIDs).Uint64() {
-		InsertData = append(InsertData, model.Unread{
-			SiteID:      B.siteID,
-			BoardID:     B.boardID,
-			Category:    B.category,
-			UnreadCount: 1,
-			UserID:      userID,
-		})
-	}
-	if len(InsertData) > 0 {
-		_, err = B.o.InsertMulti(100000, InsertData)
-	}
-	return err
+	return nil
 }
 
 //UpdateStatus 更新状态

@@ -3,9 +3,6 @@ package adapter
 import (
 	"encoding/json"
 	"strconv"
-	"time"
-
-	"github.com/astaxie/beego/orm"
 
 	"fmt"
 
@@ -53,9 +50,8 @@ func (B *Bbs) NewTask(task model.Queue) error {
 	B.base.NewTask(task)
 
 	var action struct {
-		BbsID             string   `json:"bbs_id"`
-		AttachmentsBase64 string   `json:"attachments_base64"`
-		DiscussMemberList []uint64 `json:"discuss_member_list"`
+		BbsID             string `json:"bbs_id"`
+		AttachmentsBase64 string `json:"attachments_base64"`
 	}
 	if err := json.Unmarshal([]byte(B.action), &action); err != nil {
 		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", B.taskID, B.action)
@@ -66,10 +62,6 @@ func (B *Bbs) NewTask(task model.Queue) error {
 	}
 	B.bbsID = uint64(bbsID)
 	B.attachmentsBase64 = action.AttachmentsBase64
-	if len(action.DiscussMemberList) > 0 {
-		B.userIDs = action.DiscussMemberList
-	}
-
 	if err := B.getBbsInfo(); err != nil {
 		return err
 	}
@@ -83,19 +75,38 @@ func (B *Bbs) NewTask(task model.Queue) error {
 			return err
 		}
 	}
-
+	B.feedType = B.category
 	return nil
 }
 
 //GetPublishScopeUsers 分析发布范围
 func (B *Bbs) GetPublishScopeUsers() error {
 	if B.boardInfo.DiscussID != 0 {
+		if B.bbsInfo.Type == "preview" {
+			B.userIDs = B.bbsInfo.PublishScope.UserIDs
+		} else {
+			discussInfo, err := new(httpcurl.UCC).GetDiscussInfo(B.bbsInfo.UserID, B.boardInfo.DiscussID)
+			if err != nil {
+				return err
+			}
+			B.userIDs = discussInfo.ValidMemberIDs
+		}
 		return nil
 	}
 	var (
 		userIDs []uint64
 		err     error
 	)
+	// if len(B.bbsInfo.PublishScope.TagIDs) > 0 {
+	// 	TagValues := []httpcurl.TagValueReq{}
+	// 	for _, v := range B.bbsInfo.PublishScope.TagIDs {
+	// 		TagValues = append(TagValues, httpcurl.TagValueReq{
+	// 			TagID:    v.TagID,
+	// 			TagValue: v.TagValue,
+	// 		})
+	// 	}
+	// 	userIDs, err := new(httpcurl.UMS).GetTagUserIDs(B.customerCode, B.siteID, TagValues)
+	// }
 	if len(B.bbsInfo.PublishScope.GroupIDs) > 0 {
 		ums := new(httpcurl.UMS)
 		userIDs, err = ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
@@ -103,9 +114,6 @@ func (B *Bbs) GetPublishScopeUsers() error {
 			return err
 		}
 	}
-	B.PublishScope = make(map[string][]uint64)
-	B.PublishScope["group_ids"] = B.bbsInfo.PublishScope.GroupIDs
-	B.PublishScope["user_ids"] = B.bbsInfo.PublishScope.UserIDs
 	B.userIDs = function.SliceUnique(append(B.bbsInfo.PublishScope.UserIDs, userIDs...)).Uint64()
 	if len(B.bbsInfo.PublishScope.UserIDs) > 0 {
 		B.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.bbsInfo.PublishScope.UserIDs, true)
@@ -154,92 +162,6 @@ func (B *Bbs) CreateFeed() error {
 	return err
 }
 
-//CreateRelation 创建接收者关系
-func (B *Bbs) CreateRelation() error {
-	if B.boardInfo.DiscussID > 0 && B.bbsInfo.Type == "preview" {
-		return nil
-	}
-	feedData := model.Feed{
-		ID:       B.feedID,
-		BoardID:  B.boardID,
-		BbsID:    B.bbsID,
-		FeedType: B.category,
-	}
-	return new(model.Feed).SaveHbase(B.userIDs, feedData, B.boardInfo.DiscussID)
-
-}
-
-//CreateUnread 创建未处理数
-func (B *Bbs) CreateUnread() error {
-	if B.boardInfo.DiscussID == 0 {
-		//写入未反馈数
-		if B.category == "task" {
-			if err := B.CreateBbsTaskUnreplyCount(); err != nil {
-				return err
-			}
-		}
-		return B.base.CreateUnread()
-	}
-	if B.bbsInfo.Type == "preview" {
-		return nil
-	}
-	return B.CreateDiscussUnread()
-}
-
-//CreateDiscussUnread 创建讨论组未读计数
-func (B *Bbs) CreateDiscussUnread() error {
-	var data []model.Todo
-	for _, userID := range function.SliceDiff(B.userIDs, []uint64{B.bbsInfo.UserID}).Uint64() {
-		data = append(data, model.Todo{
-			SiteID:   B.siteID,
-			Type:     "unread",
-			BoardID:  B.boardID,
-			BbsID:    B.bbsID,
-			FeedID:   B.feedID,
-			Category: B.category,
-			UserID:   userID,
-		})
-	}
-	if len(data) > 0 {
-		if _, err := B.o.InsertMulti(100000, data); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-//CreateBbsTaskUnreplyCount 创建未处理计数
-func (B *Bbs) CreateBbsTaskUnreplyCount() error {
-	var (
-		err        error
-		InsertData []model.BbsTaskUnreplyCount
-		userIDs    []uint64
-	)
-	db := new(model.BbsTaskUnreplyCount)
-	if userIDs, err = db.GetUserIDs(B.siteID, B.boardID); err != nil {
-		return err
-	}
-	if len(userIDs) > 0 {
-		if _, err = B.o.QueryTable(db).Filter("SiteID", B.siteID).Filter("BoardID", B.boardID).Filter("UserID__in", function.SliceIntersect(B.userIDs, userIDs).Uint64()).Update(orm.Params{
-			"UnreplyCount": orm.ColValue(orm.ColAdd, 1),
-		}); err != nil {
-			return err
-		}
-	}
-	for _, userID := range function.SliceDiff(B.userIDs, userIDs).Uint64() {
-		InsertData = append(InsertData, model.BbsTaskUnreplyCount{
-			SiteID:       B.siteID,
-			BoardID:      B.boardID,
-			UnreplyCount: 1,
-			UserID:       userID,
-		})
-	}
-	if len(InsertData) > 0 {
-		_, err = B.o.InsertMulti(100000, InsertData)
-	}
-	return err
-}
-
 //UpdateStatus 更新状态及接收者用户列表
 //更新BBS状态及接收者总数及列表
 func (B *Bbs) UpdateStatus() error {
@@ -247,41 +169,12 @@ func (B *Bbs) UpdateStatus() error {
 		ID:         B.bbsID,
 		Status:     1,
 		MsgCount:   uint64(len(B.userIDs)),
-		ModifiedAt: uint64(time.Now().UnixNano() / 1e6),
+		ModifiedAt: B.nowTime,
 	}
-	u, err := json.Marshal(B.userIDs)
-	if err != nil {
-		return nil
-	}
-	data.PublishScopeUserIDs = string(u)
-	if _, err = B.o.Update(&data, "Status", "MsgCount", "PublishScopeUserIDs", "ModifiedAt"); err != nil {
+	if _, err := B.o.Update(&data, "Status", "MsgCount", "ModifiedAt"); err != nil {
 		return err
 	}
-
 	return nil
-}
-
-//CreateQueue 创建其他队列任务
-func (B *Bbs) CreateQueue() error {
-	var (
-		err        error
-		InsertData []model.Queue
-	)
-	//如果是任务，判断任务是否过期可反馈，并创建新的过期处理任务
-	if B.bbsTaskInfo.AllowExpired == 0 && B.bbsTaskInfo.EndTime > 0 {
-		InsertData = append(InsertData, model.Queue{
-			SiteID:       B.siteID,
-			CustomerCode: B.customerCode,
-			TaskType:     "",
-			SetTimer:     B.bbsTaskInfo.EndTime,
-			BbsID:        B.bbsID,
-			Action:       fmt.Sprintf("%d", B.bbsID),
-		})
-	}
-	if len(InsertData) > 0 {
-		_, err = B.o.InsertMulti(100000, InsertData)
-	}
-	return err
 }
 
 //SendMsg 发送消息
@@ -377,7 +270,7 @@ func (B *Bbs) customizedMsg() error {
 		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
-	data.Data1 = "{\"action\":null}"
+	data.Data1 = `{"action":null}`
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err

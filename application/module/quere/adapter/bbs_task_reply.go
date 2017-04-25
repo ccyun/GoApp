@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"time"
-
 	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
@@ -46,6 +44,7 @@ func (T *TaskReply) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
+	T.feedType = feed.FeedTypeTaskReply
 	return nil
 }
 
@@ -55,7 +54,7 @@ func (T *TaskReply) GetPublishScopeUsers() error {
 	if err != nil {
 		return err
 	}
-	T.userIDs = function.SliceDiff(T.bbsInfo.PublishScopeUserIDsArr, userIDs).Uint64()
+	T.userIDs = function.SliceDiff(new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1), userIDs).Uint64()
 	if len(T.userIDs) > 0 {
 		T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 		return err
@@ -70,12 +69,12 @@ func (T *TaskReply) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  feed.FeedTypeTaskReply,
-		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt: T.nowTime,
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
@@ -96,17 +95,6 @@ func (T *TaskReply) CreateFeed() error {
 	return err
 }
 
-//CreateRelation 创建接收者关系
-func (T *TaskReply) CreateRelation() error {
-	feedData := model.Feed{
-		ID:       T.feedID,
-		BoardID:  T.boardID,
-		BbsID:    T.bbsID,
-		FeedType: feed.FeedTypeTaskReply,
-	}
-	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
-}
-
 //SendMsg 发送消息
 func (T *TaskReply) SendMsg() error {
 	feedData, err := feed.NewTask(feed.FeedTypeTaskReply, feed.Customizer{
@@ -123,7 +111,7 @@ func (T *TaskReply) SendMsg() error {
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 	}, feed.CustomizeTasker{
 		EndTime:      T.bbsTaskInfo.EndTime,
 		AllowExpired: T.bbsTaskInfo.AllowExpired,

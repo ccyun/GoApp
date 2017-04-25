@@ -1,12 +1,5 @@
 package model
 
-import (
-	"strconv"
-
-	"bbs_server/application/function"
-	"bbs_server/application/library/hbase"
-)
-
 //Feed 任务表结构
 type Feed struct {
 	base
@@ -40,57 +33,57 @@ func (F *Feed) TableName() string {
 	return "feed"
 }
 
-//HbaseTableName hbase表名
-func (F *Feed) HbaseTableName() string {
-	return "bbs_feed"
-}
+// //HbaseTableName hbase表名
+// func (F *Feed) HbaseTableName() string {
+// 	return "bbs_feed"
+// }
 
-//SaveHbase 保存数据到hbase
-//'taskReply','taskAudit','taskClose'
-func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) error {
-	client, err := hbase.OpenClient()
-	defer hbase.CloseClient(client)
-	if err != nil {
-		return err
-	}
-	var data []*hbase.TPut
-	valueData := F.makeHbaseValue(feedData)
-	if discussID > 0 {
-		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
-		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
-		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
-		}
-	} else {
-		for _, u := range userIDs {
-			rowkey := function.MakeRowkey(int64(u))
-			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
-			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
-				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
-				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
-			}
-		}
-	}
-	return client.PutMultiple([]byte(F.HbaseTableName()), data)
-}
+// //SaveHbase 保存数据到hbase
+// //'taskReply','taskAudit','taskClose'
+// func (F *Feed) SaveHbase(userIDs []uint64, feedData Feed, discussID uint64) error {
+// 	client, err := hbase.OpenClient()
+// 	defer hbase.CloseClient(client)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var data []*hbase.TPut
+// 	valueData := F.makeHbaseValue(feedData)
+// 	if discussID > 0 {
+// 		rowkey := function.MakeRowkey(int64(discussID)) + "_discuss"
+// 		data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+// 		if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+// 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+// 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+// 		}
+// 	} else {
+// 		for _, u := range userIDs {
+// 			rowkey := function.MakeRowkey(int64(u))
+// 			data = append(data, &hbase.TPut{Row: []byte(rowkey + "_home"), ColumnValues: valueData})
+// 			if feedData.FeedType == "bbs" || feedData.FeedType == "task" || feedData.FeedType == "form" {
+// 				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_list"), ColumnValues: valueData})
+// 				data = append(data, &hbase.TPut{Row: []byte(rowkey + "_" + feedData.FeedType), ColumnValues: valueData})
+// 			}
+// 		}
+// 	}
+// 	return client.PutMultiple([]byte(F.HbaseTableName()), data)
+// }
 
-//makeHbaseValue 构造hbase value
-func (F *Feed) makeHbaseValue(feedData Feed) []*hbase.TColumnValue {
-	var (
-		boardID, bbsID, family []byte
-		timeStamp              int64
-	)
-	boardID = []byte(strconv.FormatUint(feedData.BoardID, 10))
-	bbsID = []byte(strconv.FormatUint(feedData.BbsID, 10))
-	family = []byte("cf")
-	timeStamp = int64(feedData.ID)
-	return []*hbase.TColumnValue{
-		&hbase.TColumnValue{
-			Family:    family,
-			Qualifier: boardID,
-			Value:     bbsID,
-			Timestamp: &timeStamp,
-		},
-	}
-}
+// //makeHbaseValue 构造hbase value
+// func (F *Feed) makeHbaseValue(feedData Feed) []*hbase.TColumnValue {
+// 	var (
+// 		boardID, bbsID, family []byte
+// 		timeStamp              int64
+// 	)
+// 	boardID = []byte(strconv.FormatUint(feedData.BoardID, 10))
+// 	bbsID = []byte(strconv.FormatUint(feedData.BbsID, 10))
+// 	family = []byte("cf")
+// 	timeStamp = int64(feedData.ID)
+// 	return []*hbase.TColumnValue{
+// 		&hbase.TColumnValue{
+// 			Family:    family,
+// 			Qualifier: boardID,
+// 			Value:     bbsID,
+// 			Timestamp: &timeStamp,
+// 		},
+// 	}
+// }

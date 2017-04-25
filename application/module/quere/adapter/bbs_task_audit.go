@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
@@ -42,6 +41,7 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
+	T.feedType = feed.FeedTypeTaskAudit
 	return nil
 }
 
@@ -61,12 +61,12 @@ func (T *TaskAudit) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  feed.FeedTypeTaskAudit,
-		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt: T.nowTime,
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
@@ -87,18 +87,6 @@ func (T *TaskAudit) CreateFeed() error {
 	return err
 }
 
-//CreateRelation 创建接收者关系
-func (T *TaskAudit) CreateRelation() error {
-	feedData := model.Feed{
-		ID:       T.feedID,
-		BoardID:  T.boardID,
-		BbsID:    T.bbsID,
-		FeedType: feed.FeedTypeTaskAudit,
-	}
-
-	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
-}
-
 //SendMsg 发送消息
 func (T *TaskAudit) SendMsg() error {
 	feedData, err := feed.NewTask(feed.FeedTypeTaskAudit, feed.Customizer{
@@ -115,7 +103,7 @@ func (T *TaskAudit) SendMsg() error {
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 	}, feed.CustomizeTasker{
 		EndTime:      T.bbsTaskInfo.EndTime,
 		AllowExpired: T.bbsTaskInfo.AllowExpired,

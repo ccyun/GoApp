@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
@@ -39,13 +38,14 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
+	T.feedType = feed.FeedTypeTaskClose
 	return nil
 }
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskClose) GetPublishScopeUsers() error {
 	var err error
-	T.userIDs = T.bbsInfo.PublishScopeUserIDsArr
+	T.userIDs = new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1)
 	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 	return err
 }
@@ -57,12 +57,12 @@ func (T *TaskClose) CreateFeed() error {
 		BoardID:   T.boardID,
 		BbsID:     T.bbsID,
 		FeedType:  feed.FeedTypeTaskClose,
-		CreatedAt: uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt: T.nowTime,
 	}
 	data := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 		UserID:         T.bbsInfo.UserID,
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
@@ -83,17 +83,6 @@ func (T *TaskClose) CreateFeed() error {
 	return err
 }
 
-//CreateRelation 创建接收者关系
-func (T *TaskClose) CreateRelation() error {
-	feedData := model.Feed{
-		ID:       T.feedID,
-		BoardID:  T.boardID,
-		BbsID:    T.bbsID,
-		FeedType: feed.FeedTypeTaskClose,
-	}
-	return new(model.Feed).SaveHbase(T.userIDs, feedData, T.boardInfo.DiscussID)
-}
-
 //SendMsg 发送消息
 func (T *TaskClose) SendMsg() error {
 	feedData, err := feed.NewTask(feed.FeedTypeTaskClose, feed.Customizer{
@@ -110,7 +99,7 @@ func (T *TaskClose) SendMsg() error {
 		Type:           T.bbsInfo.Type,
 		Category:       T.bbsInfo.Category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
-		CreatedAt:      uint64(time.Now().UnixNano() / 1000000),
+		CreatedAt:      T.nowTime,
 	}, feed.CustomizeTasker{
 		EndTime:      T.bbsTaskInfo.EndTime,
 		AllowExpired: T.bbsTaskInfo.AllowExpired,

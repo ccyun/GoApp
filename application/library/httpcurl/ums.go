@@ -53,6 +53,13 @@ type UMSOrg struct {
 	CustomerCode string `json:"customercode"`
 }
 
+//TagValueReq 查询tag用户参数
+//{"conditionList":[{"tagId":187382,"tagValueList":[1588,1599]}]}
+// type TagValueReq struct {
+// 	TagID    uint64   `json:"tagId"`
+// 	TagValue []uint64 `json:"tagValueList"`
+// }
+
 func (U *UMS) httpCurl(method string, url string, postData interface{}, resData interface{}) error {
 	var (
 		statusCode int
@@ -76,12 +83,10 @@ func (U *UMS) httpCurl(method string, url string, postData interface{}, resData 
 //GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
 func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
 	var data []uint64
-
 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserIDsByOrgIDs", orgIDs)
 	if cache.Get(&data) == true {
 		return data, nil
 	}
-
 	UserList, err := U.GetAllUserByOrgIDs(customerCode, orgIDs)
 	if err != nil {
 		return nil, err
@@ -248,3 +253,95 @@ func (U *UMS) GetOrgByCustomerCode(customerCode string) (data UMSOrg, err error)
 	}
 	return data, err
 }
+
+// //GetTagUserIDs 查询标签组的用户IDs
+// func (U *UMS) GetTagUserIDs(customerCode string, siteID uint64, tagValue []TagValueReq) ([]uint64, error) {
+// 	var data []uint64
+// 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetTagUserIDs", siteID, tagValue)
+// 	if cache.Get(&data) == true {
+// 		return data, nil
+// 	}
+// 	UserList, err := U.GetTagUserList(customerCode, siteID, tagValue)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for _, userInfo := range UserList {
+// 		data = append(data, userInfo.UserID)
+// 	}
+// 	cache.Set(data)
+// 	return data, nil
+// }
+
+// //GetTagUserList 批量获取组织下所有用户列表
+// func (U *UMS) GetTagUserList(customerCode string, siteID uint64, tagValue []TagValueReq) ([]UMSUser, error) {
+// 	var (
+// 		pageSize   uint64 = 50
+// 		totalCount uint64
+// 		err        error
+// 		tempData   []UMSUser
+// 		data       []UMSUser
+// 		postData   struct {
+// 			ConditionList []TagValueReq `json:"conditionList"`
+// 		}
+// 	)
+
+// 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetTagUserList", siteID, tagValue)
+// 	if cache.Get(&data) == true {
+// 		return data, nil
+// 	}
+// 	postData.ConditionList = tagValue
+// 	tempData, totalCount, err = U._getTagUserList(postData, pageSize, 1, siteID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if uint64(len(tempData)) < totalCount {
+// 		pageNum := int(math.Ceil(float64(totalCount) / float64(pageSize)))
+// 		var w sync.WaitGroup
+// 		runtime.GOMAXPROCS(runtime.NumCPU())
+// 		for i := 2; i <= pageNum; i++ {
+// 			w.Add(1)
+// 			go func(i int) {
+// 				d, _, _ := U._getTagUserList(postData, pageSize, i, siteID)
+// 				tempData = append(tempData, d[0:]...)
+// 				w.Done()
+// 			}(i)
+// 		}
+// 		w.Wait()
+// 	}
+// 	if uint64(len(tempData)) != totalCount {
+// 		return nil, fmt.Errorf("GetAllUserByOrgIDs error")
+// 	}
+// 	for _, user := range tempData {
+// 		for _, v := range user.UserProductList {
+// 			if v.ProductID == 20 && (v.UserStatus == 82 || v.UserStatus == 9) {
+// 				data = append(data, user)
+// 			}
+// 		}
+// 	}
+// 	cache.Set(data)
+// 	return data, nil
+// }
+
+// func (U *UMS) _getTagUserList(postData interface{}, pageSize uint64, page int, siteID uint64) ([]UMSUser, uint64, error) {
+// 	url := fmt.Sprintf("%s/rs/tag/search?pageNum=%d&pageSize=%d&productID=%d&siteId=%d", UMSBusinessURL, page, pageSize, 20, siteID)
+// 	var (
+// 		resData struct {
+// 			RetCode uint64 `json:"retCode"`
+// 			RetMsg  string `json:"retMsg"`
+// 			RetObj  struct {
+// 				TotalCount uint64 `json:"totalCount"`
+// 				UserList   []struct {
+// 					Info UMSUser `json:"user"`
+// 				} `json:"dataSet"`
+// 			} `json:"retObj"`
+// 		}
+// 		data []UMSUser
+// 	)
+// 	if err := U.httpCurl("POST", url, postData, &resData); err != nil {
+// 		return nil, 0, err
+// 	}
+// 	for _, UserList := range resData.RetObj.UserList {
+// 		data = append(data, UserList.Info)
+// 	}
+// 	return data, resData.RetObj.TotalCount, nil
+// }

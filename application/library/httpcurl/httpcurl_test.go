@@ -121,3 +121,31 @@ func TestBill(t *testing.T) {
 	}
 
 }
+
+func TestGetDiscussInfo(t *testing.T) {
+	initHTTPCurl()
+	//50033583
+	info, err := new(UCC).GetDiscussInfo(63672505, 50033583)
+	if err != nil {
+		t.Error(err)
+	}
+	if info.DiscussID != 50033583 {
+		t.Error("err")
+	}
+	log.Println(info)
+}
+
+func TestGetTagUserList(t *testing.T) {
+	initHTTPCurl()
+	//50033583
+	var postData []TagValueReq
+	postData = append(postData, TagValueReq{
+		TagID:    187383,
+		TagValue: []uint64{1588, 1599},
+	})
+
+	info, err := new(UMS).GetTagUserIDs("000121212", 72112, postData)
+
+	log.Println(err)
+	log.Println(info)
+}
