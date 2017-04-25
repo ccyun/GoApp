@@ -48,8 +48,6 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskAudit) GetPublishScopeUsers() error {
 	var err error
-	T.PublishScope = make(map[string][]uint64)
-	T.PublishScope["user_ids"] = T.userIDs
 	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
 	return err
 }
