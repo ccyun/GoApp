@@ -44,10 +44,8 @@ func (T *TaskClose) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskClose) GetPublishScopeUsers() error {
-	var err error
 	T.userIDs = new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1)
-	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
-	return err
+	return T.base.GetPublishScopeUsers()
 }
 
 //CreateFeed 创建Feed

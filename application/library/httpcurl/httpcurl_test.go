@@ -134,18 +134,3 @@ func TestGetDiscussInfo(t *testing.T) {
 	}
 	log.Println(info)
 }
-
-func TestGetTagUserList(t *testing.T) {
-	initHTTPCurl()
-	//50033583
-	var postData []TagValueReq
-	postData = append(postData, TagValueReq{
-		TagID:    187383,
-		TagValue: []uint64{1588, 1599},
-	})
-
-	info, err := new(UMS).GetTagUserIDs("000121212", 72112, postData)
-
-	log.Println(err)
-	log.Println(info)
-}

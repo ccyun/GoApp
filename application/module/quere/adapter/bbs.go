@@ -97,16 +97,6 @@ func (B *Bbs) GetPublishScopeUsers() error {
 		userIDs []uint64
 		err     error
 	)
-	// if len(B.bbsInfo.PublishScope.TagIDs) > 0 {
-	// 	TagValues := []httpcurl.TagValueReq{}
-	// 	for _, v := range B.bbsInfo.PublishScope.TagIDs {
-	// 		TagValues = append(TagValues, httpcurl.TagValueReq{
-	// 			TagID:    v.TagID,
-	// 			TagValue: v.TagValue,
-	// 		})
-	// 	}
-	// 	userIDs, err := new(httpcurl.UMS).GetTagUserIDs(B.customerCode, B.siteID, TagValues)
-	// }
 	if len(B.bbsInfo.PublishScope.GroupIDs) > 0 {
 		ums := new(httpcurl.UMS)
 		userIDs, err = ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
@@ -115,10 +105,7 @@ func (B *Bbs) GetPublishScopeUsers() error {
 		}
 	}
 	B.userIDs = function.SliceUnique(append(B.bbsInfo.PublishScope.UserIDs, userIDs...)).Uint64()
-	if len(B.bbsInfo.PublishScope.UserIDs) > 0 {
-		B.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(B.customerCode, B.bbsInfo.PublishScope.UserIDs, true)
-	}
-	return err
+	return B.base.GetPublishScopeUsers()
 }
 
 //CreateFeed 创建Feed

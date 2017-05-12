@@ -45,13 +45,6 @@ func (T *TaskAudit) NewTask(task model.Queue) error {
 	return nil
 }
 
-//GetPublishScopeUsers 分析发布范围
-func (T *TaskAudit) GetPublishScopeUsers() error {
-	var err error
-	T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
-	return err
-}
-
 //CreateFeed 创建Feed
 func (T *TaskAudit) CreateFeed() error {
 	feedData := model.Feed{

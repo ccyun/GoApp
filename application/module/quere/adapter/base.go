@@ -1,7 +1,9 @@
 package adapter
 
 import (
+	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -20,11 +22,12 @@ type base struct {
 	category                   string
 	feedType                   string
 	bbsTaskInfo                model.BbsTask
-	PublishScopeuserLoginNames []string
 	boardID                    uint64
 	boardInfo                  model.Board
 	feedID                     uint64
+	userList                   []httpcurl.UMSUser
 	userIDs                    []uint64
+	PublishScopeuserLoginNames []string
 	attachmentsBase64          string
 }
 
@@ -56,6 +59,16 @@ func (B *base) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (B *base) GetPublishScopeUsers() error {
+	var err error
+	if len(B.userIDs) > 0 {
+		return fmt.Errorf("GetPublishScopeUsers error not found UNReply Users")
+	}
+	if B.userList, err = new(httpcurl.UMS).GetUsersDetail(B.customerCode, B.userIDs, true); err != nil {
+		return err
+	}
+	for _, v := range B.userList {
+		B.PublishScopeuserLoginNames = append(B.PublishScopeuserLoginNames, v.LoginName)
+	}
 	return nil
 }
 
@@ -85,7 +98,7 @@ func (B *base) CreateRelation() error {
 		FeedID:    B.feedID,
 		CreatedAt: B.nowTime,
 	}
-	return new(model.Msg).Create(msgData, B.userIDs, defaultReadStatus, ackReadUserID)
+	return new(model.Msg).Create(msgData, B.userList, defaultReadStatus, ackReadUserID)
 }
 
 //CreateUnread 创建未处理数

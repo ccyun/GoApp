@@ -55,11 +55,7 @@ func (T *TaskReply) GetPublishScopeUsers() error {
 		return err
 	}
 	T.userIDs = function.SliceDiff(new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1), userIDs).Uint64()
-	if len(T.userIDs) > 0 {
-		T.PublishScopeuserLoginNames, err = new(httpcurl.UMS).GetUsersLoginName(T.customerCode, T.userIDs, true)
-		return err
-	}
-	return fmt.Errorf("GetPublishScopeUsers error not found UNReply Users")
+	return T.base.GetPublishScopeUsers()
 }
 
 //CreateFeed 创建Feed

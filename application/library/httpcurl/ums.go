@@ -178,24 +178,6 @@ func (U *UMS) GetUsersDetail(customerCode string, userIDs []uint64, isValid bool
 	return data, nil
 }
 
-//GetUsersLoginName 批量查询用户登录名（账号）
-func (U *UMS) GetUsersLoginName(customerCode string, userIDs []uint64, isValid bool) ([]string, error) {
-	var data []string
-	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersLoginName", userIDs, isValid)
-	if cache.Get(&data) == true {
-		return data, nil
-	}
-	usersDetail, err := U.GetUsersDetail(customerCode, userIDs, isValid)
-	if err != nil {
-		return nil, err
-	}
-	for _, v := range usersDetail {
-		data = append(data, v.LoginName)
-	}
-	cache.Set(data)
-	return data, nil
-}
-
 //BatchQueryOrg 批量查询组织信息
 func (U *UMS) BatchQueryOrg(customerCode string, orgIDs []uint64) ([]UMSOrg, error) {
 	var data []UMSOrg

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bbs_server/application/library/httpcurl"
 	"fmt"
 
 	"strings"
@@ -19,6 +20,7 @@ type Msg struct {
 	FeedType  string `orm:"column(feed_type)"`
 	FeedID    uint64 `orm:"column(feed_id)"`
 	UserID    uint64 `orm:"column(user_id)"`
+	UserOrgID uint64 `orm:"column(user_org_id)"`
 	IsRead    uint8  `orm:"column(is_read)"`
 	CreatedAt uint64 `json:"created_at"`
 }
@@ -34,7 +36,7 @@ func (M *Msg) TrueTableName() string {
 }
 
 //Create 创建消息
-func (M *Msg) Create(msgData Msg, userIDs []uint64, defaultReadStatus uint8, ackReadUserID uint64) error {
+func (M *Msg) Create(msgData Msg, userIDs []httpcurl.UMSUser, defaultReadStatus uint8, ackReadUserID uint64) error {
 	db := orm.NewOrm()
 	db.Using("msg")
 	sql := "insert into `" + M.TrueTableName() + "`(`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`is_read`,`created_at`) values"
@@ -51,10 +53,10 @@ func (M *Msg) Create(msgData Msg, userIDs []uint64, defaultReadStatus uint8, ack
 		}
 		for _, u := range userIDs[startIndex:endIndex] {
 			isRead := defaultReadStatus
-			if isRead == 0 && u == ackReadUserID {
+			if isRead == 0 && u.UserID == ackReadUserID {
 				isRead = 1
 			}
-			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u, isRead, msgData.CreatedAt))
+			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u.UserID, u.OrganizationID, isRead, msgData.CreatedAt))
 		}
 		if _, err := db.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
 			return err

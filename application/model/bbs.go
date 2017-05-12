@@ -38,10 +38,6 @@ type Bbs struct {
 type PublishScoper struct {
 	GroupIDs []uint64 `json:"group_ids"`
 	UserIDs  []uint64 `json:"user_ids"`
-	// TagIDs   []struct {
-	// 	TagID    uint64   `json:"tag_id"`
-	// 	TagValue []uint64 `json:"tag_value"`
-	// } `json:"tag_ids"`
 }
 
 //TableName 表名
