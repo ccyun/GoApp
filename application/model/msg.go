@@ -39,7 +39,7 @@ func (M *Msg) TrueTableName() string {
 func (M *Msg) Create(msgData Msg, userIDs []httpcurl.UMSUser, defaultReadStatus uint8, ackReadUserID uint64) error {
 	db := orm.NewOrm()
 	db.Using("msg")
-	sql := "insert into `" + M.TrueTableName() + "`(`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`is_read`,`created_at`) values"
+	sql := "insert into `" + M.TrueTableName() + "`(`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`is_read`,`created_at`) values"
 	values := []string{}
 	startIndex := 0
 	userCount := len(userIDs)

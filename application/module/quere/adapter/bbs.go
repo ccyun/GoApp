@@ -166,6 +166,9 @@ func (B *Bbs) UpdateStatus() error {
 
 //SendMsg 发送消息
 func (B *Bbs) SendMsg() error {
+	if len(B.userList) == 0 {
+		return nil
+	}
 	if B.boardInfo.DiscussID != 0 {
 		return B.discussMsg()
 	}
@@ -233,8 +236,7 @@ func (B *Bbs) oaMsg() error {
 			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
 			httpcurl.OASendElementser{Content: description},
 		},
-		ToUsers:    B.PublishScopeuserLoginNames,
-		ToPartyIds: B.bbsInfo.PublishScope.GroupIDs,
+		ToUsers: B.PublishScopeuserLoginNames,
 	}
 	data.CustomizedData = feedData.CustomizedData
 	return uc.OASend(data)
@@ -254,7 +256,7 @@ func (B *Bbs) customizedMsg() error {
 	data := httpcurl.CustomizedSender{
 		SiteID:      strconv.FormatUint(B.siteID, 10),
 		ToUsers:     B.PublishScopeuserLoginNames,
-		ToPartyIds:  B.bbsInfo.PublishScope.GroupIDs,
+		History:     1,
 		WebPushData: "您有一个“i 广播”消息",
 	}
 	data.Data1 = `{"action":null}`

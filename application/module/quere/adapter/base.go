@@ -3,7 +3,6 @@ package adapter
 import (
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -60,8 +59,8 @@ func (B *base) NewTask(task model.Queue) error {
 //GetPublishScopeUsers 分析发布范围
 func (B *base) GetPublishScopeUsers() error {
 	var err error
-	if len(B.userIDs) > 0 {
-		return fmt.Errorf("GetPublishScopeUsers error not found UNReply Users")
+	if len(B.userIDs) == 0 {
+		return nil
 	}
 	if B.userList, err = new(httpcurl.UMS).GetUsersDetail(B.customerCode, B.userIDs, true); err != nil {
 		return err
@@ -79,6 +78,9 @@ func (B *base) CreateFeed() error {
 
 //CreateRelation 创建接收者关系
 func (B *base) CreateRelation() error {
+	if len(B.userList) == 0 {
+		return nil
+	}
 	var (
 		ackReadUserID     uint64
 		defaultReadStatus uint8

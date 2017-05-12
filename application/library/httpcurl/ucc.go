@@ -92,9 +92,7 @@ func (U *UCC) httpCurl(method string, url string, body string, resData interface
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
 	logs.Debug("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-	if errorCode != 0 {
-		err = fmt.Errorf("%s->ucc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-	}
+
 	return err
 }
 

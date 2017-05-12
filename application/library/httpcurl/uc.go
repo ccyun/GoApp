@@ -61,6 +61,7 @@ type OASendElementser struct {
 type CustomizedSender struct {
 	SiteID      string   `json:"siteId"`
 	AppID       string   `json:"appId"`
+	History     int      `json:"history"`
 	WebPushData string   `json:"webPushData,omitempty"`
 	ToUsers     []string `json:"toUsers,omitempty"`
 	ToPartyIds  []uint64 `json:"toPartyIds,omitempty"`
@@ -86,7 +87,6 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	)
 	body, _ := json.Marshal(postData)
 	reqID := string(utils.RandomCreateBytes(8))
-	logs.Debug("%s->uc httpCurl url:%s body:%s", reqID, url, string(body))
 	statusCode, res, err = Request(method, url, strings.NewReader(string(body)), "json")
 	logs.Debug("%s->uc httpCurl url:%s body:%s code:%d", reqID, url, string(body), statusCode)
 	if statusCode != 200 {
@@ -101,10 +101,6 @@ func (U *UC) httpCurl(method string, url string, postData interface{}, resData i
 	errorCode := rv.FieldByName("ErrorCode").Uint()
 	errorMessage := rv.FieldByName("ErrorMessage").String()
 	logs.Debug("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-
-	if errorCode != 0 {
-		err = fmt.Errorf("%s->uc httpcurl errorCode:%d,requestID:%s,errorMessage:%s", reqID, errorCode, requestID, errorMessage)
-	}
 	return err
 }
 
