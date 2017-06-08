@@ -22,7 +22,7 @@ type Msg struct {
 	UserID    uint64 `orm:"column(user_id)"`
 	UserOrgID uint64 `orm:"column(user_org_id)"`
 	IsRead    uint8  `orm:"column(is_read)"`
-	CreatedAt uint64 `json:"created_at"`
+	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
 //TableName 表名
@@ -81,7 +81,7 @@ func (M *Msg) GetUserIDs(siteID, boardID, bbsID uint64, isRead int) []uint64 {
 	} else if isRead != -1 {
 		return nil
 	}
-	db.Raw(sql).QueryRows(msgData)
+	db.Raw(sql).QueryRows(&msgData)
 	for _, item := range msgData {
 		data = append(data, item.UserID)
 	}

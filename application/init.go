@@ -3,7 +3,6 @@ package application
 import (
 	"errors"
 	"runtime"
-	"time"
 
 	"github.com/astaxie/beego/cache"
 
@@ -58,7 +57,7 @@ func InitLog() error {
 	if runtime.GOOS == "linux" && conf.String("log_type") == "syslog" {
 		logs.SetLogger("syslog", `{"tag":"`+conf.String("log_tag")+`"}`)
 	} else {
-		logs.SetLogger(logs.AdapterFile, `{"filename":"`+conf.String("log_path")+`/`+time.Now().Format("2006-01-02")+`.log"}`)
+		logs.SetLogger(logs.AdapterFile, `{"filename":"`+conf.String("log_path")+`/`+conf.String("log_tag")+`.log"}`)
 	}
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(4)

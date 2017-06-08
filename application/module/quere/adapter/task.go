@@ -96,7 +96,7 @@ func (q *queue) getTask() bool {
 func (q *queue) checkTask() bool {
 	mode, ok := modes[q.task.TaskType]
 	if !ok {
-		logs.Error(q.L("taskInfo.TaskType not in('bbs','delete','taskReply','taskAudit','taskClose')."))
+		logs.Error(q.L("taskInfo.TaskType not in('bbs','delete','taskReply','taskAudit','taskClose','taskAuditRemind')."))
 		if q.model.Fail(q.task.ID) == false {
 			logs.Error(q.L("checkTask Fail error"))
 		}

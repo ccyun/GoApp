@@ -20,9 +20,9 @@ type BILL struct {
 
 //ReqAccepter 计费接收者
 type ReqAccepter struct {
-	SiteID     uint64 `json:"site_id"`
-	UserID     uint64 `json:"user_id"`
-	AcceptTime uint64 `json:"acceptTime"`
+	SiteID     uint64   `json:"site_id"`
+	UserID     []uint64 `json:"user_id"`
+	AcceptTime uint64   `json:"acceptTime"`
 }
 
 func (B *BILL) httpCurl(method string, url string, body string, resData interface{}) error {
@@ -58,16 +58,11 @@ func (B *BILL) Accepter(siteID uint64, userIDs []uint64) error {
 		if endIndex > userCount {
 			endIndex = userCount
 		}
-		var reqData []ReqAccepter
-		tempUserIDs := userIDs[startIndex:endIndex]
-		for _, u := range tempUserIDs {
-			reqData = append(reqData, ReqAccepter{
-				SiteID:     siteID,
-				UserID:     u,
-				AcceptTime: nowTime,
-			})
-		}
-		body, _ := json.Marshal(reqData)
+		body, _ := json.Marshal(ReqAccepter{
+			SiteID:     siteID,
+			UserID:     userIDs[startIndex:endIndex],
+			AcceptTime: nowTime,
+		})
 		if err := B.httpCurl("POST", url, string(body), ""); err != nil {
 			return err
 		}

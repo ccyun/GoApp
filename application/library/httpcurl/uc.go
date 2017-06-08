@@ -71,6 +71,12 @@ type CustomizedSender struct {
 	Data4       string   `json:"data4,omitempty"`
 }
 
+//SignalMsg 信令消息
+type SignalMsg struct {
+	Action  string `json:"action"`
+	BoardID uint64 `json:"board_id"`
+}
+
 //UCResponseData response 结构体
 type UCResponseData struct {
 	ErrorCode    uint64 `json:"errorCode"`

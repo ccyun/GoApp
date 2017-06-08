@@ -22,6 +22,7 @@ type Bbs struct {
 	MsgCount           uint64              `orm:"column(msg_count)"`
 	AttachmentsString  string              `orm:"column(attachments)"`
 	Attachments        []map[string]string `orm:"-"`
+	Thumb              string              `orm:"-"`
 	UserID             uint64              `orm:"column(user_id)"`
 	CreatedAt          uint64              `orm:"column(created_at)"`
 	PublishAt          uint64              `orm:"column(publish_at)"`
@@ -55,7 +56,6 @@ func (B *Bbs) GetOne(ID uint64) (Bbs, error) {
 	if err := o.Read(&bbsInfo); err != nil {
 		return Bbs{}, err
 	}
-
 	data, err := B.afterSelectHandle([]Bbs{bbsInfo})
 	if err != nil {
 		return Bbs{}, err
@@ -83,6 +83,11 @@ func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
 		json.Unmarshal([]byte(item.PublishScopeString), &item.PublishScope)
 		if item.AttachmentsString != "" {
 			err = json.Unmarshal([]byte(item.AttachmentsString), &item.Attachments)
+		}
+		if len(item.Attachments) > 0 {
+			if thumb, ok := item.Attachments[0]["url"]; ok {
+				item.Thumb = thumb
+			}
 		}
 		if err == nil {
 			data[key] = item

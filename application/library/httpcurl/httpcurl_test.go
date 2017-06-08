@@ -78,17 +78,6 @@ func TestGetUsersDetail(t *testing.T) {
 	t.Log(len(data))
 }
 
-func TestGetUsersLoginName(t *testing.T) {
-	initHTTPCurl()
-	ums := new(UMS)
-	data, err := ums.GetUsersLoginName("000092", []uint64{63706854}, true)
-	if err != nil {
-		t.Error(err)
-	}
-	log.Println(data)
-	t.Log(len(data))
-}
-
 func TestGetPublishScope(t *testing.T) {
 	log.Println(new(UC).getPublishScope([]string{"1", "2", "3", "4", "5", "6", "7", "8"}, []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9}, 0))
 }
@@ -104,22 +93,8 @@ func TestCheckSession(t *testing.T) {
 
 func TestBill(t *testing.T) {
 	userIDs := []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
-	startIndex := 0
-	userCount := len(userIDs)
 
-	for true {
-		if startIndex >= userCount {
-			break
-		}
-		endIndex := startIndex + 2
-		if endIndex > userCount {
-			endIndex = userCount
-		}
-		tempUserIDs := userIDs[startIndex:endIndex]
-		log.Println(tempUserIDs)
-		startIndex += 2
-	}
-
+	new(BILL).Accepter(111, userIDs)
 }
 
 func TestGetDiscussInfo(t *testing.T) {

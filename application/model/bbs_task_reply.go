@@ -25,8 +25,7 @@ func (B *BbsTaskReply) GetReplyUserIDs(BbsID uint64) ([]uint64, error) {
 		replyList []BbsTaskReply
 		data      []uint64
 	)
-	_, err := o.QueryTable(B).Filter("BbsID", BbsID).Exclude("Status", "-1").Limit(-1).All(&replyList, "UserID")
-	if err != nil {
+	if _, err := o.QueryTable(B).Filter("BbsID", BbsID).Exclude("Status", "-1").Limit(-1).All(&replyList, "UserID"); err != nil {
 		return nil, err
 	}
 	for _, v := range replyList {

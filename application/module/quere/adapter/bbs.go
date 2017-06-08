@@ -131,7 +131,7 @@ func (B *Bbs) CreateFeed() error {
 	}
 	switch B.category {
 	case "bbs":
-		data.Thumb = B.bbsInfo.Attachments[0]["url"]
+		data.Thumb = B.bbsInfo.Thumb
 	case "task":
 		data.EndTime = B.bbsTaskInfo.EndTime
 		data.AllowExpired = B.bbsTaskInfo.AllowExpired
@@ -160,6 +160,37 @@ func (B *Bbs) UpdateStatus() error {
 	}
 	if _, err := B.o.Update(&data, "Status", "MsgCount", "ModifiedAt"); err != nil {
 		return err
+	}
+	return B.createQueue()
+}
+
+//创建队列
+func (B *Bbs) createQueue() error {
+	if B.category == "task" {
+		data := model.Queue{
+			SiteID:       B.siteID,
+			CustomerCode: B.customerCode,
+			BbsID:        B.bbsID,
+			Action:       fmt.Sprintf(`{"bbs_id":%d}`, B.bbsID),
+			Status:       0,
+			TryCount:     0,
+			SetTimer:     B.bbsTaskInfo.ReplyRemindAt,
+		}
+		queueData := []model.Queue{}
+		if B.bbsTaskInfo.ReplyRemindAt > 0 {
+			data.TaskType = "taskReply"
+			data.SetTimer = B.bbsTaskInfo.ReplyRemindAt
+			queueData = append(queueData, data)
+		}
+		if B.bbsTaskInfo.AuditRemindAt > 0 {
+			data.TaskType = "taskAuditRemind"
+			data.SetTimer = B.bbsTaskInfo.AuditRemindAt
+			queueData = append(queueData, data)
+		}
+		if len(queueData) > 0 {
+			_, err := B.o.InsertMulti(2, queueData)
+			return err
+		}
 	}
 	return nil
 }
@@ -190,7 +221,7 @@ func (B *Bbs) SendMsg() error {
 func (B *Bbs) getFeedCustomizer() feed.Customizer {
 	thumb := ""
 	if B.category == "bbs" {
-		thumb = B.bbsInfo.Attachments[0]["url"]
+		thumb = B.bbsInfo.Thumb
 		if B.boardInfo.DiscussID > 0 && B.attachmentsBase64 != "" {
 			thumb = B.attachmentsBase64
 		}
@@ -233,7 +264,7 @@ func (B *Bbs) oaMsg() error {
 		},
 		DetailURL: feedData.DetailURL,
 		Elements: []httpcurl.OASendElementser{
-			httpcurl.OASendElementser{ImageID: B.bbsInfo.Attachments[0]["url"]},
+			httpcurl.OASendElementser{ImageID: B.bbsInfo.Thumb},
 			httpcurl.OASendElementser{Content: description},
 		},
 		ToUsers: B.PublishScopeuserLoginNames,
