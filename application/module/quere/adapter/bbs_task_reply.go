@@ -25,16 +25,11 @@ func init() {
 //NewTask 新任务对象
 func (T *TaskReply) NewTask(task model.Queue) error {
 	T.base.NewTask(task)
-	var action map[string]string
+	var action map[string]uint64
 	if err := json.Unmarshal([]byte(T.action), &action); err != nil {
 		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", T.taskID, T.action)
 	}
-	bbsID, err := strconv.Atoi(action["bbs_id"])
-	if err != nil {
-		return fmt.Errorf("NewTask strconv.Atoi error,taskID:%d,action:%s", T.taskID, T.action)
-	}
-	T.bbsID = uint64(bbsID)
-
+	T.bbsID = action["bbs_id"]
 	if err := T.getBbsInfo(); err != nil {
 		return err
 	}
