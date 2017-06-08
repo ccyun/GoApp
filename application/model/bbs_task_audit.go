@@ -30,7 +30,7 @@ func (B *BbsTaskAudit) GetUNAuditUserIDs(BbsID uint64) ([]uint64, error) {
 		auditList []BbsTaskAudit
 		data      []uint64
 	)
-	if _, err := o.QueryTable(B).Filter("BbsID", BbsID).Filter("Status", 0).Limit(-1).All(&auditList, "UserID"); err != nil {
+	if _, err := o.QueryTable(B).Filter("BbsID", BbsID).Filter("Status", 0).Limit(-1).All(&auditList, "AuditUserID"); err != nil {
 		return nil, err
 	}
 	for _, v := range auditList {
