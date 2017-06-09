@@ -177,12 +177,12 @@ func (B *Bbs) createQueue() error {
 			SetTimer:     B.bbsTaskInfo.ReplyRemindAt,
 		}
 		queueData := []model.Queue{}
-		if B.bbsTaskInfo.ReplyRemindAt > 0 {
+		if B.bbsTaskInfo.ReplyRemindAt > B.nowTime {
 			data.TaskType = "taskReply"
 			data.SetTimer = B.bbsTaskInfo.ReplyRemindAt
 			queueData = append(queueData, data)
 		}
-		if B.bbsTaskInfo.AuditRemindAt > 0 {
+		if B.bbsTaskInfo.AuditRemindAt > B.nowTime {
 			data.TaskType = "taskAuditRemind"
 			data.SetTimer = B.bbsTaskInfo.AuditRemindAt
 			queueData = append(queueData, data)
