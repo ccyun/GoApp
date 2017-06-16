@@ -109,3 +109,14 @@ func TestGetDiscussInfo(t *testing.T) {
 	}
 	log.Println(info)
 }
+
+func TestGetTags(t *testing.T) {
+	initHTTPCurl()
+	ums := new(UMS)
+	data, err := ums.GetUserTags("0000000", 72112, []uint64{63706854, 63524288, 63661770})
+	log.Println(err)
+	log.Println(data)
+	a, errr := json.Marshal(data)
+	log.Println(errr)
+	log.Println(string(a))
+}

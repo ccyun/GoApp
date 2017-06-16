@@ -91,20 +91,21 @@ func (B *Bbs) GetPublishScopeUsers() error {
 			}
 			B.userIDs = discussInfo.ValidMemberIDs
 		}
-		return nil
-	}
-	var (
-		userIDs []uint64
-		err     error
-	)
-	if len(B.bbsInfo.PublishScope.GroupIDs) > 0 {
-		ums := new(httpcurl.UMS)
-		userIDs, err = ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
-		if err != nil {
-			return err
+
+	} else {
+		var (
+			userIDs []uint64
+			err     error
+		)
+		if len(B.bbsInfo.PublishScope.GroupIDs) > 0 {
+			ums := new(httpcurl.UMS)
+			userIDs, err = ums.GetAllUserIDsByOrgIDs(B.customerCode, B.bbsInfo.PublishScope.GroupIDs)
+			if err != nil {
+				return err
+			}
 		}
+		B.userIDs = function.SliceUnique(append(B.bbsInfo.PublishScope.UserIDs, userIDs...)).Uint64()
 	}
-	B.userIDs = function.SliceUnique(append(B.bbsInfo.PublishScope.UserIDs, userIDs...)).Uint64()
 	return B.base.GetPublishScopeUsers()
 }
 
@@ -132,10 +133,13 @@ func (B *Bbs) CreateFeed() error {
 	switch B.category {
 	case "bbs":
 		data.Thumb = B.bbsInfo.Thumb
+		data.Link = B.bbsInfo.Link
+		data.IsBrowser = B.bbsInfo.IsBrowser
+		data.IsAuth = B.bbsInfo.IsAuth
 	case "task":
 		data.EndTime = B.bbsTaskInfo.EndTime
 		data.AllowExpired = B.bbsTaskInfo.AllowExpired
-		data.Status = -1
+		data.Status = feed.BbsTaskStatus
 	}
 	dataByte, err := json.Marshal(data)
 	if err != nil {
@@ -239,6 +243,9 @@ func (B *Bbs) getFeedCustomizer() feed.Customizer {
 		UserID:         B.bbsInfo.UserID,
 		Type:           B.bbsInfo.Type,
 		Category:       B.bbsInfo.Category,
+		Link:           B.bbsInfo.Link,
+		IsBrowser:      B.bbsInfo.IsBrowser,
+		IsAuth:         B.bbsInfo.IsAuth,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
 		CreatedAt:      B.bbsInfo.CreatedAt,
 	}
@@ -338,7 +345,7 @@ func (B *Bbs) discussMsg() error {
 	}
 	contentByte, err := json.Marshal(content)
 	if err != nil {
-		return nil
+		return err
 	}
 	postData.Message.Content = string(contentByte)
 	_, err = ucc.MsgSend(postData)

@@ -9,9 +9,8 @@ type BbsTaskReply struct {
 	BbsID     uint64 `orm:"column(bbs_id)"`
 	SerialNum uint64 `orm:"column(serial_num)"`
 	UserID    uint64 `orm:"column(user_id)"`
-	CreatedAt uint64 `orm:"column(CreatedAt)"`
+	CreatedAt uint64 `orm:"column(created_at)"`
 	Status    int8   `orm:"column(status)"`
-	CloseAt   uint64 `orm:"column(close_at)"`
 }
 
 //TableName 表名

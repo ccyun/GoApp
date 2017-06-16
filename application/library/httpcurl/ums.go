@@ -53,6 +53,15 @@ type UMSOrg struct {
 	CustomerCode string `json:"customercode"`
 }
 
+//UMSTag tag结构
+type UMSTag struct {
+	TagID     uint64 `json:"tagId"`
+	TagName   string `json:"tagName"`
+	TagCode   string `json:"tagCode"`
+	TagEnumID uint64 `json:"tagEnumId"`
+	TagValue  string `json:"tagValue"`
+}
+
 //TagValueReq 查询tag用户参数
 //{"conditionList":[{"tagId":187382,"tagValueList":[1588,1599]}]}
 // type TagValueReq struct {
@@ -231,6 +240,40 @@ func (U *UMS) GetOrgByCustomerCode(customerCode string) (data UMSOrg, err error)
 	}
 	url := fmt.Sprintf("%s/rs/organizations?customer_code=%s", UMSBusinessURL, customerCode)
 	if err = U.httpCurl("GET", url, "", &data); err == nil {
+		cache.Set(data)
+	}
+	return data, err
+}
+
+//GetUserTags 批量查询用户标签
+func (U *UMS) GetUserTags(customerCode string, siteID uint64, userIDs []uint64) (data map[uint64][]UMSTag, err error) {
+	data = make(map[uint64][]UMSTag)
+	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUserTags", siteID, userIDs)
+	if cache.Get(&data) == true {
+		return data, nil
+	}
+	postData := struct {
+		SiteID    uint64   `json:"siteId"`
+		ProductID uint64   `json:"productId"`
+		UserIDs   []uint64 `json:"userIds"`
+	}{
+		SiteID:    siteID,
+		ProductID: 20,
+		UserIDs:   userIDs,
+	}
+	var resData struct {
+		RetCode uint64 `json:"retCode"`
+		RetMsg  string `json:"retMsg"`
+		RetObj  []struct {
+			UserID   uint64   `json:"userId"`
+			TagGroup []UMSTag `json:"tagGroup"`
+		} `json:"retObj"`
+	}
+	url := fmt.Sprintf("%s/rs/users/tagGroup", UMSBusinessURL)
+	if err = U.httpCurl("POST", url, postData, &resData); err == nil {
+		for _, item := range resData.RetObj {
+			data[item.UserID] = item.TagGroup
+		}
 		cache.Set(data)
 	}
 	return data, err

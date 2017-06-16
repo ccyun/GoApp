@@ -13,10 +13,13 @@ type Bbs struct {
 	ID                 uint64              `orm:"column(id)"`
 	SiteID             uint64              `orm:"column(site_id)"`
 	BoardID            uint64              `orm:"column(board_id)"`
-	Title              string              `orm:"column(title)"`
 	DiscussID          uint64              `orm:"column(discuss_id)"`
+	Title              string              `orm:"column(title)"`
 	Description        string              `orm:"column(description)"`
 	Content            string              `orm:"column(content)"`
+	IsBrowser          uint8               `orm:"column(is_browser)"`
+	IsAuth             uint8               `orm:"column(is_auth)"`
+	Link               string              `orm:"column(link)"`
 	PublishScopeString string              `orm:"column(publish_scope)"`
 	PublishScope       PublishScoper       `orm:"-"`
 	MsgCount           uint64              `orm:"column(msg_count)"`

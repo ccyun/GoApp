@@ -13,7 +13,7 @@ type Feed struct {
 	CreatedAt uint64 `orm:"column(created_at)"`
 }
 
-//FeedData feeddata 结构
+//FeedData 结构
 type FeedData struct {
 	Title          string `json:"title"`
 	Description    string `json:"description"`
@@ -22,6 +22,9 @@ type FeedData struct {
 	Thumb          string `json:"thumb"`
 	Type           string `json:"type"`
 	Category       string `json:"category"`
+	Link           string `json:"link"`
+	IsBrowser      uint8  `json:"is_browser"`
+	IsAuth         uint8  `json:"is_auth"`
 	CommentEnabled uint8  `json:"comment_enabled"`
 	EndTime        uint64 `json:"end_time"`
 	AllowExpired   uint8  `json:"allow_expired"`

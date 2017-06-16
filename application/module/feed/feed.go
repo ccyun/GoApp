@@ -75,6 +75,9 @@ type Customizer struct {
 	UserID         uint64 `json:"user_id"`
 	Type           string `json:"type"`
 	Category       string `json:"category"`
+	Link           string `json:"link"`
+	IsBrowser      uint8  `json:"is_browser"`
+	IsAuth         uint8  `json:"is_auth"`
 	CommentEnabled uint8  `json:"comment_enabled"`
 	CreatedAt      uint64 `json:"created_at"`
 }
