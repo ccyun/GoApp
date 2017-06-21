@@ -65,7 +65,7 @@ func (T *task) getPublishScope() error {
 func createRelation(msgData model.Msg, userIDs []uint64) error {
 	db := orm.NewOrm()
 	db.Using("msg")
-	sql := "insert into  bbs_msg (`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`is_read`,`created_at`) values"
+	sql := "insert into  bbs_msg (`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`task_status`,`is_read`,`created_at`) values"
 	values := []string{}
 	startIndex := 0
 	userCount := len(userIDs)
@@ -78,7 +78,7 @@ func createRelation(msgData model.Msg, userIDs []uint64) error {
 			endIndex = userCount
 		}
 		for _, u := range userIDs[startIndex:endIndex] {
-			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u, 0, 1, msgData.CreatedAt))
+			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,0,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u, 0, 1, msgData.CreatedAt))
 		}
 		if _, err := db.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
 			return err
@@ -103,16 +103,18 @@ func userIDsUnique(data []uint64) []uint64 {
 }
 
 func updateMsgOrgID() error {
+	db := orm.NewOrm()
+	db.Using("msg")
 	for true {
 		userIDs := []uint64{}
 		msgList := []model.Msg{}
-		if _, err := o.Raw("select user_id from bbs_msg where user_org_id=0 group by user_id limit 100").QueryRows(&msgList); err != nil {
+		if _, err := db.Raw("select user_id from bbs_msg where user_org_id=0 group by user_id limit 100").QueryRows(&msgList); err != nil {
 			return err
 		}
-		uu := []string{}
 		if len(msgList) == 0 {
 			break
 		}
+		uu := []string{}
 		for _, u := range msgList {
 			uu = append(uu, strconv.FormatUint(u.UserID, 10))
 			userIDs = append(userIDs, u.UserID)
@@ -124,18 +126,43 @@ func updateMsgOrgID() error {
 		}
 		if len(userList) > 0 {
 			for _, u := range userList {
-				if _, err := o.Raw("UPDATE bbs_msg SET user_org_id = ? where user_id=?", u.OrganizationID, u.UserID).Exec(); err != nil {
+				if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET user_org_id=%d where user_id=%d", u.OrganizationID, u.UserID)).Exec(); err != nil {
 					return err
 				}
 			}
 		}
-		if _, err := o.Raw("UPDATE bbs_msg SET user_org_id = 18446744073709551615 where user_id in(" + strings.Join(uu, ",") + ") and user_org_id=0").Exec(); err != nil {
+		if _, err := db.Raw("UPDATE bbs_msg SET user_org_id = 18446744073709551615 where user_id in(" + strings.Join(uu, ",") + ") and user_org_id=0").Exec(); err != nil {
 			return err
 		}
 	}
 
-	if _, err := o.Raw("UPDATE bbs_msg SET user_org_id = 0 where  user_org_id=18446744073709551615").Exec(); err != nil {
+	if _, err := db.Raw("UPDATE bbs_msg SET user_org_id = 0 where  user_org_id=18446744073709551615").Exec(); err != nil {
 		return err
+	}
+	return nil
+}
+
+func updateMsgTaskStatus() error {
+	db := orm.NewOrm()
+	db.Using("msg")
+
+	maxID := uint64(0)
+	for true {
+		replyList := []model.Msg{}
+		if _, err := o.Raw(fmt.Sprintf("select user_id,bbs_id,status from bbs_bbs_task_reply where status=1 and user_id>%d order by user_id asc limit 1000", maxID)).QueryRows(&replyList); err != nil {
+			return err
+		}
+		if len(replyList) == 0 {
+			break
+		}
+		for _, reply := range replyList {
+			if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=1 where feed_type='task' and bbs_id=%d and user_id=%d", reply.BbsID, reply.UserID)).Exec(); err != nil {
+				return err
+			}
+			if reply.UserID > maxID {
+				maxID = reply.UserID
+			}
+		}
 	}
 	return nil
 }

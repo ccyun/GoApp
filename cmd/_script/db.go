@@ -1,5 +1,14 @@
 package main
 
+import (
+	"bbs_server/application/library/conf"
+	"strings"
+
+	"fmt"
+
+	"github.com/astaxie/beego/orm"
+)
+
 //DB 表结构更新
 type DB struct {
 }
@@ -73,7 +82,7 @@ func (db *DB) alterTable() error {
 		"CREATE TABLE `bbs_bbs_task_reply_tags` (`id`  bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT ,`site_id`  bigint(20) UNSIGNED NOT NULL ,`bbs_id`  bigint(20) NULL DEFAULT NULL ,`reply_id`  bigint(20) UNSIGNED NOT NULL ,`tag_id`  bigint(20) UNSIGNED NOT NULL ,`tag_name`  varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL ,`tag_code`  varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL ,`tag_enum_id`  bigint(20) UNSIGNED NOT NULL ,`tag_value`  varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL ,PRIMARY KEY (`id`),INDEX `reply_id` (`reply_id`) USING BTREE ,INDEX `tag` (`tag_id`, `tag_code`) USING BTREE ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=Compact",
 
 		//更新子任务表
-		"ALTER TABLE `bbs_bbs_task_sub` MODIFY COLUMN `description`  text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务描述' AFTER `title`",
+		"ALTER TABLE `bbs_bbs_task_sub` MODIFY COLUMN `description`  mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务描述' AFTER `title`",
 		"ALTER TABLE `bbs_bbs_task_sub` MODIFY COLUMN `type`  enum('audio','image','checkbox','file','geo','radio','score','video','longtext','text') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '任务类型：文字、组图、音频' AFTER `description`",
 		"ALTER TABLE `bbs_bbs_task_sub` ADD COLUMN `is_required`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否必填' AFTER `restriction`",
 		"ALTER TABLE `bbs_bbs_task_sub` ADD COLUMN `is_hide`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否默认隐藏' AFTER `is_required`",
@@ -82,9 +91,6 @@ func (db *DB) alterTable() error {
 
 		//重命名msg老表
 		"ALTER TABLE `bbs_msg` RENAME `bbs_msg2`",
-
-		//创建新的msg表
-		"CREATE TABLE `bbs_msg` (`id`  bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT ,`site_id`  bigint(20) UNSIGNED NOT NULL ,`board_id`  bigint(20) UNSIGNED NOT NULL ,`discuss_id`  bigint(20) UNSIGNED NOT NULL ,`bbs_id`  bigint(20) UNSIGNED NOT NULL ,`feed_type`  enum('bbs','form','task','taskReply','taskAudit','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播,form表单,task任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' ,`feed_id`  bigint(20) UNSIGNED NOT NULL ,`user_id`  bigint(20) UNSIGNED NOT NULL ,`user_org_id`  bigint(20) UNSIGNED NOT NULL ,`is_read`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否已读' ,`created_at`  bigint(13) UNSIGNED NOT NULL ,PRIMARY KEY (`id`),INDEX `board_id` (`board_id`) USING BTREE ,INDEX `feed_type` (`feed_type`) USING BTREE ,INDEX `user_id` (`user_id`) USING BTREE ,INDEX `bbs_id` (`bbs_id`) USING BTREE ,INDEX `is_read` (`is_read`) USING BTREE ,INDEX `discuss_id` (`discuss_id`) USING BTREE ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Compact",
 
 		//更新队列表
 		"ALTER TABLE `bbs_task` MODIFY COLUMN `task_type`  enum('bbs','taskAuditRemind','taskReply','taskAudit','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播表单任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' AFTER `customer_code`",
@@ -100,13 +106,33 @@ func (db *DB) alterTable() error {
 		//删除讨论组预览公告的feed
 		"DELETE feed FROM bbs_feed feed,bbs_bbs bbs WHERE feed.bbs_id = bbs.id AND bbs.discuss_id > 0 AND bbs.type = 'preview'",
 	}
+
 	for _, sql := range sqls {
 		if _, err := o.Raw(sql).Exec(); err != nil {
 			return err
 		}
 	}
-	return nil
+	//创建新的msg表
+	dbShardDsns := conf.String("db_shard_dsns")
+	tableNum, _ := conf.Int("db_shard_table_mun")
+	dsns := strings.Split(dbShardDsns, ";")
+	nodeNum := len(dsns)
 
+	for i, dsn := range dsns {
+		if err := orm.RegisterDataBase(fmt.Sprintf("msg%d", i), "mysql", dsn, 2, 2); err != nil {
+			return err
+		}
+	}
+	d := orm.NewOrm()
+	for i := 0; i < tableNum; i++ {
+		if err := d.Using(fmt.Sprintf("msg%d", (i / (tableNum / nodeNum)))); err != nil {
+			return err
+		}
+		if _, err := d.Raw("CREATE TABLE `" + fmt.Sprintf("bbs_msg_%.4d", i) + "` (`id`  bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT ,`site_id`  bigint(20) UNSIGNED NOT NULL ,`board_id`  bigint(20) UNSIGNED NOT NULL ,`discuss_id`  bigint(20) UNSIGNED NOT NULL ,`bbs_id`  bigint(20) UNSIGNED NOT NULL ,`feed_type`  enum('bbs','form','task','taskReply','taskAudit','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播,form表单,task任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' ,`feed_id`  bigint(20) UNSIGNED NOT NULL ,`user_id`  bigint(20) UNSIGNED NOT NULL ,`user_org_id`  bigint(20) UNSIGNED NOT NULL ,`task_status` tinyint(1) unsigned NOT NULL,`is_read`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否已读' ,`created_at`  bigint(13) UNSIGNED NOT NULL ,PRIMARY KEY (`id`),INDEX `board_id` (`board_id`) USING BTREE ,INDEX `feed_type` (`feed_type`) USING BTREE ,INDEX `user_id` (`user_id`) USING BTREE ,INDEX `bbs_id` (`bbs_id`) USING BTREE ,INDEX `is_read` (`is_read`) USING BTREE ,INDEX `discuss_id` (`discuss_id`) USING BTREE ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Compact").Exec(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 //后置处理
@@ -116,6 +142,8 @@ func (db *DB) clearTable() error {
 		"DROP TABLE `bbs_msg2`",
 		//删除图片类型的反馈内容
 		"UPDATE bbs_bbs_task_reply_sub reply,bbs_bbs_task_sub task SET reply.data='' WHERE reply.sub_task_id=task.id and task.type='image'",
+		//更新任务完成状态
+		"update bbs_bbs_task task set task.is_done=1 where task.bbs_id in (select id from bbs_bbs bbs where bbs.category='task' and bbs.msg_count=(select count(reply.id) from bbs_bbs_task_reply reply where reply.bbs_id=bbs.id and reply.status=1))",
 	}
 	for _, sql := range sqls {
 		if _, err := o.Raw(sql).Exec(); err != nil {

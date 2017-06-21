@@ -53,6 +53,9 @@ func main() {
 	if err := updateMsgOrgID(); err != nil {
 		log.Println(err)
 	}
+	if err := updateMsgTaskStatus(); err != nil {
+		log.Println(err)
+	}
 	log.Println(db.clearTable())
 }
 

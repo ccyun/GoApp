@@ -12,17 +12,18 @@ import (
 //Msg 消息表
 type Msg struct {
 	base
-	ID        uint64 `orm:"column(id)"`
-	SiteID    uint64 `orm:"column(site_id)"`
-	BoardID   uint64 `orm:"column(board_id)"`
-	DiscussID uint64 `orm:"column(discuss_id)"`
-	BbsID     uint64 `orm:"column(bbs_id)"`
-	FeedType  string `orm:"column(feed_type)"`
-	FeedID    uint64 `orm:"column(feed_id)"`
-	UserID    uint64 `orm:"column(user_id)"`
-	UserOrgID uint64 `orm:"column(user_org_id)"`
-	IsRead    uint8  `orm:"column(is_read)"`
-	CreatedAt uint64 `orm:"column(created_at)"`
+	ID         uint64 `orm:"column(id)"`
+	SiteID     uint64 `orm:"column(site_id)"`
+	BoardID    uint64 `orm:"column(board_id)"`
+	DiscussID  uint64 `orm:"column(discuss_id)"`
+	BbsID      uint64 `orm:"column(bbs_id)"`
+	FeedType   string `orm:"column(feed_type)"`
+	FeedID     uint64 `orm:"column(feed_id)"`
+	UserID     uint64 `orm:"column(user_id)"`
+	UserOrgID  uint64 `orm:"column(user_org_id)"`
+	TaskStatus uint8  `orm:"column(task_status)"`
+	IsRead     uint8  `orm:"column(is_read)"`
+	CreatedAt  uint64 `orm:"column(created_at)"`
 }
 
 //TableName 表名
@@ -39,7 +40,7 @@ func (M *Msg) TrueTableName() string {
 func (M *Msg) Create(msgData Msg, userIDs []httpcurl.UMSUser, defaultReadStatus uint8, ackReadUserID uint64) error {
 	db := orm.NewOrm()
 	db.Using("msg")
-	sql := "insert into `" + M.TrueTableName() + "`(`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`is_read`,`created_at`) values"
+	sql := "insert into `" + M.TrueTableName() + "`(`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`task_status`,`is_read`,`created_at`) values"
 	values := []string{}
 	startIndex := 0
 	userCount := len(userIDs)
@@ -56,7 +57,7 @@ func (M *Msg) Create(msgData Msg, userIDs []httpcurl.UMSUser, defaultReadStatus 
 			if isRead == 0 && u.UserID == ackReadUserID {
 				isRead = 1
 			}
-			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u.UserID, u.OrganizationID, isRead, msgData.CreatedAt))
+			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,0,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u.UserID, u.OrganizationID, isRead, msgData.CreatedAt))
 		}
 		if _, err := db.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
 			return err

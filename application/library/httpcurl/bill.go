@@ -20,8 +20,8 @@ type BILL struct {
 
 //ReqAccepter 计费接收者
 type ReqAccepter struct {
-	SiteID     uint64   `json:"site_id"`
-	UserID     []uint64 `json:"user_id"`
+	SiteID     uint64   `json:"siteId"`
+	UserID     []uint64 `json:"userId"`
 	AcceptTime uint64   `json:"acceptTime"`
 }
 
