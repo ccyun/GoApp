@@ -38,8 +38,10 @@ func (B *BILL) httpCurl(method string, url string, body string, resData interfac
 		err = fmt.Errorf("%s->bill httpcurl status code: %d", reqID, statusCode)
 	}
 	logs.Debug("%s->bill httpcurl response:%s", reqID, string(res))
-	if err = json.Unmarshal(res, resData); err != nil {
-		return err
+	if resData != "" {
+		if err = json.Unmarshal(res, resData); err != nil {
+			return err
+		}
 	}
 	return err
 }

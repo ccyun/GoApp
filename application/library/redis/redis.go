@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/logs"
 	"github.com/chasex/redis-go-cluster"
 )
 
@@ -200,6 +201,7 @@ func (rc *Redis) Put(key string, val interface{}, timeout time.Duration) error {
 //Delete delete cache in redis.
 func (rc *Redis) Delete(key string) error {
 	key = rc.realKey(key)
+	logs.Info("Redis delete key:", key)
 	if strings.HasSuffix(key, "*") == true {
 		key = strings.TrimRight(key, "*")
 		return rc.clearAll(key)

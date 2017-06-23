@@ -76,6 +76,6 @@ func (c *C) Get(data interface{}) bool {
 //Clear 清除缓存
 func (c *C) Clear() {
 	if err := Cache.Delete(c.prefix + "*"); err != nil {
-		logs.Error("Clear cahce:", c.prefix, "*")
+		logs.Error("Clear cahce:", c.prefix, "*", err.Error())
 	}
 }
