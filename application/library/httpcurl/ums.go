@@ -11,6 +11,8 @@ import (
 
 	"bbs_server/application/library/redis"
 
+	"strconv"
+
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/utils"
 )
@@ -138,7 +140,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		w.Wait()
 	}
 	if uint64(len(data)) != totalCount {
-		return nil, fmt.Errorf("GetAllUserByOrgIDs error")
+		logs.Error("GetAllUserByOrgIDs error totalCount!=len(data)")
 	}
 	cache.Set(data)
 	return data, nil
@@ -248,33 +250,38 @@ func (U *UMS) GetOrgByCustomerCode(customerCode string) (data UMSOrg, err error)
 //GetUserTags 批量查询用户标签
 func (U *UMS) GetUserTags(customerCode string, siteID uint64, userIDs []uint64) (data map[uint64][]UMSTag, err error) {
 	data = make(map[uint64][]UMSTag)
+	data2 := make(map[string][]UMSTag)
 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUserTags", siteID, userIDs)
-	if cache.Get(&data) == true {
-		return data, nil
-	}
-	postData := struct {
-		SiteID    uint64   `json:"siteId"`
-		ProductID uint64   `json:"productId"`
-		UserIDs   []uint64 `json:"userIds"`
-	}{
-		SiteID:    siteID,
-		ProductID: 20,
-		UserIDs:   userIDs,
-	}
-	var resData struct {
-		RetCode uint64 `json:"retCode"`
-		RetMsg  string `json:"retMsg"`
-		RetObj  []struct {
-			UserID   uint64   `json:"userId"`
-			TagGroup []UMSTag `json:"tagGroup"`
-		} `json:"retObj"`
-	}
-	url := fmt.Sprintf("%s/rs/users/tagGroup", UMSBusinessURL)
-	if err = U.httpCurl("POST", url, postData, &resData); err == nil {
-		for _, item := range resData.RetObj {
-			data[item.UserID] = item.TagGroup
+	if cache.Get(&data2) == false {
+		postData := struct {
+			SiteID    uint64   `json:"siteId"`
+			ProductID uint64   `json:"productId"`
+			UserIDs   []uint64 `json:"userIds"`
+		}{
+			SiteID:    siteID,
+			ProductID: 20,
+			UserIDs:   userIDs,
 		}
-		cache.Set(data)
+		var resData struct {
+			RetCode uint64 `json:"retCode"`
+			RetMsg  string `json:"retMsg"`
+			RetObj  []struct {
+				UserID   uint64   `json:"userId"`
+				TagGroup []UMSTag `json:"tagGroup"`
+			} `json:"retObj"`
+		}
+		url := fmt.Sprintf("%s/rs/users/tagGroup", UMSBusinessURL)
+		if err = U.httpCurl("POST", url, postData, &resData); err == nil {
+			for _, item := range resData.RetObj {
+				k := strconv.FormatUint(item.UserID, 10)
+				data2[k] = item.TagGroup
+			}
+			cache.Set(data2)
+		}
+	}
+	for k, item := range data2 {
+		key, _ := strconv.ParseUint(k, 10, 0)
+		data[key] = item
 	}
 	return data, err
 }

@@ -117,7 +117,7 @@ func (T *task) handleTaskReplyTags() error {
 	for _, item := range replyList {
 		userIDs = append(userIDs, item.UserID)
 	}
-	tagList, err := ums.GetUserTags("000000", T.bbsInfo.SiteID, userIDs)
+	tagList, err := ums.GetUserTags("00000", T.bbsInfo.SiteID, userIDs)
 	if err != nil {
 		return err
 	}

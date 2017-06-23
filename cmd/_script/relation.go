@@ -119,7 +119,7 @@ func updateMsgOrgID() error {
 			uu = append(uu, strconv.FormatUint(u.UserID, 10))
 			userIDs = append(userIDs, u.UserID)
 		}
-		userList, err := ums.GetUsersDetail("0", userIDs, true)
+		userList, err := ums.GetUsersDetail("00000", userIDs, true)
 		if err != nil {
 			log.Printf("GetUsersDetail error:%s", err.Error())
 			return err
