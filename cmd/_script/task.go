@@ -58,6 +58,11 @@ type geo struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 }
+type text struct {
+	TextType uint8  `json:"text_type"`
+	MaxSize  uint64 `json:"max_size"`
+	Unit     string `json:"unit"`
+}
 
 func (T *task) handleTaskReply() error {
 	if T.bbsInfo.Category != "task" {
@@ -132,6 +137,31 @@ func (T *task) handleTaskReplyTags() error {
 	}
 	if len(values) > 0 {
 		if _, err := o.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (T *task) handleSubTaskText() error {
+	var subTaskList []struct {
+		ID          uint64 `orm:"column(id)"`
+		Restriction string `orm:"column(restriction)"`
+	}
+	if _, err := o.Raw("select id,restriction from bbs_bbs_task_sub where bbs_id=? and type='text'", T.bbsInfo.ID).QueryRows(&subTaskList); err != nil {
+		return err
+	}
+	if len(subTaskList) == 0 {
+		return nil
+	}
+	for _, item := range subTaskList {
+		var restriction text
+		if err := json.Unmarshal([]byte(item.Restriction), &restriction); err != nil {
+			return err
+		}
+		restriction.TextType = 1
+		restrictionByte, _ := json.Marshal(restriction)
+		if _, err := o.Raw("update bbs_bbs_task_sub set restriction='?' where id=?", string(restrictionByte), item.ID).Exec(); err != nil {
 			return err
 		}
 	}

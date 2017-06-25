@@ -112,6 +112,10 @@ func handleBbs(id uint64) error {
 		log.Println(err)
 		return err
 	}
+	if err := T.handleSubTaskText(); err != nil {
+		log.Println(err)
+		return err
+	}
 	return nil
 }
 
