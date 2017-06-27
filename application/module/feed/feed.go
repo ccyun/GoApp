@@ -154,7 +154,11 @@ func newFeed(feedType string, data Customizer) Feeder {
 	if feedType != "bbs" && feedType != "task" {
 		feedData.DisplayType = "RichMedia"
 	}
-	feedData.DetailURL = fmt.Sprintf("%s%s/bbs/show/bbs.html?id=%d&category=%s&v=2", AppDomain, Path, data.BbsID, data.Category)
+	if data.Link != "" {
+		feedData.DetailURL = data.Link
+	} else {
+		feedData.DetailURL = fmt.Sprintf("%s%s/bbs/show/bbs.html?id=%d&category=%s&v=2", AppDomain, Path, data.BbsID, data.Category)
+	}
 	return feedData
 }
 

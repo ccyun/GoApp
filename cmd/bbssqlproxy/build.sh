@@ -8,7 +8,10 @@ SCRIPTDIR=`dirname $0`
 #echo $SCRIPTDIR
 SCRIPTDIR=`cd $SCRIPTDIR; pwd`
 #echo $SCRIPTDIR
-GOPATH=`cd ${SCRIPTDIR}/../../; pwd`
-#echo "GOPATH:" $GOPATH;
+GOPATH=`cd ${SCRIPTDIR}/../../../../; pwd`
+echo "GOPATH:" $GOPATH;
 export GOPATH
-go build -o taskserver main.go
+
+go build -o bbssqlproxy main.go
+
+

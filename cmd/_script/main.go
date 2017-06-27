@@ -146,7 +146,7 @@ func (T *task) getInfo(id uint64) error {
 	}
 	if T.bbsInfo.AttachmentsString != "" {
 		if err = json.Unmarshal([]byte(T.bbsInfo.AttachmentsString), &T.bbsInfo.Attachments); err != nil {
-			return err
+			log.Println(T.bbsInfo)
 		}
 		if len(T.bbsInfo.Attachments) > 0 {
 			if thumb, ok := T.bbsInfo.Attachments[0]["url"]; ok {

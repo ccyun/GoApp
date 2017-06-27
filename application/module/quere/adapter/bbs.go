@@ -323,7 +323,7 @@ func (B *Bbs) discussMsg() error {
 	postData.To.ToID = B.boardInfo.DiscussID
 	postData.To.ToPrivateIDs = []uint64{}
 	if B.bbsInfo.Type == "preview" {
-		if B.bbsInfo.UserID == B.bbsInfo.PublishScope.UserIDs[0] {
+		if B.bbsInfo.UserID != B.bbsInfo.PublishScope.UserIDs[0] {
 			postData.Control.NoSendself = 1
 		}
 		postData.To.ToPrivateIDs = B.bbsInfo.PublishScope.UserIDs

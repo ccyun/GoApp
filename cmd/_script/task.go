@@ -161,7 +161,7 @@ func (T *task) handleSubTaskText() error {
 		}
 		restriction.TextType = 1
 		restrictionByte, _ := json.Marshal(restriction)
-		if _, err := o.Raw("update bbs_bbs_task_sub set restriction='?' where id=?", string(restrictionByte), item.ID).Exec(); err != nil {
+		if _, err := o.Raw("update bbs_bbs_task_sub set restriction=? where id=?", string(restrictionByte), item.ID).Exec(); err != nil {
 			return err
 		}
 	}
