@@ -71,7 +71,6 @@ func (db *DB) alterTable() error {
 		"ALTER TABLE `bbs_bbs_task_reply_sub` MODIFY COLUMN `audit_user_id`  bigint(20) UNSIGNED NOT NULL COMMENT '审核用户' AFTER `audit_opinion`",
 		"ALTER TABLE `bbs_bbs_task_reply_sub` ADD COLUMN `is_history`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否历史子反馈，用于保存子反馈历史记录' AFTER `audit_user_id`",
 		"ALTER TABLE `bbs_bbs_task_reply_sub` DROP COLUMN `type`",
-		"CREATE UNIQUE INDEX `sub_reply` ON `bbs_bbs_task_reply_sub`(`sub_task_id`, `reply_id`, `user_id`, `is_history`) USING BTREE ",
 		"DROP INDEX `sub_task_id` ON `bbs_bbs_task_reply_sub`",
 		"CREATE INDEX `sub_task_id` ON `bbs_bbs_task_reply_sub`(`sub_task_id`) USING BTREE ",
 

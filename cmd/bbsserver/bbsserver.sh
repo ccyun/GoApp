@@ -22,6 +22,8 @@ ulimit -n 1024000
 	fi
     env GOTRACEBACK=crash nohup $bbsserver_root/bbsserver -c $configs > $nohupfile &
     sleep 1
+    getpid
+    echo $pid>>$pidfile
     test -f $pidfile && echo "Start bbsserver success"
 }
 
@@ -32,6 +34,8 @@ startX(){
 	fi
 	nohup $bbsserver_root/bbsserver -c $configs > $nohupfile &
         sleep 3
+        getpid
+        echo $pid>>$pidfile
         if [ -f $pidfile ];then
             echo "Start bbsserver success"
             rc=0
