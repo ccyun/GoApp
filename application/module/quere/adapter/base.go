@@ -84,6 +84,7 @@ func (B *base) CreateRelation() error {
 	var (
 		ackReadUserID     uint64
 		defaultReadStatus uint8
+		defaultTaskStatus uint8
 	)
 	if B.boardInfo.DiscussID > 0 {
 		if B.bbsInfo.Type == "preview" {
@@ -91,14 +92,18 @@ func (B *base) CreateRelation() error {
 		}
 		ackReadUserID = B.bbsInfo.UserID
 	}
+	if B.bbsInfo.Category == "task" && B.bbsInfo.Type == "preview" {
+		defaultTaskStatus = 1
+	}
 	msgData := model.Msg{
-		SiteID:    B.siteID,
-		BoardID:   B.boardID,
-		DiscussID: B.boardInfo.DiscussID,
-		BbsID:     B.bbsID,
-		FeedType:  B.feedType,
-		FeedID:    B.feedID,
-		CreatedAt: B.nowTime,
+		SiteID:     B.siteID,
+		BoardID:    B.boardID,
+		DiscussID:  B.boardInfo.DiscussID,
+		BbsID:      B.bbsID,
+		FeedType:   B.feedType,
+		FeedID:     B.feedID,
+		CreatedAt:  B.nowTime,
+		TaskStatus: defaultTaskStatus,
 	}
 	return new(model.Msg).Create(msgData, B.userList, defaultReadStatus, ackReadUserID)
 }

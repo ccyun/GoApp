@@ -57,7 +57,7 @@ func (M *Msg) Create(msgData Msg, userIDs []httpcurl.UMSUser, defaultReadStatus 
 			if isRead == 0 && u.UserID == ackReadUserID {
 				isRead = 1
 			}
-			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,0,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u.UserID, u.OrganizationID, isRead, msgData.CreatedAt))
+			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u.UserID, u.OrganizationID, msgData.TaskStatus, isRead, msgData.CreatedAt))
 		}
 		if _, err := db.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
 			return err
@@ -76,7 +76,7 @@ func (M *Msg) GetUserIDs(siteID, boardID, bbsID uint64, isRead int) []uint64 {
 		msgData []*Msg
 		data    []uint64
 	)
-	sql := fmt.Sprintf("select `user_id` from `%s` where `site_id`=%d and `board_id`=%d and `bbs_id`=%d", M.TrueTableName(), siteID, boardID, bbsID)
+	sql := fmt.Sprintf("select `user_id` from `%s` where `site_id`=%d and `board_id`=%d and `bbs_id`=%d `feed_type` in %s", M.TrueTableName(), siteID, boardID, bbsID, "('bbs','task','form')")
 	if isRead == 0 || isRead == 1 {
 		sql += fmt.Sprintf("and `is_read`=%d", isRead)
 	} else if isRead != -1 {

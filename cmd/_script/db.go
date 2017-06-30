@@ -143,6 +143,12 @@ func (db *DB) clearTable() error {
 		"UPDATE bbs_bbs_task_reply_sub reply,bbs_bbs_task_sub task SET reply.data='' WHERE reply.sub_task_id=task.id and task.type='image'",
 		//更新任务完成状态
 		"update bbs_bbs_task task set task.is_done=1 where task.bbs_id in (select id from bbs_bbs bbs where bbs.category='task' and bbs.msg_count=(select count(reply.id) from bbs_bbs_task_reply reply where reply.bbs_id=bbs.id and reply.status=1))",
+		//清理已经删除的任务未审核数据
+		"delete from bbs_bbs_task_audit where status=0 and bbs_id in(select id from bbs_bbs where is_deleted=1)",
+		//清理已经关闭的任务未审核数据
+		"delete from bbs_bbs_task_audit where status=0 and bbs_id in(select bbs_id from bbs_bbs_task where is_close=1)",
+		//音频任务统一修改任务要求
+		"UPDATE bbs_bbs_task_sub SET restriction='{\"require_description\":0}' where type='audio'",
 	}
 	for _, sql := range sqls {
 		if _, err := o.Raw(sql).Exec(); err != nil {

@@ -110,7 +110,7 @@ func (T *TaskAudit) SendMsg() error {
 		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
 		WebPushData: "您有一个“i 广播”消息",
 	}
-	data.Data1 = "{\"action\":null}"
+	data.Data1 = `{"action":null}`
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err
