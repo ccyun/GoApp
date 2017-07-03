@@ -13,7 +13,7 @@
             "host": "127.0.0.1",
             "program": "${workspaceRoot}/cmd/_script/",
             "env": {},
-            "args": [],
+            "args": ["-c","./_script.ini"],
             "showLog": true
         },
         {

@@ -129,6 +129,9 @@ func updateMsgOrgID() error {
 				if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET user_org_id=%d where user_id=%d", u.OrganizationID, u.UserID)).Exec(); err != nil {
 					return err
 				}
+				if _, err := o.Raw(fmt.Sprintf("UPDATE bbs_bbs_task_reply SET user_org_id=%d where user_id=%d", u.OrganizationID, u.UserID)).Exec(); err != nil {
+					return err
+				}
 			}
 		}
 		if _, err := db.Raw("UPDATE bbs_msg SET user_org_id = 18446744073709551615 where user_id in(" + strings.Join(uu, ",") + ") and user_org_id=0").Exec(); err != nil {
