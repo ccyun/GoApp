@@ -65,7 +65,7 @@ func (T *task) handleFeed() error {
 				FeedType:  v.FeedType,
 				CreatedAt: v.CreatedAt,
 			}
-			if err := createRelation(msgData, userIDs); err != nil {
+			if err := createRelation(msgData, userIDs, T.taskStatus); err != nil {
 				return err
 			}
 			if v.FeedType == "bbs" || v.FeedType == "task" {

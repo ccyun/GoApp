@@ -73,6 +73,7 @@ func (db *DB) alterTable() error {
 		"ALTER TABLE `bbs_bbs_task_reply_sub` DROP COLUMN `type`",
 		"DROP INDEX `sub_task_id` ON `bbs_bbs_task_reply_sub`",
 		"CREATE INDEX `sub_task_id` ON `bbs_bbs_task_reply_sub`(`sub_task_id`) USING BTREE ",
+		"CREATE UNIQUE INDEX `serial_num` ON `bbs_bbs_task_reply_sub`(`serial_num`, `site_id`, `board_id`, `bbs_id`, `sub_task_id`, `reply_id`, `user_id`, `status`, `is_history`, `audit_at`) USING BTREE",
 
 		//子反馈扩展表
 		"CREATE TABLE `bbs_bbs_task_reply_sub_ext` (`id`  bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT ,`site_id`  bigint(20) UNSIGNED NOT NULL ,`board_id`  bigint(20) UNSIGNED NOT NULL ,`bbs_id`  bigint(20) UNSIGNED NOT NULL ,`sub_task_id`  bigint(20) UNSIGNED NOT NULL ,`reply_id`  bigint(20) UNSIGNED NOT NULL ,`sub_task_reply_id`  bigint(20) UNSIGNED NOT NULL ,`value`  text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL ,`audit_opinion`  text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL ,`comments`  text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '批注' ,`status`  tinyint(1) UNSIGNED NOT NULL COMMENT '审核状态' ,PRIMARY KEY (`id`),INDEX `site_id` (`site_id`) USING BTREE ,INDEX `board_id` (`board_id`) USING BTREE ,INDEX `bbs_id` (`bbs_id`) USING BTREE ,INDEX `sub_task_id` (`sub_task_id`) USING BTREE ,INDEX `sub_task_reply_id` (`sub_task_reply_id`) USING BTREE ,INDEX `reply_id` (`reply_id`) USING BTREE ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Compact",

@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"sync"
 
+	"time"
+
 	"github.com/astaxie/beego/orm"
 )
 
@@ -24,6 +26,7 @@ type task struct {
 	taskInfo            model.BbsTask
 	category            string
 	publishScopeUserIDs map[uint64][]uint64
+	taskStatus          uint8
 }
 
 type feedDataer struct {
@@ -121,7 +124,7 @@ func handleBbs(id uint64) error {
 
 func getBbsIDs() error {
 	var bbsData []model.Bbs
-	if _, err := o.Raw("select id from bbs_bbs where status=1 and (discuss_id=0 or (discuss_id>0 and type='default')) order by id asc").QueryRows(&bbsData); err != nil {
+	if _, err := o.Raw("select id from bbs_bbs where status=1 and is_deleted=0 and (discuss_id=0 or (discuss_id>0 and type='default')) order by id asc").QueryRows(&bbsData); err != nil {
 		return err
 	}
 	pageSize := (len(bbsData) / 20) + 1
@@ -156,8 +159,11 @@ func (T *task) getInfo(id uint64) error {
 	}
 	T.category = T.bbsInfo.Category
 	if T.category == "task" {
-		if err = o.Raw("select end_time,allow_expired from bbs_bbs_task where bbs_id=?", T.bbsInfo.ID).QueryRow(&T.taskInfo); err != nil {
+		if err = o.Raw("select end_time,allow_expired,is_close from bbs_bbs_task where bbs_id=?", T.bbsInfo.ID).QueryRow(&T.taskInfo); err != nil {
 			return err
+		}
+		if T.taskInfo.IsClose == 1 || (T.taskInfo.AllowExpired == 0 && T.taskInfo.EndTime > uint64(time.Now().UnixNano()/1e6)) {
+			T.taskStatus = 1
 		}
 	}
 	return nil

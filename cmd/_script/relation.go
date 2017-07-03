@@ -62,7 +62,7 @@ func (T *task) getPublishScope() error {
 }
 
 //Create 创建消息
-func createRelation(msgData model.Msg, userIDs []uint64) error {
+func createRelation(msgData model.Msg, userIDs []uint64, taskStatus uint8) error {
 	db := orm.NewOrm()
 	db.Using("msg")
 	sql := "insert into  bbs_msg (`site_id`,`board_id`,`discuss_id`,`bbs_id`,`feed_type`,`feed_id`,`user_id`,`user_org_id`,`task_status`,`is_read`,`created_at`) values"
@@ -78,7 +78,7 @@ func createRelation(msgData model.Msg, userIDs []uint64) error {
 			endIndex = userCount
 		}
 		for _, u := range userIDs[startIndex:endIndex] {
-			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,0,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u, 0, 1, msgData.CreatedAt))
+			values = append(values, fmt.Sprintf("(%d,%d,%d,%d,'%s',%d,%d,%d,%d,%d,%d)", msgData.SiteID, msgData.BoardID, msgData.DiscussID, msgData.BbsID, msgData.FeedType, msgData.FeedID, u, 0, taskStatus, 1, msgData.CreatedAt))
 		}
 		if _, err := db.Raw(sql + strings.Join(values, ",")).Exec(); err != nil {
 			return err

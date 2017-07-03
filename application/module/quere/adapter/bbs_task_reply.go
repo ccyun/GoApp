@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
@@ -45,11 +44,7 @@ func (T *TaskReply) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (T *TaskReply) GetPublishScopeUsers() error {
-	userIDs, err := new(model.BbsTaskReply).GetReplyUserIDs(T.bbsID)
-	if err != nil {
-		return err
-	}
-	T.userIDs = function.SliceDiff(new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1), userIDs).Uint64()
+	T.userIDs = new(model.Msg).GetUnReplyUserIDs(T.siteID, T.boardID, T.bbsID)
 	return T.base.GetPublishScopeUsers()
 }
 
