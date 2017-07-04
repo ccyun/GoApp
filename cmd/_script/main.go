@@ -56,15 +56,15 @@ func main() {
 	if err := updateMsgOrgID(); err != nil {
 		log.Println(err)
 	}
-	if err := updateMsgTaskStatus(); err != nil {
-		log.Println(err)
-	}
+	// if err := updateMsgTaskStatus(); err != nil {
+	// 	log.Println(err)
+	// }
 	log.Println(db.clearTable())
 }
 
 func runTask() error {
 	var w sync.WaitGroup
-	runtime.GOMAXPROCS(8)
+	runtime.GOMAXPROCS(5)
 	// bbsIDs = [][]uint64{[]uint64{
 	// 	50001145,
 	// 	50001162,
@@ -127,7 +127,7 @@ func getBbsIDs() error {
 	if _, err := o.Raw("select id from bbs_bbs where status=1 and is_deleted=0 and (discuss_id=0 or (discuss_id>0 and type='default')) order by id asc").QueryRows(&bbsData); err != nil {
 		return err
 	}
-	pageSize := (len(bbsData) / 20) + 1
+	pageSize := (len(bbsData) / 5) + 1
 	var (
 		tempIDs []uint64
 	)

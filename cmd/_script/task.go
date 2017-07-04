@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"strconv"
-
 	"github.com/astaxie/beego/orm"
 )
 
@@ -124,21 +122,22 @@ func (T *task) handleTaskReplyTags() error {
 		return nil
 	}
 	userIDs := []uint64{}
-	replyUserIDs := []string{}
+	db := orm.NewOrm()
+	db.Using("msg")
 	for _, item := range replyList {
 		userIDs = append(userIDs, item.UserID)
 		if item.Status > -1 {
-			replyUserIDs = append(replyUserIDs, strconv.FormatUint(item.UserID, 10))
+			taskStatus := 1
+			if item.Status == 1 {
+				taskStatus = 2
+			}
+			if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=%d where feed_type='task' and bbs_id=%d and user_id=%d", taskStatus, T.bbsInfo.ID, item.UserID)).Exec(); err != nil {
+				return err
+			}
 		}
 	}
 	//做过任务的用户列表
-	if len(replyUserIDs) > 0 {
-		db := orm.NewOrm()
-		db.Using("msg")
-		if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=1 where feed_type='task' and bbs_id=%d and user_id in (%s)", T.bbsInfo.ID, strings.Join(replyUserIDs, ","))).Exec(); err != nil {
-			return err
-		}
-	}
+
 	tagList, err := ums.GetUserTags("00000", T.bbsInfo.SiteID, userIDs)
 	if err != nil {
 		return err

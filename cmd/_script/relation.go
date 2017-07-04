@@ -145,27 +145,27 @@ func updateMsgOrgID() error {
 	return nil
 }
 
-func updateMsgTaskStatus() error {
-	db := orm.NewOrm()
-	db.Using("msg")
+// func updateMsgTaskStatus() error {
+// 	db := orm.NewOrm()
+// 	db.Using("msg")
 
-	maxID := uint64(0)
-	for true {
-		replyList := []model.Msg{}
-		if _, err := o.Raw(fmt.Sprintf("select user_id,bbs_id,status from bbs_bbs_task_reply where status=1 and user_id>%d order by user_id asc limit 1000", maxID)).QueryRows(&replyList); err != nil {
-			return err
-		}
-		if len(replyList) == 0 {
-			break
-		}
-		for _, reply := range replyList {
-			if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=1 where feed_type='task' and bbs_id=%d and user_id=%d", reply.BbsID, reply.UserID)).Exec(); err != nil {
-				return err
-			}
-			if reply.UserID > maxID {
-				maxID = reply.UserID
-			}
-		}
-	}
-	return nil
-}
+// 	maxID := uint64(0)
+// 	for true {
+// 		replyList := []model.Msg{}
+// 		if _, err := o.Raw(fmt.Sprintf("select user_id,bbs_id,status from bbs_bbs_task_reply where status=1 and user_id>%d order by user_id asc limit 1000", maxID)).QueryRows(&replyList); err != nil {
+// 			return err
+// 		}
+// 		if len(replyList) == 0 {
+// 			break
+// 		}
+// 		for _, reply := range replyList {
+// 			if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=1 where feed_type='task' and bbs_id=%d and user_id=%d", reply.BbsID, reply.UserID)).Exec(); err != nil {
+// 				return err
+// 			}
+// 			if reply.UserID > maxID {
+// 				maxID = reply.UserID
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }

@@ -170,9 +170,5 @@ func TestKingShard(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	//	for i, dsn := range strings.Split("root:admin@tcp(localhost:3307)/kingshard?charset=utf8mb4;root:admin@tcp(localhost:3308)/kingshard?charset=utf8mb4;root:admin@tcp(localhost:3309)/kingshard?charset=utf8mb4", ";") {
-	//	log.Println(i)
-	//log.Println(dsn)
-	//	}
-	log.Println(149 * 3 / 150)
+
 }
