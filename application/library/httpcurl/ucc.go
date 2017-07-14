@@ -163,7 +163,7 @@ func (U *UCC) GetDiscussInfo(userID uint64, discussID uint64) (UCCDiscussData, e
 	if err := U.httpCurl("GET", fmt.Sprintf("%s/group/info?user_id=%d&group_id=%d", UccServerURL, userID, discussID), "", &data); err != nil {
 		return UCCDiscussData{}, err
 	}
-	if len(data.Data) > 0 && data.Data[0].DiscussType == 2 && data.Data[0].DiscussStatus == 0 {
+	if len(data.Data) > 0 && data.Data[0].DiscussType == 2 {
 		return data.Data[0], nil
 	}
 	return UCCDiscussData{}, nil

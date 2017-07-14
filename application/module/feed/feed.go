@@ -119,6 +119,9 @@ func (C *Customizer) Handle(data Customizer) {
 	C.UserID = data.UserID
 	C.Type = data.Type
 	C.Category = data.Category
+	C.Link = data.Link
+	C.IsBrowser = data.IsBrowser
+	C.IsAuth = data.IsAuth
 	C.CommentEnabled = data.CommentEnabled
 	C.CreatedAt = data.CreatedAt
 }

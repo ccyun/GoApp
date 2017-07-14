@@ -19,7 +19,7 @@ func (db *DB) alterTable() error {
 
 		//更新BBS表
 		"ALTER TABLE `bbs_bbs` MODIFY COLUMN `publish_scope`  mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL AFTER `link`",
-
+		"update bbs_bbs set is_auth=1 where is_auth=0 and link=''",
 		//更新BBS任务表
 		"ALTER TABLE `bbs_bbs_task` ADD COLUMN `reply_type`  tinyint(1) UNSIGNED NOT NULL COMMENT '反馈者类型0用户，1组织' AFTER `bbs_id`",
 		"ALTER TABLE `bbs_bbs_task` ADD COLUMN `is_resubmit`  tinyint(1) UNSIGNED NOT NULL COMMENT '是否允许重复提交0否，1是' AFTER `reply_type`",
@@ -93,7 +93,7 @@ func (db *DB) alterTable() error {
 		"ALTER TABLE `bbs_msg` RENAME `bbs_msg2`",
 
 		//更新队列表
-		"ALTER TABLE `bbs_task` MODIFY COLUMN `task_type`  enum('bbs','taskAuditRemind','taskReply','taskAudit','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播表单任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' AFTER `customer_code`",
+		"ALTER TABLE `bbs_task` MODIFY COLUMN `task_type`  enum('bbs','taskAuditRemind','taskReply','taskAudit','taskEnd','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播表单任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' AFTER `customer_code`",
 		"ALTER TABLE `bbs_task` ADD COLUMN `bbs_id`  bigint(20) NOT NULL AFTER `task_type`",
 		"CREATE INDEX `bbs_id` ON `bbs_task`(`bbs_id`) USING BTREE ",
 

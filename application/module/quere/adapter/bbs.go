@@ -129,13 +129,13 @@ func (B *Bbs) CreateFeed() error {
 		Type:           B.bbsInfo.Type,
 		Category:       B.category,
 		CommentEnabled: B.bbsInfo.CommentEnabled,
+		IsBrowser:      B.bbsInfo.IsBrowser,
+		IsAuth:         B.bbsInfo.IsAuth,
 	}
 	switch B.category {
 	case "bbs":
 		data.Thumb = B.bbsInfo.Thumb
 		data.Link = B.bbsInfo.Link
-		data.IsBrowser = B.bbsInfo.IsBrowser
-		data.IsAuth = B.bbsInfo.IsAuth
 	case "task":
 		data.EndTime = B.bbsTaskInfo.EndTime
 		data.AllowExpired = B.bbsTaskInfo.AllowExpired
@@ -191,6 +191,11 @@ func (B *Bbs) createQueue() error {
 			data.SetTimer = B.bbsTaskInfo.AuditRemindAt
 			queueData = append(queueData, data)
 		}
+		if B.bbsTaskInfo.AllowExpired == 0 && B.bbsTaskInfo.EndTime > B.nowTime {
+			data.TaskType = "taskEnd"
+			data.SetTimer = B.bbsTaskInfo.EndTime
+			queueData = append(queueData, data)
+		}
 		if len(queueData) > 0 {
 			_, err := B.o.InsertMulti(2, queueData)
 			return err
@@ -233,7 +238,7 @@ func (B *Bbs) getFeedCustomizer() feed.Customizer {
 	return feed.Customizer{
 		BoardID:        B.boardID,
 		BoardName:      B.boardInfo.BoardName,
-		Avatar:         B.boardInfo.BoardName,
+		Avatar:         B.boardInfo.Avatar,
 		DiscussID:      B.boardInfo.DiscussID,
 		BbsID:          B.bbsID,
 		FeedID:         B.feedID,

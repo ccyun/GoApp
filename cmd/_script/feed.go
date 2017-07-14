@@ -8,7 +8,6 @@ import (
 
 //handleFeed 处理关系
 func (T *task) handleFeed() error {
-
 	feedData := model.FeedData{
 		Title:          T.bbsInfo.Title,
 		Description:    T.bbsInfo.Description,
@@ -17,12 +16,12 @@ func (T *task) handleFeed() error {
 		Type:           T.bbsInfo.Type,
 		Category:       T.category,
 		CommentEnabled: T.bbsInfo.CommentEnabled,
+		IsBrowser:      T.bbsInfo.IsBrowser,
+		IsAuth:         T.bbsInfo.IsAuth,
 	}
 	if T.category == "bbs" {
 		feedData.Thumb = T.bbsInfo.Thumb
 		feedData.Link = T.bbsInfo.Link
-		feedData.IsBrowser = T.bbsInfo.IsBrowser
-		feedData.IsAuth = T.bbsInfo.IsAuth
 	} else if T.category == "task" {
 		feedData.EndTime = T.taskInfo.EndTime
 		feedData.AllowExpired = T.taskInfo.AllowExpired

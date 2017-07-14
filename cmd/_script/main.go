@@ -144,7 +144,7 @@ func getBbsIDs() error {
 
 func (T *task) getInfo(id uint64) error {
 	var err error
-	if err = o.Raw("select id,site_id,board_id,title,description,discuss_id,category,comment_enabled,type,publish_at,attachments,user_id from bbs_bbs where id=? order by id asc limit 1", id).QueryRow(&T.bbsInfo); err != nil {
+	if err = o.Raw("select id,site_id,board_id,title,description,discuss_id,is_auth,category,comment_enabled,type,publish_at,attachments,user_id from bbs_bbs where id=? order by id asc limit 1", id).QueryRow(&T.bbsInfo); err != nil {
 		return err
 	}
 	if T.bbsInfo.AttachmentsString != "" {
@@ -162,7 +162,7 @@ func (T *task) getInfo(id uint64) error {
 		if err = o.Raw("select end_time,allow_expired,is_close from bbs_bbs_task where bbs_id=?", T.bbsInfo.ID).QueryRow(&T.taskInfo); err != nil {
 			return err
 		}
-		if T.taskInfo.IsClose == 1 || (T.taskInfo.AllowExpired == 0 && T.taskInfo.EndTime > uint64(time.Now().UnixNano()/1e6)) {
+		if T.taskInfo.IsClose == 1 || (T.taskInfo.AllowExpired == 0 && T.taskInfo.EndTime < uint64(time.Now().UnixNano()/1e6)) {
 			T.taskStatus = 1
 		}
 	}

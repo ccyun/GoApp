@@ -74,7 +74,11 @@ func GetTaskCloseView(data *Task) string {
 
 //GetTaskReplyView 广播任务反馈提醒模板
 func GetTaskReplyView(data *Task) string {
-	return msgTaskView("taskReply", data.Title, "即将逾期，请尽快处理")
+	message := "<!--{{-->未提交，请尽快提交<!--}}-->"
+	if data.EndTime > 0 {
+		message = time.Unix(int64(data.EndTime)/1000, 0).Format("01/02 15:04") + "<!--{{-->到期禁止提交，请尽快提交<!--}}-->"
+	}
+	return `<div style="font-family:PingFangSC-Medium,Microsoft YaHei,Arial,serif;font-size:16px;padding:5px;color:rgb(59,79,97);" class = "taskReply"><!--{{-->你的任务<!--}}--> <span style="color:rgb(113,174,226)">` + data.Title + `</span> ` + message + `</div>`
 }
 
 //_taskView
