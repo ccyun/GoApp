@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -57,7 +58,8 @@ func (app *App) work() {
 //listenSignal 监听信号
 func (app *App) listenSignal() {
 	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	signal.Notify(sig, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM)
+	s := <-sig
 	app.close = true
+	log.Printf("exit signal:%v", s)
 }

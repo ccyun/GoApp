@@ -61,7 +61,7 @@ func (Q *Queue) lockTask(taskInfo Queue) error {
 
 //TimeOut 处理超时任务
 func (Q *Queue) TimeOut() error {
-	if (time.Now().Minute()+1)%10 != 0 {
+	if (time.Now().Unix() % 600) != 0 {
 		return nil
 	}
 	nowTime := uint64(time.Now().UnixNano() / 1e6)

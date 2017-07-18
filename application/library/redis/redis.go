@@ -41,11 +41,13 @@ func (rc *Redis) realKey(key string) string {
 func (rc *Redis) lock(key string) bool {
 	key += "_lock"
 	value := time.Now().UnixNano()
-	n, _ := rc.do("SETNX", key, value)
-	if n.(int64) == 1 {
+	n, err := rc.do("SETNX", key, value)
+	if res, ok := n.(int64); ok && res == 1 {
 		if _, err := rc.do("EXPIRE", key, 300); err == nil {
 			return true
 		}
+	} else {
+		logs.Error("redis setnx error:", n, key, err)
 	}
 	return false
 }
@@ -54,10 +56,11 @@ func (rc *Redis) lock(key string) bool {
 func (rc *Redis) unlock(key string) bool {
 	key += "_lock"
 	n, err := rc.do("DEL", key)
-	if n.(int64) != 1 || err != nil {
-		return false
+	if res, ok := n.(int64); ok && res == 1 {
+		return true
 	}
-	return true
+	logs.Error("redis del error:", n, key, err)
+	return false
 }
 
 //isLock 检查是否是锁定状态
@@ -75,7 +78,7 @@ func (rc *Redis) isLock(key string) bool {
 		}
 		if val != key {
 			n, err := rc.do("EXISTS", val+"_lock")
-			if v, ok := n.(int64); (ok && v == 1) || err != nil {
+			if v, ok := n.(int64); (ok && v == 1) || err == nil {
 				return true
 			}
 		}
