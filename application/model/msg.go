@@ -109,7 +109,7 @@ func (M *Msg) GetUnReplyUserIDs(siteID, boardID, bbsID uint64) []uint64 {
 func (M *Msg) UpdateTaskStatus(bbsID uint64) error {
 	db := orm.NewOrm()
 	db.Using("msg")
-	sql := fmt.Sprintf("update `%s` set task_status=1 where bbs_id=%d", M.TrueTableName(), bbsID)
+	sql := fmt.Sprintf("update `%s` set task_status=1 where bbs_id=%d and feed_type='task'", M.TrueTableName(), bbsID)
 	_, err := db.Raw(sql).Exec()
 	return err
 }

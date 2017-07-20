@@ -57,9 +57,16 @@ func (app *App) work() {
 
 //listenSignal 监听信号
 func (app *App) listenSignal() {
-	sig := make(chan os.Signal)
-	signal.Notify(sig, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGTERM)
-	s := <-sig
-	app.close = true
-	log.Printf("exit signal:%v", s)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig)
+	for {
+		s := <-sig
+		if s == syscall.SIGINT || s == syscall.SIGTERM || s == syscall.SIGQUIT {
+			app.close = true
+			log.Printf("exit signal:%v", s)
+			break
+		} else {
+			log.Printf("ingore signal:%v", s)
+		}
+	}
 }

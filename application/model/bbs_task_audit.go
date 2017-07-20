@@ -24,13 +24,17 @@ func (B *BbsTaskAudit) TableName() string {
 	return "bbs_task_audit"
 }
 
-//GetUNAuditUserIDs 读取已反馈用户列表
-func (B *BbsTaskAudit) GetUNAuditUserIDs(BbsID uint64) ([]uint64, error) {
+//GetAuditUserIDs 读取已反馈用户列表
+func (B *BbsTaskAudit) GetAuditUserIDs(BbsID uint64, status int8) ([]uint64, error) {
 	var (
 		auditList []BbsTaskAudit
 		data      []uint64
 	)
-	if _, err := o.QueryTable(B).Filter("BbsID", BbsID).Filter("Status", 0).Limit(-1).All(&auditList, "AuditUserID"); err != nil {
+	query := o.QueryTable(B).Filter("BbsID", BbsID).Limit(-1).GroupBy("AuditUserID")
+	if status != -1 {
+		query = query.Filter("Status", status)
+	}
+	if _, err := query.All(&auditList, "AuditUserID"); err != nil {
 		return nil, err
 	}
 	for _, v := range auditList {

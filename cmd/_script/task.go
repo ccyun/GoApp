@@ -136,8 +136,12 @@ func (T *task) handleTaskReplyTags() error {
 			}
 		}
 	}
+	if T.taskStatus == 1 {
+		if _, err := db.Raw(fmt.Sprintf("UPDATE bbs_msg SET task_status=1 where feed_type='task' and bbs_id=%d and task_status=0", T.bbsInfo.ID)).Exec(); err != nil {
+			return err
+		}
+	}
 	//做过任务的用户列表
-
 	tagList, err := ums.GetUserTags("00000", T.bbsInfo.SiteID, userIDs)
 	if err != nil {
 		return err

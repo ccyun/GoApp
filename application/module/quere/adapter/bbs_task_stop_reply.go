@@ -5,55 +5,59 @@ import (
 	"fmt"
 	"strconv"
 
+	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
+	"bbs_server/application/module/feed"
 )
 
-//TaskAuditRemind 广播任务审核提醒
-type TaskAuditRemind struct {
+//TaskStopReply 广播任务提醒反馈
+type TaskStopReply struct {
 	base
 }
 
 func init() {
-	Register("taskAuditRemind", func() Tasker {
-		return new(TaskAuditRemind)
+	Register("taskStopReply", func() Tasker {
+		return new(TaskStopReply)
 	})
 }
 
 //NewTask 新任务对象
-func (T *TaskAuditRemind) NewTask(task model.Queue) error {
+func (T *TaskStopReply) NewTask(task model.Queue) error {
 	T.base.NewTask(task)
-	var action map[string]uint64
-	if err := json.Unmarshal([]byte(T.action), &action); err != nil {
-		return fmt.Errorf("NewTask action Unmarshal error,taskID:%d,action:%s", T.taskID, T.action)
+	bbsID, err := strconv.Atoi(T.action)
+	if err != nil {
+		return fmt.Errorf("NewTask strconv.Atoi error,taskID:%d,action:%s", T.taskID, T.action)
 	}
-	T.bbsID = action["bbs_id"]
+	T.bbsID = uint64(bbsID)
 	if err := T.getBbsInfo(); err != nil {
 		return err
 	}
 	if err := T.getBoardInfo(); err != nil {
 		return err
 	}
-	return nil
-}
-
-//CreateRelation 创建feed关系
-func (T *TaskAuditRemind) CreateRelation() error {
+	if err := T.getBbsTaskInfo(); err != nil {
+		return err
+	}
+	T.feedType = feed.FeedTypeTaskClose
 	return nil
 }
 
 //GetPublishScopeUsers 分析发布范围
-func (T *TaskAuditRemind) GetPublishScopeUsers() error {
+func (T *TaskStopReply) GetPublishScopeUsers() error {
+	T.userIDs = new(model.Msg).GetUserIDs(T.siteID, T.boardID, T.bbsID, -1)
+	T.userIDs = append(T.userIDs, T.boardInfo.EditorIDs...)
 	userIDs, err := new(model.BbsTaskAudit).GetAuditUserIDs(T.bbsID, 0)
 	if err != nil {
 		return err
 	}
-	T.userIDs = userIDs
+	T.userIDs = append(T.userIDs, userIDs...)
+	T.userIDs = function.SliceUnique(T.userIDs).Uint64()
 	return T.base.GetPublishScopeUsers()
 }
 
 //SendMsg 发送消息
-func (T *TaskAuditRemind) SendMsg() error {
+func (T *TaskStopReply) SendMsg() error {
 	if len(T.PublishScopeuserLoginNames) == 0 {
 		return nil
 	}
@@ -63,7 +67,7 @@ func (T *TaskAuditRemind) SendMsg() error {
 		BbsID     uint64 `json:"bbs_id"`
 	}
 	signalData := Signal{}
-	signalData.Action = "audit_remind"
+	signalData.Action = "task_update"
 	signalData.BoardID = T.boardID
 	signalData.DiscussID = T.boardInfo.DiscussID
 	signalData.BbsID = T.bbsID

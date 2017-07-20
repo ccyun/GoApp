@@ -93,7 +93,7 @@ func (db *DB) alterTable() error {
 		"ALTER TABLE `bbs_msg` RENAME `bbs_msg2`",
 
 		//更新队列表
-		"ALTER TABLE `bbs_task` MODIFY COLUMN `task_type`  enum('bbs','taskAuditRemind','taskReply','taskAudit','taskEnd','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播表单任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' AFTER `customer_code`",
+		"ALTER TABLE `bbs_task` MODIFY COLUMN `task_type`  enum('bbs','taskAuditRemind','taskReply','taskAudit','taskEnd','taskStopReply','taskClose') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'bbs广播表单任务,taskReply任务反馈提醒,taskAudit审核提醒,taskClose任务关闭' AFTER `customer_code`",
 		"ALTER TABLE `bbs_task` ADD COLUMN `bbs_id`  bigint(20) NOT NULL AFTER `task_type`",
 		"CREATE INDEX `bbs_id` ON `bbs_task`(`bbs_id`) USING BTREE ",
 
