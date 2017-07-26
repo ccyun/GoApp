@@ -116,6 +116,7 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		totalCount uint64
 		err        error
 		data       []UMSUser
+		mutex      sync.Mutex
 	)
 	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserByOrgIDs", orgIDs)
 	if cache.Get(&data) == true {
@@ -132,8 +133,11 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		for i := 2; i <= pageNum; i++ {
 			w.Add(1)
 			go func(i int) {
-				d, _, _ := U._getAllUserByOrgIDs(orgIDs, pageSize, i)
-				data = append(data, d[0:]...)
+				if d, _, _ := U._getAllUserByOrgIDs(orgIDs, pageSize, i); len(d) > 0 {
+					mutex.Lock()
+					data = append(data, d...)
+					mutex.Unlock()
+				}
 				w.Done()
 			}(i)
 		}

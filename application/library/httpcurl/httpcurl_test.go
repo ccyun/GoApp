@@ -19,7 +19,7 @@ var isInit = false
 //initHTTPCurl 初始化httpcurl
 func initHTTPCurl() {
 	if isInit == false {
-		conf.InitConfig("../../../cmd/base.ini")
+		conf.InitConfig("../../../cmd/_script/_script.ini")
 		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
 			log.Println(err)
@@ -54,10 +54,11 @@ func TestRequest(t *testing.T) {
 func TestGetAllUserByOrgIDs(t *testing.T) {
 	initHTTPCurl()
 	ums := new(UMS)
-	data, err := ums.GetAllUserIDsByOrgIDs("0000445", []uint64{54169})
+	data, err := ums.GetAllUserIDsByOrgIDs("0000445", []uint64{2752})
 	if err != nil {
 		t.Error(err)
 	}
+	log.Println(len(data))
 	t.Log(len(data))
 }
 
