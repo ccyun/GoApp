@@ -3,10 +3,10 @@ package adapter
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
+	"bbs_server/application/module/message"
 )
 
 //TaskAuditRemind 广播任务审核提醒
@@ -54,9 +54,6 @@ func (T *TaskAuditRemind) GetPublishScopeUsers() error {
 
 //SendMsg 发送消息
 func (T *TaskAuditRemind) SendMsg() error {
-	if len(T.PublishScopeuserLoginNames) == 0 {
-		return nil
-	}
 	type Signal struct {
 		httpcurl.SignalMsg
 		DiscussID uint64 `json:"discuss_id"`
@@ -67,17 +64,12 @@ func (T *TaskAuditRemind) SendMsg() error {
 	signalData.BoardID = T.boardID
 	signalData.DiscussID = T.boardInfo.DiscussID
 	signalData.BbsID = T.bbsID
-	uc := new(httpcurl.UC)
-	data := httpcurl.CustomizedSender{
-		SiteID:     strconv.FormatUint(T.siteID, 10),
-		ToUsers:    T.PublishScopeuserLoginNames,
-		ToPartyIds: T.bbsInfo.PublishScope.GroupIDs,
-	}
-
 	data1, err := json.Marshal(signalData)
 	if err != nil {
 		return err
 	}
-	data.Data1 = string(data1)
-	return uc.CustomizedSend(data)
+	msg := message.NewBroadcastMsg(T.bbsInfo.SiteID, message.SIGNAL_MSG)
+	msg.PackHead()
+	msg.CustomizedMsg(string(data1), "", "", "")
+	return msg.Send(T.userIDs)
 }

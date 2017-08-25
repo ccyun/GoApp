@@ -1,6 +1,7 @@
 package httpcurl
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -68,6 +69,13 @@ type UCCResponseData struct {
 	ErrorCode    uint64 `json:"code"`
 	ErrorMessage string `json:"msg"`
 	RequestID    string `json:"request_id"`
+}
+
+//BroadcastRange 广播消息发送范围
+type BroadcastRange struct {
+	SiteID  uint64   `json:"siteid"`
+	UserIDs []uint64 `json:"userid"`
+	OrgIDs  []uint64 `json:"orgid"`
 }
 
 //httpCurl
@@ -167,4 +175,51 @@ func (U *UCC) GetDiscussInfo(userID uint64, discussID uint64) (UCCDiscussData, e
 		return data.Data[0], nil
 	}
 	return UCCDiscussData{}, nil
+}
+
+//SendBroadcastMsg 发送广播消息
+func (U *UCC) SendBroadcastMsg(data []byte, siteID uint64, userIDs []uint64) error {
+	reqID := string(utils.RandomCreateBytes(8))
+	broadcastRange := BroadcastRange{SiteID: siteID, OrgIDs: []uint64{}}
+	i := 0
+	for {
+		broadcastRange.UserIDs = U.getPublishScope(userIDs, i)
+		if len(broadcastRange.UserIDs) == 0 {
+			break
+		}
+		i++
+		rangebyte, _ := json.Marshal(broadcastRange)
+		v := url.Values{
+			"range": []string{string(rangebyte)},
+			"type":  []string{"openapi"},
+		}
+		url := fmt.Sprintf("%s/message/broadcast?%s", UccServerURL, v.Encode())
+		statusCode, res, err := Request("POST", url, bytes.NewReader(data), "octet")
+		if statusCode != 200 || err != nil {
+			err = fmt.Errorf("%s->ucc httpcurl status code: %d,err：%s", reqID, statusCode, err.Error())
+			return err
+		}
+		logs.Debug("%s->ucc httpcurl url：%s", reqID, url)
+		logs.Debug("%s->ucc httpcurl response:%s", reqID, string(res))
+	}
+	return nil
+}
+
+//getPublishScope 分批发送消息
+func (U *UCC) getPublishScope(users []uint64, page int) []uint64 {
+	var (
+		u     []uint64
+		start int
+		end   int
+	)
+	um := len(users)
+	start = page * 200
+	end = start + 200
+	if start < um {
+		if end > um {
+			end = um
+		}
+		u = users[start:end]
+	}
+	return u
 }

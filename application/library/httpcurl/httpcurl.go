@@ -22,10 +22,12 @@ func Request(method string, url string, body io.Reader, contentType string) (int
 			request.Header.Add("Content-Type", "application/json")
 		case "form":
 			request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		case "octet":
+			request.Header.Add("Content-Type", "application/octet-stream")
 		}
 	}
 	client := &http.Client{}
-	client.Timeout = 30 * time.Second
+	client.Timeout = 120 * time.Second
 	response, err := client.Do(request)
 	if response != nil {
 		defer response.Body.Close()

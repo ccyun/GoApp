@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"sort"
+
 	"github.com/astaxie/beego/orm"
 )
 
@@ -83,7 +85,11 @@ func (B *Bbs) afterSelectHandle(data []Bbs) ([]Bbs, error) {
 	for key, item := range data {
 		//处理发布范围
 		//item.PublishScope, err = B.publishScopeHandle(item.PublishScopeString)
-		json.Unmarshal([]byte(item.PublishScopeString), &item.PublishScope)
+		if err := json.Unmarshal([]byte(item.PublishScopeString), &item.PublishScope); err != nil {
+			return nil, err
+		}
+		sort.Sort(Uint64Slice(item.PublishScope.GroupIDs))
+		sort.Sort(Uint64Slice(item.PublishScope.UserIDs))
 		if item.AttachmentsString != "" {
 			err = json.Unmarshal([]byte(item.AttachmentsString), &item.Attachments)
 		}

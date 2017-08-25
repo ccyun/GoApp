@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"testing"
 
@@ -170,5 +171,8 @@ func TestKingShard(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
+	data := []uint64{3, 2, 1, 6, 7, 5}
+	sort.Sort(Uint64Slice(data))
 
+	log.Println(data)
 }

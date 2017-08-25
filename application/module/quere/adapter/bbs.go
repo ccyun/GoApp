@@ -10,6 +10,7 @@ import (
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
+	"bbs_server/application/module/message"
 )
 
 //Bbs 图文广播
@@ -206,9 +207,6 @@ func (B *Bbs) createQueue() error {
 
 //SendMsg 发送消息
 func (B *Bbs) SendMsg() error {
-	if len(B.userList) == 0 {
-		return nil
-	}
 	if B.boardInfo.DiscussID != 0 {
 		return B.discussMsg()
 	}
@@ -266,23 +264,20 @@ func (B *Bbs) oaMsg() error {
 	if B.bbsInfo.Description == "" {
 		description = B.boardInfo.BoardName
 	}
-	uc := new(httpcurl.UC)
-
-	data := httpcurl.OASender{
-		SiteID: B.siteID,
-		Title:  B.bbsInfo.Title,
-		TitleElements: []httpcurl.OASendTitleElementser{
-			httpcurl.OASendTitleElementser{Title: B.bbsInfo.Title},
+	msg := message.NewBroadcastMsg(B.bbsInfo.SiteID, message.FEED_MSG)
+	msg.PackHead()
+	msg.OAMsg(
+		[]message.OASendTitleElementser{
+			message.OASendTitleElementser{Title: B.bbsInfo.Title},
 		},
-		DetailURL: feedData.DetailURL,
-		Elements: []httpcurl.OASendElementser{
-			httpcurl.OASendElementser{ImageID: B.bbsInfo.Thumb},
-			httpcurl.OASendElementser{Content: description},
+		feedData.CustomizedData,
+		feedData.DetailURL,
+		[]message.OASendElementser{
+			message.OASendElementser{ImageID: B.bbsInfo.Thumb},
+			message.OASendElementser{Content: description},
 		},
-		ToUsers: B.PublishScopeuserLoginNames,
-	}
-	data.CustomizedData = feedData.CustomizedData
-	return uc.OASend(data)
+	)
+	return msg.Send(B.userIDs)
 }
 
 //customizedMsg 定制消息（任务）
@@ -295,20 +290,14 @@ func (B *Bbs) customizedMsg() error {
 	if err != nil {
 		return err
 	}
-	uc := new(httpcurl.UC)
-	data := httpcurl.CustomizedSender{
-		SiteID:      strconv.FormatUint(B.siteID, 10),
-		ToUsers:     B.PublishScopeuserLoginNames,
-		History:     1,
-		WebPushData: "您有一个“i 广播”消息",
-	}
-	data.Data1 = `{"action":null}`
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err
 	}
-	data.Data3 = string(data3)
-	return uc.CustomizedSend(data)
+	msg := message.NewBroadcastMsg(B.bbsInfo.SiteID, message.FEED_MSG)
+	msg.PackHead()
+	msg.CustomizedMsg(`{"action":null}`, "", string(data3), "")
+	return msg.Send(B.userIDs)
 }
 
 //discussMsg 讨论组消息

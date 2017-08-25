@@ -1,7 +1,10 @@
 package function
 
 import (
+	"bytes"
+	"compress/zlib"
 	"crypto/md5"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"strconv"
@@ -106,4 +109,20 @@ func reserveBuffer(buf []byte, appendSize int) []byte {
 		buf = newBuf
 	}
 	return buf[:newSize]
+}
+
+// zlib 压缩数据
+func CompressData(src []byte) []byte {
+	var b bytes.Buffer
+	w := zlib.NewWriter(&b)
+	w.Write(src)
+	w.Close()
+	return b.Bytes()
+}
+
+//Int32ToBytes in转byte
+func Int32ToBytes(i int32) []byte {
+	var buf = make([]byte, 4)
+	binary.LittleEndian.PutUint32(buf, uint32(i))
+	return buf
 }

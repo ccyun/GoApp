@@ -2,6 +2,7 @@ package redis
 
 import (
 	"bbs_server/application/library/conf"
+	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -17,7 +18,7 @@ var isInit = false
 //initCache 初始化缓存
 func initCache() {
 	if isInit == false {
-		conf.InitConfig("../../../cmd/base.ini")
+		conf.InitConfig("../../../cmd/_script/_script.ini")
 		cache, err := cache.NewCache("redis", conf.String("cache"))
 		if err != nil {
 			log.Println(err)
@@ -149,4 +150,17 @@ func TestRedisCache(t *testing.T) {
 		t.Error("clear all err")
 	}
 
+}
+
+func TestCacheGet(t *testing.T) {
+	initCache()
+	var data []uint64
+	orgids := func() []uint64 {
+		return []uint64{55183, 55184, 55185, 55182, 55186, 55187, 55188, 55189, 55190, 55191, 55192, 55193, 55194, 55195, 55196, 55197, 55198, 55199, 55200, 55201, 55202, 55203, 55204, 55205, 55206, 55208, 55207, 55209, 55210, 55211, 55212, 55213, 55214, 55215, 55216, 55217, 55218, 55219, 55220, 55221, 55222, 55225, 55223, 55224, 55226, 55227, 55228, 63686573}
+	}()
+
+	cache := NewCache(fmt.Sprintf("U%s", "000000"), "GetAllUserIDsByOrgIDs", orgids)
+	log.Println(cache.key)
+	log.Println(cache.Get(&data))
+	log.Println(data)
 }

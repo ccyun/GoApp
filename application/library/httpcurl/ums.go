@@ -3,9 +3,7 @@ package httpcurl
 import (
 	"encoding/json"
 	"fmt"
-	"runtime"
 	"strings"
-	"sync"
 
 	"math"
 
@@ -94,10 +92,10 @@ func (U *UMS) httpCurl(method string, url string, postData interface{}, resData 
 //GetAllUserIDsByOrgIDs 批量获取组织下所有用户ID
 func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uint64, error) {
 	var data []uint64
-	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserIDsByOrgIDs", orgIDs)
-	if cache.Get(&data) == true {
-		return data, nil
-	}
+	// cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserIDsByOrgIDs", orgIDs)
+	// if cache.Get(&data) == true {
+	// 	return data, nil
+	// }
 	UserList, err := U.GetAllUserByOrgIDs(customerCode, orgIDs)
 	if err != nil {
 		return nil, err
@@ -105,7 +103,7 @@ func (U *UMS) GetAllUserIDsByOrgIDs(customerCode string, orgIDs []uint64) ([]uin
 	for _, userInfo := range UserList {
 		data = append(data, userInfo.UserID)
 	}
-	cache.Set(data)
+	//	cache.Set(data)
 	return data, nil
 }
 
@@ -116,37 +114,37 @@ func (U *UMS) GetAllUserByOrgIDs(customerCode string, orgIDs []uint64) ([]UMSUse
 		totalCount uint64
 		err        error
 		data       []UMSUser
-		mutex      sync.Mutex
+	//	mutex      sync.Mutex
 	)
-	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserByOrgIDs", orgIDs)
-	if cache.Get(&data) == true {
-		return data, nil
-	}
+	// cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetAllUserByOrgIDs", orgIDs)
+	// if cache.Get(&data) == true {
+	// 	return data, nil
+	// }
 	data, totalCount, err = U._getAllUserByOrgIDs(orgIDs, pageSize, 1)
 	if err != nil {
 		return nil, err
 	}
 	if uint64(len(data)) < totalCount {
 		pageNum := int(math.Ceil(float64(totalCount) / float64(pageSize)))
-		var w sync.WaitGroup
-		runtime.GOMAXPROCS(runtime.NumCPU())
+		//	var w sync.WaitGroup
+		//	runtime.GOMAXPROCS(runtime.NumCPU())
 		for i := 2; i <= pageNum; i++ {
-			w.Add(1)
-			go func(i int) {
-				if d, _, _ := U._getAllUserByOrgIDs(orgIDs, pageSize, i); len(d) > 0 {
-					mutex.Lock()
-					data = append(data, d...)
-					mutex.Unlock()
-				}
-				w.Done()
-			}(i)
+			//		w.Add(1)
+			//		go func(i int) {
+			if d, _, _ := U._getAllUserByOrgIDs(orgIDs, pageSize, i); len(d) > 0 {
+				//			mutex.Lock()
+				data = append(data, d...)
+				//		mutex.Unlock()
+			}
+			//		w.Done()
+			//	}(i)
 		}
-		w.Wait()
+		//	w.Wait()
 	}
 	if uint64(len(data)) != totalCount {
 		logs.Error("GetAllUserByOrgIDs error totalCount!=len(data)")
 	}
-	cache.Set(data)
+	//cache.Set(data)
 	return data, nil
 }
 
@@ -169,27 +167,40 @@ func (U *UMS) _getAllUserByOrgIDs(orgIDs []uint64, pageSize uint64, page int) ([
 
 //GetUsersDetail 批量查询用户详情
 func (U *UMS) GetUsersDetail(customerCode string, userIDs []uint64, isValid bool) ([]UMSUser, error) {
-	var data, resData []UMSUser
-	cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersDetail", userIDs, isValid)
-	if cache.Get(&data) == true {
-		return data, nil
-	}
+	var data []UMSUser
+	// cache := redis.NewCache(fmt.Sprintf("U%s", customerCode), "GetUsersDetail", userIDs, isValid)
+	// if cache.Get(&data) == true {
+	// 	return data, nil
+	// }
 	url := fmt.Sprintf("%s/rs/users/id/in?requestType=0", UMSBusinessURL)
-	if err := U.httpCurl("POST", url, userIDs, &resData); err != nil {
-		return nil, err
-	}
-	if isValid == false {
-		data = resData
-	} else {
-		for _, user := range resData {
-			for _, v := range user.UserProductList {
-				if v.ProductID == 20 && (v.UserStatus == 82 || v.UserStatus == 9) {
-					data = append(data, user)
+	userCount := len(userIDs)
+	start := 0
+	for {
+		end := start + 500
+		if start >= userCount {
+			break
+		}
+		if end > userCount {
+			end = userCount
+		}
+		resData := []UMSUser{}
+		if err := U.httpCurl("POST", url, userIDs[start:end], &resData); err != nil {
+			return nil, err
+		}
+		if isValid == false {
+			data = append(data, resData...)
+		} else {
+			for _, user := range resData {
+				for _, v := range user.UserProductList {
+					if v.ProductID == 20 && (v.UserStatus == 82 || v.UserStatus == 9) {
+						data = append(data, user)
+					}
 				}
 			}
 		}
+		start += 500
 	}
-	cache.Set(data)
+	//cache.Set(data)
 	return data, nil
 }
 

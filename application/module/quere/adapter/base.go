@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"time"
 
@@ -10,24 +9,22 @@ import (
 
 //base 任务处理适配器（基类）
 type base struct {
-	o                          orm.Ormer
-	nowTime                    uint64
-	taskID                     uint64
-	siteID                     uint64
-	customerCode               string
-	action                     string
-	bbsID                      uint64
-	bbsInfo                    model.Bbs
-	category                   string
-	feedType                   string
-	bbsTaskInfo                model.BbsTask
-	boardID                    uint64
-	boardInfo                  model.Board
-	feedID                     uint64
-	userList                   []httpcurl.UMSUser
-	userIDs                    []uint64
-	PublishScopeuserLoginNames []string
-	attachmentsBase64          string
+	o                 orm.Ormer
+	nowTime           uint64
+	taskID            uint64
+	siteID            uint64
+	customerCode      string
+	action            string
+	bbsID             uint64
+	bbsInfo           model.Bbs
+	category          string
+	feedType          string
+	bbsTaskInfo       model.BbsTask
+	boardID           uint64
+	boardInfo         model.Board
+	feedID            uint64
+	userIDs           []uint64
+	attachmentsBase64 string
 }
 
 //Begin 开启事务
@@ -58,15 +55,8 @@ func (B *base) NewTask(task model.Queue) error {
 
 //GetPublishScopeUsers 分析发布范围
 func (B *base) GetPublishScopeUsers() error {
-	var err error
 	if len(B.userIDs) == 0 {
 		return nil
-	}
-	if B.userList, err = new(httpcurl.UMS).GetUsersDetail(B.customerCode, B.userIDs, true); err != nil {
-		return err
-	}
-	for _, v := range B.userList {
-		B.PublishScopeuserLoginNames = append(B.PublishScopeuserLoginNames, v.LoginName)
 	}
 	return nil
 }
@@ -78,7 +68,7 @@ func (B *base) CreateFeed() error {
 
 //CreateRelation 创建接收者关系
 func (B *base) CreateRelation() error {
-	if len(B.userList) == 0 {
+	if len(B.userIDs) == 0 {
 		return nil
 	}
 	var (
@@ -91,6 +81,9 @@ func (B *base) CreateRelation() error {
 			return nil
 		}
 		ackReadUserID = B.bbsInfo.UserID
+		if B.bbsInfo.Link != "" {
+			defaultTaskStatus = 1
+		}
 	}
 	if B.bbsInfo.Category == "task" && B.bbsInfo.Type == "preview" {
 		defaultTaskStatus = 1
@@ -105,7 +98,7 @@ func (B *base) CreateRelation() error {
 		CreatedAt:  B.nowTime,
 		TaskStatus: defaultTaskStatus,
 	}
-	return new(model.Msg).Create(msgData, B.userList, defaultReadStatus, ackReadUserID)
+	return new(model.Msg).Create(msgData, B.userIDs, defaultReadStatus, ackReadUserID)
 }
 
 //CreateUnread 创建未处理数

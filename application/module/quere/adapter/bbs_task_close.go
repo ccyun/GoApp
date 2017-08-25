@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
+	"bbs_server/application/module/message"
 )
 
 //TaskClose 广播任务提醒反馈
@@ -106,18 +106,13 @@ func (T *TaskClose) SendMsg() error {
 	if err != nil {
 		return err
 	}
-	uc := new(httpcurl.UC)
-	data := httpcurl.CustomizedSender{
-		SiteID:      strconv.FormatUint(T.siteID, 10),
-		ToUsers:     T.PublishScopeuserLoginNames,
-		ToPartyIds:  T.bbsInfo.PublishScope.GroupIDs,
-		WebPushData: "您有一个“i 广播”消息",
-	}
-	data.Data1 = `{"action":null}`
 	data3, err := json.Marshal(feedData)
 	if err != nil {
 		return err
 	}
-	data.Data3 = string(data3)
-	return uc.CustomizedSend(data)
+	msg := message.NewBroadcastMsg(T.bbsInfo.SiteID, message.FEED_MSG)
+	msg.PackHead()
+	msg.CustomizedMsg(`{"action":null}`, "", string(data3), "")
+	return msg.Send(T.userIDs)
+
 }

@@ -61,7 +61,6 @@ func (c *C) Get(data interface{}) bool {
 		err error
 		val string
 	)
-
 	if val, err = redis.String(Cache.Get(c.key), nil); err != nil {
 		logs.Error("GetCache value Assertion error", err, c.key, val)
 		return false

@@ -10,7 +10,6 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"bbs_server/application/library/conf"
-	"bbs_server/application/library/hbase"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
 	"bbs_server/application/module/feed"
@@ -128,22 +127,6 @@ func InitCache() error {
 	}
 	redis.Cache = cache
 	return nil
-}
-
-//InitHbase 初始化hbase
-func InitHbase() error {
-	var (
-		err    error
-		config struct {
-			Host string `json:"host"`
-			Port string `json:"port"`
-			Pool int    `json:"pool"`
-		}
-	)
-	if err = conf.JSON("hbase", &config); err != nil {
-		return err
-	}
-	return hbase.Init(config.Host, config.Port, config.Pool)
 }
 
 //InitPackage 初始化其他包

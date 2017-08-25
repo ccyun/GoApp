@@ -2,169 +2,49 @@ package main
 
 import (
 	_ "bbs_server/application"
-	"bbs_server/application/library/httpcurl"
-	"bbs_server/application/model"
-	"encoding/json"
+	"bbs_server/application/library/conf"
+	"fmt"
 	"log"
-	"runtime"
-	"sync"
-
-	"time"
 
 	"github.com/astaxie/beego/orm"
 )
 
-var (
-	o      orm.Ormer
-	ums    *httpcurl.UMS
-	ucc    *httpcurl.UCC
-	bbsIDs [][]uint64
-)
-
-type task struct {
-	bbsInfo             model.Bbs
-	taskInfo            model.BbsTask
-	category            string
-	publishScopeUserIDs map[uint64][]uint64
-	taskStatus          uint8
-}
-
-type feedDataer struct {
-	Status int8 `json:"status"`
-}
-
-// var mData map[uint64]msgData
-func init() {
-	o = orm.NewOrm()
-	ums = new(httpcurl.UMS)
-	ucc = new(httpcurl.UCC)
-}
-
 func main() {
-	if err := getBbsIDs(); err != nil {
+	d := orm.NewOrm()
+	dbShardDsns := conf.String("db_shard_dsns")
+	log.Println(dbShardDsns)
+	tableNum, _ := conf.Int("db_shard_table_mun")
+	log.Println(tableNum)
+	if err := orm.RegisterDataBase("msg0", "mysql", dbShardDsns, 2, 2); err != nil {
 		log.Println(err)
 		return
 	}
-	db := new(DB)
-	log.Println(db.alterTable())
-	if err := runTask(); err != nil {
+	if err := d.Using("msg0"); err != nil {
 		log.Println(err)
 		return
 	}
+	// sql1 := `INSERT INTO %s(site_id,board_id,discuss_id,bbs_id,feed_type,feed_id,user_id,user_org_id,task_status,is_read,created_at) (select site_id,board_id,discuss_id,bbs_id,feed_type,1711 feed_id,user_id,user_org_id,task_status,8 is_read,1500861532308 created_at from %s where bbs_id=299 and feed_id=3 and feed_type='bbs')` //聆听优秀的声音——【武明-越努力越幸运】
+	// sql2 := `INSERT INTO %s(site_id,board_id,discuss_id,bbs_id,feed_type,feed_id,user_id,user_org_id,task_status,is_read,created_at) (select site_id,board_id,discuss_id,bbs_id,feed_type,1567 feed_id,user_id,user_org_id,task_status,8 is_read,1500024950815 created_at from %s where bbs_id=301 and feed_id=3 and feed_type='bbs')` //聆听优秀的声音——【王鹏-今天你的客户是什么颜色】
 
-	//更新用户组织ID
-	if err := updateMsgOrgID(); err != nil {
-		log.Println(err)
-	}
-	// if err := updateMsgTaskStatus(); err != nil {
-	// 	log.Println(err)
-	// }
-	log.Println(db.clearTable())
-}
+	sql1 := "INSERT INTO %s(site_id,board_id,discuss_id,bbs_id,feed_type,feed_id,user_id,user_org_id,task_status,is_read,created_at) (select site_id,board_id,discuss_id,10005548 bbs_id,feed_type,6080 feed_id,user_id,user_org_id,task_status,1 is_read,1500861532308 created_at from %s where bbs_id=10005066 and feed_type='bbs')" //聆听优秀的声音——【武明-越努力越幸运】
+	sql2 := "INSERT INTO %s(site_id,board_id,discuss_id,bbs_id,feed_type,feed_id,user_id,user_org_id,task_status,is_read,created_at) (select site_id,board_id,discuss_id,10005372 bbs_id,feed_type,5904 feed_id,user_id,user_org_id,task_status,1 is_read,1500024950815 created_at from %s where bbs_id=10005066 and feed_type='bbs')" //聆听优秀的声音——【王鹏-今天你的客户是什么颜色】10005066
 
-func runTask() error {
-	var w sync.WaitGroup
-	runtime.GOMAXPROCS(5)
-	// bbsIDs = [][]uint64{[]uint64{
-	// 	50001145,
-	// 	50001162,
-	// 	50001599,
-	// 	50001256,
-	// 	50001260,
-	// 	50001212,
-	// 	50001381,
-	// 	50001272,
-	// 	50001389,
-	// 	50001390,
-	// 	50001352,
-	// 	50001577,
-	// }}
-	w.Add(len(bbsIDs))
-	for _, ids := range bbsIDs {
-		go func(ids []uint64) {
-			for _, id := range ids {
-				handleBbs(id)
-			}
-			w.Done()
-		}(ids)
-	}
-	w.Wait()
-	return nil
-}
+	for i := 0; i < tableNum; i++ {
+		tableName := fmt.Sprintf("bbs_msg_%.4d", i)
+		d.Raw(fmt.Sprintf("delete from %s where bbs_id=10005548", tableName)).Exec()
+		d.Raw(fmt.Sprintf("delete from %s where bbs_id=10005372", tableName)).Exec()
 
-func handleBbs(id uint64) error {
-	log.Println(id)
-	T := new(task)
-	if err := T.getInfo(id); err != nil {
-		log.Println(err)
-		return err
-	}
-	if err := T.getPublishScope(); err != nil {
-		log.Println(err)
-		return err
-	}
-	if err := T.handleFeed(); err != nil {
-		log.Println(err)
-		return err
-	}
-	if err := T.handleTaskReply(); err != nil {
-		log.Println(err)
-		return err
-	}
-	if err := T.handleTaskReplyTags(); err != nil {
-		log.Println(err)
-		return err
-	}
-	if err := T.handleSubTaskText(); err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
-}
-
-func getBbsIDs() error {
-	var bbsData []model.Bbs
-	if _, err := o.Raw("select id from bbs_bbs where status=1 and is_deleted=0 and (discuss_id=0 or (discuss_id>0 and type='default')) order by id asc").QueryRows(&bbsData); err != nil {
-		return err
-	}
-	pageSize := (len(bbsData) / 5) + 1
-	var (
-		tempIDs []uint64
-	)
-	for j, v := range bbsData {
-		tempIDs = append(tempIDs, v.ID)
-		if (j+1)%pageSize == 0 {
-			bbsIDs = append(bbsIDs, tempIDs)
-			tempIDs = []uint64{}
+		sql11 := fmt.Sprintf(sql1, tableName, tableName)
+		log.Println(sql11)
+		if _, err := d.Raw(sql11).Exec(); err != nil {
+			log.Println(err)
+			return
+		}
+		sql22 := fmt.Sprintf(sql2, tableName, tableName)
+		log.Println(sql22)
+		if _, err := d.Raw(sql22).Exec(); err != nil {
+			log.Println(err)
+			return
 		}
 	}
-	bbsIDs = append(bbsIDs, tempIDs)
-	return nil
-}
-
-func (T *task) getInfo(id uint64) error {
-	var err error
-	if err = o.Raw("select id,site_id,board_id,title,description,discuss_id,is_auth,category,comment_enabled,type,publish_at,attachments,user_id from bbs_bbs where id=? order by id asc limit 1", id).QueryRow(&T.bbsInfo); err != nil {
-		return err
-	}
-	if T.bbsInfo.AttachmentsString != "" {
-		if err = json.Unmarshal([]byte(T.bbsInfo.AttachmentsString), &T.bbsInfo.Attachments); err != nil {
-			log.Println(T.bbsInfo)
-		}
-		if len(T.bbsInfo.Attachments) > 0 {
-			if thumb, ok := T.bbsInfo.Attachments[0]["url"]; ok {
-				T.bbsInfo.Thumb = thumb
-			}
-		}
-	}
-	T.category = T.bbsInfo.Category
-	if T.category == "task" {
-		if err = o.Raw("select end_time,allow_expired,is_close from bbs_bbs_task where bbs_id=?", T.bbsInfo.ID).QueryRow(&T.taskInfo); err != nil {
-			return err
-		}
-		if T.taskInfo.IsClose == 1 || (T.taskInfo.AllowExpired == 0 && T.taskInfo.EndTime < uint64(time.Now().UnixNano()/1e6)) {
-			T.taskStatus = 1
-		}
-	}
-	return nil
 }

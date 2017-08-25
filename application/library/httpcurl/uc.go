@@ -205,20 +205,23 @@ func (U *UC) CustomizedSend(postData CustomizedSender) error {
 //getPublishScope 分批发送消息
 func (U *UC) getPublishScope(users []string, partyIds []uint64, page int) ([]string, []uint64) {
 	var (
-		u []string
-		p []uint64
+		u     []string
+		p     []uint64
+		start int
+		end   int
 	)
 	um := len(users)
 	pm := len(partyIds)
-	start := page * 20
-	end := start + 20
+	start = page * 20
+	end = start + 20
 	if start < um {
 		if end > um {
 			end = um
 		}
 		u = users[start:end]
 	}
-	end = start + 20
+	start = page * 10
+	end = start + 10
 	if start < pm {
 		if end > pm {
 			end = pm

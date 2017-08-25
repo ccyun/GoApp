@@ -8,7 +8,7 @@ import (
 	"bbs_server/application/function"
 	"bbs_server/application/library/httpcurl"
 	"bbs_server/application/model"
-	"bbs_server/application/module/feed"
+	"bbs_server/application/module/message"
 )
 
 //TaskStopReply 广播任务提醒反馈
@@ -39,7 +39,6 @@ func (T *TaskStopReply) NewTask(task model.Queue) error {
 	if err := T.getBbsTaskInfo(); err != nil {
 		return err
 	}
-	T.feedType = feed.FeedTypeTaskClose
 	return nil
 }
 
@@ -56,11 +55,13 @@ func (T *TaskStopReply) GetPublishScopeUsers() error {
 	return T.base.GetPublishScopeUsers()
 }
 
+//CreateRelation 不创建关系
+func (T *TaskStopReply) CreateRelation() error {
+	return nil
+}
+
 //SendMsg 发送消息
 func (T *TaskStopReply) SendMsg() error {
-	if len(T.PublishScopeuserLoginNames) == 0 {
-		return nil
-	}
 	type Signal struct {
 		httpcurl.SignalMsg
 		DiscussID uint64 `json:"discuss_id"`
@@ -71,17 +72,12 @@ func (T *TaskStopReply) SendMsg() error {
 	signalData.BoardID = T.boardID
 	signalData.DiscussID = T.boardInfo.DiscussID
 	signalData.BbsID = T.bbsID
-	uc := new(httpcurl.UC)
-	data := httpcurl.CustomizedSender{
-		SiteID:     strconv.FormatUint(T.siteID, 10),
-		ToUsers:    T.PublishScopeuserLoginNames,
-		ToPartyIds: T.bbsInfo.PublishScope.GroupIDs,
-	}
-
 	data1, err := json.Marshal(signalData)
 	if err != nil {
 		return err
 	}
-	data.Data1 = string(data1)
-	return uc.CustomizedSend(data)
+	msg := message.NewBroadcastMsg(T.bbsInfo.SiteID, message.SIGNAL_MSG)
+	msg.PackHead()
+	msg.CustomizedMsg(string(data1), "", "", "")
+	return msg.Send(T.userIDs)
 }

@@ -78,7 +78,7 @@ func (rc *Redis) isLock(key string) bool {
 		}
 		if val != key {
 			n, err := rc.do("EXISTS", val+"_lock")
-			if v, ok := n.(int64); (ok && v == 1) || err == nil {
+			if v, ok := n.(int64); (ok && v == 1) || err != nil {
 				return true
 			}
 		}
